@@ -4,12 +4,12 @@ import {
   Building2,
   Calendar,
   Car,
+  CircleParking,
   DoorOpen,
-  Home,
+  House,
   Info,
   Layers,
   MoveVertical,
-  ParkingCircle,
   Ruler,
   Sofa,
   Sparkles,
@@ -33,19 +33,19 @@ const SPEC_ICON_MAP: Record<string, LucideIcon> = {
   number_of_bathrooms: Bath,
   has_elevator: MoveVertical,
   elevator: MoveVertical,
-  parking_spaces: ParkingCircle,
-  parking_area: ParkingCircle,
+  parking_spaces: CircleParking,
+  parking_area: CircleParking,
   parking: Car,
   furnished: Sofa,
   finishing_type: Sparkles,
   year_built: Calendar,
   building_age: Calendar,
   age_of_building: Calendar,
-  usage_type: Home,
-  usage_status: Home,
+  usage_type: House,
+  usage_status: House,
   land_area_sqm: Square,
-  kitchen: Home,
-  balcony: Home,
+  kitchen: House,
+  balcony: House,
   heating: Sparkles,
   maintenance_fee: Info,
   deposit_tl: Info,
@@ -62,7 +62,7 @@ export function getSpecIcon(key: string): LucideIcon {
   if (normalized.includes('bathroom')) return Bath;
   if (normalized.includes('floor')) return Layers;
   if (normalized.includes('elevator')) return MoveVertical;
-  if (normalized.includes('park')) return ParkingCircle;
+  if (normalized.includes('park')) return CircleParking;
   if (normalized.includes('furnish')) return Sofa;
   if (normalized.includes('room')) return DoorOpen;
 

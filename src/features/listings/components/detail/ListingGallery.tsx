@@ -130,22 +130,19 @@ function LightboxViewer({
         </div>
       </div>
 
-      <div className="relative flex flex-1 items-center justify-center overflow-hidden px-4 pb-4">
+      <div className="relative min-h-0 flex-1">
         <div className="absolute inset-y-0 start-2 z-10 flex items-center">
           <CarouselArrow onClick={goPrev} disabled={photos.length < 2} label={t('carousel.prev')} icon={PrevIcon} />
         </div>
 
-        <div
-          onWheel={handleWheel}
-          className="flex h-full w-full items-center justify-center overflow-auto no-scrollbar"
-        >
+        <div onWheel={handleWheel} className="absolute inset-0 overflow-hidden">
           {photo ? (
             // eslint-disable-next-line @next/next/no-img-element
             <img
               src={photo.url}
               alt={title}
               style={{ transform: `scale(${zoom})` }}
-              className="max-h-full max-w-full select-none object-contain transition-transform duration-150"
+              className="h-full w-full origin-center select-none object-cover transition-transform duration-150"
               draggable={false}
             />
           ) : null}
@@ -219,123 +216,123 @@ export function ListingGallery({
 
   return (
     <div className="space-y-3">
-    <div className="w-full overflow-hidden rounded-2xl bg-white shadow-(--shadow-soft) ring-1 ring-gray-100">
-      <div className="relative aspect-[4/3] w-full bg-gray-100">
-        {mode === 'photos' ? (
-          activePhoto ? (
-            <button
-              type="button"
-              onClick={() => setLightboxOpen(true)}
-              className="absolute inset-0 cursor-zoom-in"
-              aria-label={t('detail.gallery.allPhotos')}
-            >
-              <Image
-                src={activePhoto.url}
-                alt={title}
-                fill
-                priority
-                className="object-cover"
-                sizes="(max-width: 1024px) 100vw, 66vw"
-              />
-            </button>
+      <div className="w-full max-w-[538px] mx-auto overflow-hidden rounded-2xl bg-white shadow-(--shadow-soft) ring-1 ring-gray-100">
+        <div className="relative mx-auto aspect-[4/3] w-full bg-gray-100">
+          {mode === 'photos' ? (
+            activePhoto ? (
+              <button
+                type="button"
+                onClick={() => setLightboxOpen(true)}
+                className="absolute inset-0 cursor-zoom-in"
+                aria-label={t('detail.gallery.allPhotos')}
+              >
+                <Image
+                  src={activePhoto.url}
+                  alt={title}
+                  fill
+                  priority
+                  className="object-cover"
+                  sizes="(max-width: 1024px) 100vw, 66vw"
+                />
+              </button>
+            ) : (
+              <div className="flex h-full items-center justify-center text-gray-300">
+                <Building2 className="h-16 w-16" strokeWidth={1.25} />
+              </div>
+            )
           ) : (
-            <div className="flex h-full items-center justify-center text-gray-300">
-              <Building2 className="h-16 w-16" strokeWidth={1.25} />
-            </div>
-          )
-        ) : (
-          <video
-            key={videoUrl ?? undefined}
-            src={videoUrl ?? undefined}
-            poster={videoThumbnail ?? undefined}
-            controls
-            className="h-full w-full object-cover"
-          />
-        )}
-
-        {mode === 'photos' && sortedPhotos.length > 0 ? (
-          <>
-            <span className="pointer-events-none absolute bottom-3 inset-e-3 rounded-md bg-black/60 px-2 py-1 text-xs font-medium text-white">
-              {t('detail.gallery.counter')
-                .replace('{current}', String(activeIndex + 1))
-                .replace('{total}', String(sortedPhotos.length))}
-            </span>
-            <button
-              type="button"
-              onClick={() => setLightboxOpen(true)}
-              className="absolute bottom-3 inset-s-3 flex items-center gap-1.5 rounded-md bg-black/60 px-2.5 py-1 text-xs font-medium text-white transition-colors hover:bg-black/75"
-            >
-              <Maximize className="h-3.5 w-3.5" />
-              {t('detail.gallery.allPhotos')}
-            </button>
-          </>
-        ) : null}
-      </div>
-
-      <div className="flex items-center gap-1 border-b border-gray-100 px-3 py-1">
-        <button
-          type="button"
-          onClick={() => setMode('photos')}
-          className={cn(
-            'flex items-center gap-1.5 px-3 py-2.5 text-sm font-medium transition-colors',
-            mode === 'photos' ? 'text-brand-dark' : 'text-gray-500 hover:text-primary-dark',
+            <video
+              key={videoUrl ?? undefined}
+              src={videoUrl ?? undefined}
+              poster={videoThumbnail ?? undefined}
+              controls
+              className="h-full w-full object-cover"
+            />
           )}
-        >
-          <ImageIcon className="h-4 w-4" />
-          {t('detail.gallery.photosTab')}
-        </button>
-        {videoUrl ? (
+
+          {mode === 'photos' && sortedPhotos.length > 0 ? (
+            <>
+              <span className="pointer-events-none absolute bottom-3 inset-e-3 rounded-md bg-black/60 px-2 py-1 text-xs font-medium text-white">
+                {t('detail.gallery.counter')
+                  .replace('{current}', String(activeIndex + 1))
+                  .replace('{total}', String(sortedPhotos.length))}
+              </span>
+              <button
+                type="button"
+                onClick={() => setLightboxOpen(true)}
+                className="absolute bottom-3 inset-s-3 flex items-center gap-1.5 rounded-md bg-black/60 px-2.5 py-1 text-xs font-medium text-white transition-colors hover:bg-black/75"
+              >
+                <Maximize className="h-3.5 w-3.5" />
+                {t('detail.gallery.allPhotos')}
+              </button>
+            </>
+          ) : null}
+        </div>
+
+        <div className="flex items-center gap-1 border-b border-gray-100 px-3 py-1">
           <button
             type="button"
-            onClick={() => setMode('video')}
+            onClick={() => setMode('photos')}
             className={cn(
               'flex items-center gap-1.5 px-3 py-2.5 text-sm font-medium transition-colors',
-              mode === 'video' ? 'text-brand-dark' : 'text-gray-500 hover:text-primary-dark',
+              mode === 'photos' ? 'text-brand-dark' : 'text-gray-500 hover:text-primary-dark',
             )}
           >
-            <PlayCircle className="h-4 w-4" />
-            {t('detail.gallery.videoTab')}
+            <ImageIcon className="h-4 w-4" />
+            {t('detail.gallery.photosTab')}
           </button>
+          {videoUrl ? (
+            <button
+              type="button"
+              onClick={() => setMode('video')}
+              className={cn(
+                'flex items-center gap-1.5 px-3 py-2.5 text-sm font-medium transition-colors',
+                mode === 'video' ? 'text-brand-dark' : 'text-gray-500 hover:text-primary-dark',
+              )}
+            >
+              <PlayCircle className="h-4 w-4" />
+              {t('detail.gallery.videoTab')}
+            </button>
+          ) : null}
+        </div>
+
+        {mode === 'photos' && sortedPhotos.length > 0 ? (
+          <div className="flex items-center gap-2 p-3">
+            <div
+              ref={scrollRef}
+              onScroll={updateArrows}
+              className="flex flex-1 gap-2 overflow-x-auto no-scrollbar scroll-smooth"
+            >
+              {sortedPhotos.map((photo, i) => (
+                <button
+                  key={photo.url + i}
+                  type="button"
+                  onClick={() => setActiveIndex(i)}
+                  className={cn(
+                    'relative h-16 w-24 shrink-0 overflow-hidden rounded-lg ring-2 transition-all',
+                    i === activeIndex ? 'ring-brand' : 'ring-transparent opacity-80 hover:opacity-100',
+                  )}
+                >
+                  <Image src={photo.url} alt="" fill className="object-cover" sizes="96px" />
+                </button>
+              ))}
+            </div>
+            <div className="flex shrink-0 gap-1.5">
+              <CarouselArrow onClick={() => scroll('prev')} disabled={!canPrev} label={t('carousel.prev')} icon={PrevIcon} />
+              <CarouselArrow onClick={() => scroll('next')} disabled={!canNext} label={t('carousel.next')} icon={NextIcon} />
+            </div>
+          </div>
+        ) : null}
+
+        {lightboxOpen && sortedPhotos.length > 0 ? (
+          <LightboxViewer
+            title={title}
+            photos={sortedPhotos}
+            initialIndex={activeIndex}
+            onClose={() => setLightboxOpen(false)}
+          />
         ) : null}
       </div>
-
-      {mode === 'photos' && sortedPhotos.length > 0 ? (
-        <div className="flex items-center gap-2 p-3">
-          <div
-            ref={scrollRef}
-            onScroll={updateArrows}
-            className="flex flex-1 gap-2 overflow-x-auto no-scrollbar scroll-smooth"
-          >
-            {sortedPhotos.map((photo, i) => (
-              <button
-                key={photo.url + i}
-                type="button"
-                onClick={() => setActiveIndex(i)}
-                className={cn(
-                  'relative h-16 w-24 shrink-0 overflow-hidden rounded-lg ring-2 transition-all',
-                  i === activeIndex ? 'ring-brand' : 'ring-transparent opacity-80 hover:opacity-100',
-                )}
-              >
-                <Image src={photo.url} alt="" fill className="object-cover" sizes="96px" />
-              </button>
-            ))}
-          </div>
-          <div className="flex shrink-0 gap-1.5">
-            <CarouselArrow onClick={() => scroll('prev')} disabled={!canPrev} label={t('carousel.prev')} icon={PrevIcon} />
-            <CarouselArrow onClick={() => scroll('next')} disabled={!canNext} label={t('carousel.next')} icon={NextIcon} />
-          </div>
-        </div>
-      ) : null}
-
-      {lightboxOpen && sortedPhotos.length > 0 ? (
-        <LightboxViewer
-          title={title}
-          photos={sortedPhotos}
-          initialIndex={activeIndex}
-          onClose={() => setLightboxOpen(false)}
-        />
-      ) : null}
-    </div>
 
       <div className="rounded-2xl bg-white p-5 shadow-(--shadow-soft) ring-1 ring-gray-100">
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
@@ -346,14 +343,16 @@ export function ListingGallery({
             label={t('filters.transactionType')}
             value={transactionType.display_name_ar}
           />
+          <SpecTile icon={Building2} label={t('filters.city')} value={cityName} />
+          <SpecTile icon={MapPin} label={t('filters.neighborhood')} value={neighborhoodName} />
           <SpecTile
             icon={Calendar}
             label={t('detail.specs.publishedAt')}
             value={publishedAt ? formatDateTime(publishedAt) : '—'}
+            wide
           />
-          <SpecTile icon={Building2} label={t('filters.city')} value={cityName} />
-          <SpecTile icon={MapPin} label={t('filters.neighborhood')} value={neighborhoodName} />
           <SpecTile icon={MapPinned} label={t('detail.specs.address')} value={address || '—'} wide />
+
         </div>
       </div>
     </div>

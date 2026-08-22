@@ -40,6 +40,56 @@ export const LUCIDE_ICON_ENTRIES: LucideIconEntry[] = Object.entries(icons)
 
 const lucideIconByKey = new Map(LUCIDE_ICON_ENTRIES.map((entry) => [entry.key, entry.Icon]));
 const lucideIconByName = new Map(LUCIDE_ICON_ENTRIES.map((entry) => [entry.lucideName, entry.Icon]));
+const lucideEntryByKey = new Map(LUCIDE_ICON_ENTRIES.map((entry) => [entry.key, entry]));
+
+// Lucide only matches its own literal icon names — plain-language search terms
+// (especially furniture/room vocabulary admins actually type) often have no
+// name overlap at all. This maps common terms to the icon keys they should
+// surface; entries pointing at keys that don't exist in the installed lucide
+// version are harmless no-ops (filtered out at lookup time).
+const SEARCH_SYNONYMS: Record<string, string[]> = {
+  couch: ['sofa'],
+  sofa: ['sofa', 'armchair'],
+  room: ['bed-double', 'door-open', 'house'],
+  bedroom: ['bed-double', 'bed'],
+  livingroom: ['sofa', 'armchair'],
+  chair: ['armchair', 'rocking-chair'],
+  kitchen: ['chef-hat', 'utensils-crossed', 'cooking-pot'],
+  bathroom: ['bath', 'shower-head'],
+  shower: ['shower-head'],
+  tv: ['tv'],
+  television: ['tv'],
+  wifi: ['wifi'],
+  internet: ['wifi'],
+  ac: ['air-vent'],
+  aircon: ['air-vent'],
+  'air-conditioner': ['air-vent'],
+  parking: ['circle-parking', 'car'],
+  garage: ['warehouse', 'car'],
+  pool: ['waves-horizontal'],
+  swimming: ['waves-horizontal'],
+  garden: ['flower', 'trees', 'sprout'],
+  yard: ['trees', 'sprout'],
+  elevator: ['move-vertical'],
+  lift: ['move-vertical'],
+  security: ['shield-check'],
+  guard: ['shield-check'],
+  balcony: ['door-open'],
+  storage: ['archive', 'box'],
+  laundry: ['washing-machine'],
+  fridge: ['refrigerator'],
+  refrigerator: ['refrigerator'],
+  desk: ['lamp-desk'],
+  light: ['lamp', 'lamp-ceiling'],
+  lamp: ['lamp', 'lamp-floor', 'lamp-desk'],
+};
+
+export function getLucideIconEntryByKey(key: string | null | undefined): LucideIconEntry | null {
+  if (!key) return null;
+  const normalized = key.trim();
+  if (!normalized) return null;
+  return lucideEntryByKey.get(normalized) ?? lucideEntryByKey.get(lucideNameToKey(normalized)) ?? null;
+}
 
 export function getLucideIconByKey(key: string | null | undefined): LucideIcon | null {
   if (!key) return null;
@@ -63,8 +113,22 @@ export function searchLucideIcons(query: string, limit = 120): LucideIconEntry[]
     return LUCIDE_ICON_ENTRIES.slice(0, 96);
   }
 
-  const matches = LUCIDE_ICON_ENTRIES.filter((entry) => entry.searchText.includes(trimmed));
-  return matches.slice(0, limit);
+  const directMatches = LUCIDE_ICON_ENTRIES.filter((entry) => entry.searchText.includes(trimmed));
+
+  const synonymEntries = (SEARCH_SYNONYMS[trimmed] ?? [])
+    .map((key) => lucideEntryByKey.get(key))
+    .filter((entry): entry is LucideIconEntry => Boolean(entry));
+
+  const seen = new Set<string>();
+  const combined: LucideIconEntry[] = [];
+  for (const entry of [...synonymEntries, ...directMatches]) {
+    if (!seen.has(entry.key)) {
+      seen.add(entry.key);
+      combined.push(entry);
+    }
+  }
+
+  return combined.slice(0, limit);
 }
 
 export function formatIconKeyLabel(key: string): string {

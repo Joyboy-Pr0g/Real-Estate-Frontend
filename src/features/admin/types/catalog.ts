@@ -2,12 +2,13 @@ import type { PropertySpecSchema } from '@/features/catalog/types/property-subty
 
 export type PropertyTypeStatus = 'active' | 'inactive';
 
-export type TransactionTypeName = 'for_sale' | 'for_rent' | 'with_assets' | 'lease_takeover';
+export type TransactionTypeName = 'for_sale' | 'for_rent' | 'for_rent_with_assets' | 'for_sale_with_assets' | 'lease_takeover';
 
 export const TRANSACTION_TYPE_NAMES: TransactionTypeName[] = [
   'for_sale',
   'for_rent',
-  'with_assets',
+  'for_rent_with_assets',
+  'for_sale_with_assets',
   'lease_takeover',
 ];
 
