@@ -6,6 +6,7 @@ import {
   CarouselSkeleton,
   CitiesCarouselSkeleton,
 } from '@/features/shared/components/LoadingSkeletons';
+import { ScrollToTopButton } from '@/components/ui/scroll-to-top-button';
 
 export default function HomePage() {
   return (
@@ -19,6 +20,7 @@ export default function HomePage() {
       <Suspense fallback={<CitiesCarouselSkeleton />}>
         <ExploreCities />
       </Suspense>
+      <ScrollToTopButton />
     </>
   );
 }

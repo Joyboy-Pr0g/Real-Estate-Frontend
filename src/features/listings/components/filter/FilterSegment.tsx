@@ -1,7 +1,8 @@
 'use client';
 
-import { motion } from 'framer-motion';
-import { LucideIcon } from 'lucide-react';
+import { AnimatePresence, motion } from 'framer-motion';
+import { ChevronDown, ChevronLeft, ChevronRight, type LucideIcon } from 'lucide-react';
+import { useLocale } from '@/lib/i18n/locale-provider';
 import { cn } from '@/lib/utils/cn';
 
 interface FilterSegmentProps {
@@ -168,6 +169,99 @@ export function NeighborhoodChip({ label, selected, onClick }: NeighborhoodChipP
           : 'bg-white text-gray-600 ring-1 ring-gray-200 hover:bg-brand-muted hover:ring-brand/25 hover:text-brand-dark',
       )}
     >
+      {label}
+    </button>
+  );
+}
+
+interface AccordionSectionProps {
+  icon: LucideIcon;
+  label: string;
+  valuePreview?: string;
+  hint: string;
+  active: boolean;
+  onToggle: () => void;
+  children: React.ReactNode;
+}
+
+export function AccordionSection({
+  icon: Icon,
+  label,
+  valuePreview,
+  hint,
+  active,
+  onToggle,
+  children,
+}: AccordionSectionProps) {
+  return (
+    <div className="border-b border-gray-100 last:border-b-0">
+      <button
+        type="button"
+        onClick={onToggle}
+        className="flex w-full items-center justify-between gap-3 px-4 py-3.5 text-start transition-colors hover:bg-gray-50/60"
+      >
+        <span className="flex min-w-0 items-center gap-2.5">
+          <span
+            className={cn(
+              'flex h-8 w-8 shrink-0 items-center justify-center rounded-lg transition-colors',
+              active || valuePreview ? 'bg-brand text-white' : 'bg-brand-muted text-brand',
+            )}
+          >
+            <Icon className="h-4 w-4" />
+          </span>
+          <span className="min-w-0">
+            <span className="block text-xs font-semibold text-primary-dark">{label}</span>
+            <span
+              className={cn(
+                'block truncate text-[11px]',
+                valuePreview ? 'font-medium text-brand-dark' : 'text-gray-400',
+              )}
+            >
+              {valuePreview || hint}
+            </span>
+          </span>
+        </span>
+        <ChevronDown
+          className={cn(
+            'h-4 w-4 shrink-0 text-gray-400 transition-transform duration-200',
+            active && 'rotate-180',
+          )}
+        />
+      </button>
+
+      <AnimatePresence initial={false}>
+        {active ? (
+          <motion.div
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: 'auto', opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            transition={{ duration: 0.22, ease: [0.22, 1, 0.36, 1] }}
+            className="overflow-hidden"
+          >
+            <div className="px-4 pb-4">{children}</div>
+          </motion.div>
+        ) : null}
+      </AnimatePresence>
+    </div>
+  );
+}
+
+interface DrillDownBackProps {
+  label: string;
+  onClick: () => void;
+}
+
+export function DrillDownBack({ label, onClick }: DrillDownBackProps) {
+  const { dir } = useLocale();
+  const BackIcon = dir === 'rtl' ? ChevronRight : ChevronLeft;
+
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className="mb-3 flex items-center gap-1 text-xs font-semibold text-brand-dark transition-colors hover:text-brand-dark/80"
+    >
+      <BackIcon className="h-3.5 w-3.5" />
       {label}
     </button>
   );

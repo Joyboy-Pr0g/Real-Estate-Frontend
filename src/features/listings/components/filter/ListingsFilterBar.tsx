@@ -1,6 +1,7 @@
 'use client';
 
-import { Building2,
+import {
+  Building2,
   KeyRound,
   Loader2,
   MapPin,
@@ -8,21 +9,24 @@ import { Building2,
   SlidersHorizontal,
   Sparkles,
   Wallet,
+  X,
 } from 'lucide-react';
+import { AnimatePresence, motion } from 'framer-motion';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useCallback, useEffect, useMemo, useRef, useState, useTransition } from 'react';
 import { PublicCatalog } from '@/features/catalog/types/catalog';
 import { PublicNeighborhood } from '@/features/catalog/types/neighborhood';
 import { PublicPropertySubtype } from '@/features/catalog/types/property-subtype';
 import { CityPanel } from '@/features/home/components/search/CityPanel';
+import { NeighborhoodPanel } from '@/features/home/components/search/NeighborhoodPanel';
 import { PropertyTypePanel } from '@/features/home/components/search/PropertyTypePanel';
 import { BudgetPanel } from '@/features/home/components/search/BudgetPanel';
 import { LISTING_URL_PARAMS } from '@/features/listings/constants/search-url-params';
 import {
+  DrillDownBack,
   FilterChip,
   FilterExpandPanel,
   FilterSegment,
-  NeighborhoodChip,
   SubtypeChip,
 } from '@/features/listings/components/filter/FilterSegment';
 import { SpecFiltersPanel } from '@/features/listings/components/filter/SpecFiltersPanel';
@@ -40,6 +44,8 @@ import { useLocale } from '@/lib/i18n/locale-provider';
 import { cn } from '@/lib/utils/cn';
 
 type PanelId = 'location' | 'property' | 'transaction' | 'budget';
+type LocationStep = 'city' | 'neighborhood';
+type PropertyStep = 'type' | 'subtype';
 
 interface ListingsFilterBarProps {
   catalog: PublicCatalog;
@@ -63,6 +69,10 @@ export function ListingsFilterBar({
   const [pending, startTransition] = useTransition();
   const [activePanel, setActivePanel] = useState<PanelId | null>(null);
   const [specOpen, setSpecOpen] = useState(false);
+  const [mobileOpen, setMobileOpen] = useState(false);
+
+  const [locationStepOverride, setLocationStepOverride] = useState<LocationStep | null>(null);
+  const [propertyStepOverride, setPropertyStepOverride] = useState<PropertyStep | null>(null);
 
   const currentCity = searchParams.get(LISTING_URL_PARAMS.city) ?? '';
   const currentNeighborhood = (() => {
@@ -147,6 +157,17 @@ export function ListingsFilterBar({
   const togglePanel = (id: PanelId) => {
     setActivePanel((current) => (current === id ? null : id));
   };
+
+  const locationStep: LocationStep = locationStepOverride ?? (selectedCity ? 'neighborhood' : 'city');
+  const propertyStep: PropertyStep = propertyStepOverride ?? (selectedPropertyType ? 'subtype' : 'type');
+
+  useEffect(() => {
+    if (activePanel !== 'location') setLocationStepOverride(null);
+  }, [activePanel]);
+
+  useEffect(() => {
+    if (activePanel !== 'property') setPropertyStepOverride(null);
+  }, [activePanel]);
 
   useEffect(() => {
     if (!activePanel) return;
@@ -266,93 +287,181 @@ export function ListingsFilterBar({
     .filter(Boolean)
     .join(' · ');
 
-  return (
+  const propertyLabel = [selectedPropertyType?.name, selectedSubtype?.name]
+    .filter(Boolean)
+    .join(' · ');
+
+  const transactionLabel = selectedTransaction?.display_name_ar || selectedTransaction?.name || '';
+
+  const filterContent = (
     <>
-      <div
-        ref={barRef}
-        className={cn(
-          'relative overflow-hidden rounded-xl border border-gray-200/70 bg-white shadow-[var(--shadow-soft)]',
-          'ring-1 ring-black/[0.03]',
-          pending && 'opacity-90',
-          className,
-        )}
-      >
-        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_top,rgba(40,177,109,0.06),transparent_55%),radial-gradient(ellipse_at_bottom_right,rgba(40,177,109,0.04),transparent_50%)]" />
-
-        <div className="relative flex items-center justify-between gap-2 border-b border-gray-100/80 px-3 py-2 sm:px-4">
-          <div className="flex items-center gap-2">
-            <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-brand-muted text-brand">
-              <SlidersHorizontal className="h-3.5 w-3.5" strokeWidth={2.2} />
-            </span>
-            <div>
-              <p className="text-xs font-bold text-primary-dark sm:text-sm">{t('filters.title')}</p>
-              <p className="text-[10px] text-gray-500">
-                {activeFilterCount > 0
-                  ? t('filters.refineActive').replace('{count}', String(activeFilterCount))
-                  : t('filters.refineHint')}
-              </p>
-            </div>
-          </div>
-
-          <div className="flex items-center gap-2">
-            {pending ? (
-              <Loader2 className="h-4 w-4 animate-spin text-gray-400" aria-hidden />
-            ) : null}
-            {activeFilterCount > 0 ? (
-              <button
-                type="button"
-                onClick={clearAll}
-                className="inline-flex items-center gap-1.5 rounded-full bg-gray-100/90 px-3 py-1.5 text-xs font-semibold text-gray-600 transition-colors hover:bg-gray-200/90 hover:text-primary-dark"
-              >
-                <RotateCcw className="h-3.5 w-3.5" />
-                {t('filters.clearAll')}
-              </button>
-            ) : null}
+      <div className="relative flex items-center justify-between gap-2 border-b border-gray-100/80 px-4 py-3">
+        <div className="flex items-center gap-2">
+          <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-brand-muted text-brand">
+            <SlidersHorizontal className="h-3.5 w-3.5" strokeWidth={2.2} />
+          </span>
+          <div>
+            <p className="text-sm font-bold text-primary-dark">{t('filters.title')}</p>
+            <p className="text-[11px] text-gray-500">
+              {activeFilterCount > 0
+                ? t('filters.refineActive').replace('{count}', String(activeFilterCount))
+                : t('filters.refineHint')}
+            </p>
           </div>
         </div>
 
-        <div className="relative flex min-h-[3.25rem] divide-x divide-gray-100/90 overflow-x-auto no-scrollbar">
-          <FilterSegment
-            icon={MapPin}
-            label={t('search.where')}
-            value={locationLabel}
-            hint={t('filters.anyLocation')}
-            active={activePanel === 'location'}
-            dimmed={activePanel !== null && activePanel !== 'location'}
-            onClick={() => togglePanel('location')}
-          />
-          <FilterSegment
-            icon={Building2}
-            label={t('search.type')}
-            value={
-              [selectedPropertyType?.name, selectedSubtype?.name].filter(Boolean).join(' · ')
-            }
-            hint={t('filters.anyType')}
-            active={activePanel === 'property'}
-            dimmed={activePanel !== null && activePanel !== 'property'}
-            onClick={() => togglePanel('property')}
-          />
-          <FilterSegment
-            icon={KeyRound}
-            label={t('filters.deal')}
-            value={selectedTransaction?.display_name_ar || selectedTransaction?.name || ''}
-            hint={t('filters.allTransactions')}
-            active={activePanel === 'transaction'}
-            dimmed={activePanel !== null && activePanel !== 'transaction'}
-            onClick={() => togglePanel('transaction')}
-          />
-          <FilterSegment
-            icon={Wallet}
-            label={t('search.budget')}
-            value={budgetLabel}
-            hint={t('filters.anyPrice')}
-            active={activePanel === 'budget'}
-            dimmed={activePanel !== null && activePanel !== 'budget'}
-            onClick={() => togglePanel('budget')}
-          />
+        <div className="flex items-center gap-2">
+          {pending ? <Loader2 className="h-4 w-4 animate-spin text-gray-400" aria-hidden /> : null}
+          {activeFilterCount > 0 ? (
+            <button
+              type="button"
+              onClick={clearAll}
+              className="inline-flex items-center gap-1.5 rounded-full bg-gray-100/90 px-2.5 py-1.5 text-[11px] font-semibold text-gray-600 transition-colors hover:bg-gray-200/90 hover:text-primary-dark"
+            >
+              <RotateCcw className="h-3.5 w-3.5" />
+              {t('filters.clearAll')}
+            </button>
+          ) : null}
         </div>
+      </div>
 
-        <FilterExpandPanel open={activePanel === 'location'} compact>
+      {activeFilterCount > 0 || (selectedSubtype && hasFilterableSpecFields) ? (
+        <div className="flex flex-wrap items-center gap-1.5 border-b border-gray-100/80 bg-gray-50/40 px-4 py-3">
+          <Sparkles className="h-3.5 w-3.5 text-brand/70" aria-hidden />
+
+          {selectedCity ? (
+            <FilterChip
+              label={selectedCity.name}
+              onRemove={() =>
+                pushParams({
+                  [LISTING_URL_PARAMS.city]: null,
+                  [LISTING_URL_PARAMS.neighborhood]: null,
+                })
+              }
+            />
+          ) : null}
+
+          {resolvedNeighborhood && currentNeighborhood ? (
+            <FilterChip
+              label={resolvedNeighborhood.name}
+              onRemove={() => pushParams({ [LISTING_URL_PARAMS.neighborhood]: null })}
+            />
+          ) : null}
+
+          {selectedPropertyType ? (
+            <FilterChip
+              label={selectedPropertyType.name}
+              onRemove={() =>
+                pushParams(
+                  {
+                    [LISTING_URL_PARAMS.propertyType]: null,
+                    [LISTING_URL_PARAMS.propertySubtype]: null,
+                  },
+                  { clearSpec: true },
+                )
+              }
+            />
+          ) : null}
+
+          {selectedSubtype ? (
+            <FilterChip
+              label={selectedSubtype.name}
+              onRemove={() => {
+                const next = new URLSearchParams(searchParamsRef.current.toString());
+                next.delete(LISTING_URL_PARAMS.propertySubtype);
+                clearSpecFromSearchParams(next);
+                next.delete(LISTING_URL_PARAMS.cursor);
+                applySearchParams(next);
+              }}
+            />
+          ) : null}
+
+          {selectedTransaction ? (
+            <FilterChip
+              label={selectedTransaction.display_name_ar || selectedTransaction.name}
+              onRemove={() => pushParams({ [LISTING_URL_PARAMS.transactionType]: null })}
+            />
+          ) : null}
+
+          {budgetLabel ? (
+            <FilterChip
+              label={budgetLabel}
+              onRemove={() => {
+                priceFocusedRef.current = false;
+                setMinPriceInput('');
+                setMaxPriceInput('');
+                pushParams({
+                  [LISTING_URL_PARAMS.minPrice]: null,
+                  [LISTING_URL_PARAMS.maxPrice]: null,
+                });
+              }}
+            />
+          ) : null}
+
+          {selectedSubtype && hasFilterableSpecFields ? (
+            <button
+              type="button"
+              onClick={() => setSpecOpen(true)}
+              className={cn(
+                'inline-flex items-center gap-1.5 rounded-full py-1.5 ps-3 pe-3 text-xs font-semibold transition-all',
+                activeSpecCount > 0
+                  ? 'bg-brand text-white shadow-md shadow-brand/20'
+                  : 'bg-white text-primary-dark ring-1 ring-gray-200 hover:ring-brand/30',
+              )}
+            >
+              <SlidersHorizontal className="h-3.5 w-3.5" />
+              {t('filters.moreOptions')}
+              {activeSpecCount > 0 ? (
+                <span className="inline-flex h-4 min-w-4 items-center justify-center rounded-full bg-white/20 px-1 text-[10px]">
+                  {activeSpecCount}
+                </span>
+              ) : null}
+            </button>
+          ) : null}
+        </div>
+      ) : null}
+
+      <div className="flex flex-wrap divide-x divide-gray-100 rtl:divide-x-reverse sm:flex-nowrap">
+        <FilterSegment
+          icon={MapPin}
+          label={t('search.where')}
+          value={locationLabel}
+          hint={t('filters.anyLocation')}
+          active={activePanel === 'location'}
+          onClick={() => togglePanel('location')}
+          className="min-w-[45%] flex-1 sm:min-w-0"
+        />
+        <FilterSegment
+          icon={Building2}
+          label={t('search.type')}
+          value={propertyLabel}
+          hint={t('filters.anyType')}
+          active={activePanel === 'property'}
+          onClick={() => togglePanel('property')}
+          className="min-w-[45%] flex-1 sm:min-w-0"
+        />
+        <FilterSegment
+          icon={KeyRound}
+          label={t('filters.deal')}
+          value={transactionLabel}
+          hint={t('filters.allTransactions')}
+          active={activePanel === 'transaction'}
+          onClick={() => togglePanel('transaction')}
+          className="min-w-[45%] flex-1 sm:min-w-0"
+        />
+        <FilterSegment
+          icon={Wallet}
+          label={t('search.budget')}
+          value={budgetLabel}
+          hint={t('filters.anyPrice')}
+          active={activePanel === 'budget'}
+          onClick={() => togglePanel('budget')}
+          className="min-w-[45%] flex-1 sm:min-w-0"
+        />
+      </div>
+
+      <FilterExpandPanel open={activePanel === 'location'}>
+        {locationStep === 'city' ? (
           <CityPanel
             compact
             cities={catalog.cities}
@@ -362,43 +471,32 @@ export function ListingsFilterBar({
                 [LISTING_URL_PARAMS.city]: city.pcode,
                 [LISTING_URL_PARAMS.neighborhood]: null,
               });
+              setLocationStepOverride('neighborhood');
             }}
           />
+        ) : (
+          <div>
+            <DrillDownBack
+              label={`${t('filters.changeCity')} · ${selectedCity?.name ?? ''}`}
+              onClick={() => setLocationStepOverride('city')}
+            />
+            <NeighborhoodPanel
+              compact
+              loading={loadingNeighborhoods}
+              neighborhoods={neighborhoods}
+              selectedPcode={currentNeighborhood || null}
+              onSelect={(neighborhood) =>
+                pushParams({
+                  [LISTING_URL_PARAMS.neighborhood]: neighborhood?.neighb_pcode ?? null,
+                })
+              }
+            />
+          </div>
+        )}
+      </FilterExpandPanel>
 
-          {selectedCity ? (
-            <div className="mt-2.5 border-t border-gray-100 pt-2.5">
-                <div className="mb-2 flex items-center justify-between gap-2">
-                  <p className="text-xs font-semibold text-primary-dark">{t('filters.neighborhood')}</p>
-                  {loadingNeighborhoods ? (
-                    <Loader2 className="h-4 w-4 animate-spin text-gray-400" />
-                  ) : null}
-                </div>
-                <div className="flex flex-wrap gap-1.5">
-                  <NeighborhoodChip
-                    label={t('filters.allNeighborhoods')}
-                    selected={!currentNeighborhood}
-                    onClick={() =>
-                      pushParams({ [LISTING_URL_PARAMS.neighborhood]: null })
-                    }
-                  />
-                  {neighborhoods.map((neighborhood) => (
-                    <NeighborhoodChip
-                      key={neighborhood.id}
-                      label={neighborhood.name}
-                      selected={currentNeighborhood === neighborhood.neighb_pcode}
-                      onClick={() =>
-                        pushParams({
-                          [LISTING_URL_PARAMS.neighborhood]: neighborhood.neighb_pcode,
-                        })
-                      }
-                    />
-                  ))}
-                </div>
-              </div>
-            ) : null}
-        </FilterExpandPanel>
-
-        <FilterExpandPanel open={activePanel === 'property'} compact>
+      <FilterExpandPanel open={activePanel === 'property'}>
+        {propertyStep === 'type' ? (
           <PropertyTypePanel
             compact
             propertyTypes={catalog.propertyTypes}
@@ -411,141 +509,24 @@ export function ListingsFilterBar({
                 },
                 { clearSpec: true },
               );
+              setPropertyStepOverride('subtype');
             }}
           />
-
-          {selectedPropertyType ? (
-            <div className="mt-2.5 border-t border-gray-100 pt-2.5">
-                <div className="mb-2 flex items-center justify-between gap-2">
-                  <p className="text-xs font-semibold text-primary-dark">
-                    {t('filters.propertySubtype')}
-                  </p>
-                  {loadingSubtypes ? (
-                    <Loader2 className="h-4 w-4 animate-spin text-gray-400" />
-                  ) : null}
-                </div>
-                <div className="flex flex-wrap gap-1.5">
-                  <SubtypeChip
-                    label={t('filters.allSubtypes')}
-                    selected={!currentPropertySubtype}
-                    onClick={() => {
-                      const next = new URLSearchParams(searchParamsRef.current.toString());
-                      next.delete(LISTING_URL_PARAMS.propertySubtype);
-                      clearSpecFromSearchParams(next);
-                      next.delete(LISTING_URL_PARAMS.cursor);
-                      applySearchParams(next);
-                    }}
-                  />
-                  {propertySubtypes.map((subtype) => (
-                    <SubtypeChip
-                      key={subtype.id}
-                      label={subtype.name}
-                      selected={currentPropertySubtype === subtype.slug}
-                      onClick={() => {
-                        const next = new URLSearchParams(searchParamsRef.current.toString());
-                        next.set(LISTING_URL_PARAMS.propertySubtype, subtype.slug);
-                        clearSpecFromSearchParams(next);
-                        next.delete(LISTING_URL_PARAMS.cursor);
-                        applySearchParams(next);
-                      }}
-                    />
-                  ))}
-                </div>
-              </div>
-            ) : null}
-        </FilterExpandPanel>
-
-        <FilterExpandPanel open={activePanel === 'transaction'} compact>
-          <p className="mb-2 text-xs font-semibold text-primary-dark">{t('filters.transactionType')}</p>
-          <div className="flex flex-wrap gap-1.5">
-            <button
-              type="button"
-              onClick={() =>
-                pushParams({ [LISTING_URL_PARAMS.transactionType]: null })
-              }
-              className={cn(
-                'rounded-lg border px-3 py-1.5 text-xs font-medium transition-all',
-                !currentTransaction
-                  ? 'border-brand bg-brand text-white'
-                  : 'border-gray-200 bg-white text-gray-600 hover:border-brand/30',
-              )}
-            >
-              {t('filters.allTransactions')}
-            </button>
-            {catalog.transactionTypes.map((type) => (
-              <button
-                key={type.id}
-                type="button"
-                onClick={() =>
-                  pushParams({ [LISTING_URL_PARAMS.transactionType]: type.slug })
-                }
-                className={cn(
-                  'rounded-lg border px-3 py-1.5 text-xs font-medium transition-all',
-                  currentTransaction === type.slug
-                    ? 'border-brand bg-brand text-white'
-                    : 'border-gray-200 bg-white text-gray-600 hover:border-brand/30',
-                )}
-              >
-                {type.display_name_ar || type.name}
-              </button>
-            ))}
-          </div>
-        </FilterExpandPanel>
-
-        <FilterExpandPanel open={activePanel === 'budget'} compact>
-          <BudgetPanel
-            compact
-            minPrice={minPriceInput}
-            maxPrice={maxPriceInput}
-            onMinChange={setMinPriceInput}
-            onMaxChange={setMaxPriceInput}
-          />
-        </FilterExpandPanel>
-
-        {activeFilterCount > 0 || (selectedSubtype && hasFilterableSpecFields) ? (
-          <div className="relative flex flex-wrap items-center gap-1.5 border-t border-gray-100/80 bg-gray-50/40 px-3 py-2 sm:px-4">
-            <Sparkles className="h-3.5 w-3.5 text-brand/70" aria-hidden />
-
-            {selectedCity ? (
-              <FilterChip
-                label={selectedCity.name}
-                onRemove={() =>
-                  pushParams({
-                    [LISTING_URL_PARAMS.city]: null,
-                    [LISTING_URL_PARAMS.neighborhood]: null,
-                  })
-                }
-              />
-            ) : null}
-
-            {resolvedNeighborhood && currentNeighborhood ? (
-              <FilterChip
-                label={resolvedNeighborhood.name}
-                onRemove={() =>
-                  pushParams({ [LISTING_URL_PARAMS.neighborhood]: null })
-                }
-              />
-            ) : null}
-
-            {selectedPropertyType ? (
-              <FilterChip
-                label={selectedPropertyType.name}
-                onRemove={() =>
-                  pushParams(
-                    {
-                      [LISTING_URL_PARAMS.propertyType]: null,
-                      [LISTING_URL_PARAMS.propertySubtype]: null,
-                    },
-                    { clearSpec: true },
-                  )
-                }
-              />
-            ) : null}
-
-            {selectedSubtype ? (
-              <FilterChip
-                label={selectedSubtype.name}
-                onRemove={() => {
+        ) : (
+          <div>
+            <DrillDownBack
+              label={`${t('filters.changePropertyType')} · ${selectedPropertyType?.name ?? ''}`}
+              onClick={() => setPropertyStepOverride('type')}
+            />
+            <div className="mb-2 flex items-center justify-between gap-2">
+              <p className="text-xs font-semibold text-primary-dark">{t('filters.propertySubtype')}</p>
+              {loadingSubtypes ? <Loader2 className="h-4 w-4 animate-spin text-gray-400" /> : null}
+            </div>
+            <div className="flex flex-wrap gap-1.5">
+              <SubtypeChip
+                label={t('filters.allSubtypes')}
+                selected={!currentPropertySubtype}
+                onClick={() => {
                   const next = new URLSearchParams(searchParamsRef.current.toString());
                   next.delete(LISTING_URL_PARAMS.propertySubtype);
                   clearSpecFromSearchParams(next);
@@ -553,54 +534,131 @@ export function ListingsFilterBar({
                   applySearchParams(next);
                 }}
               />
-            ) : null}
-
-            {selectedTransaction ? (
-              <FilterChip
-                label={selectedTransaction.display_name_ar || selectedTransaction.name}
-                onRemove={() =>
-                  pushParams({ [LISTING_URL_PARAMS.transactionType]: null })
-                }
-              />
-            ) : null}
-
-            {budgetLabel ? (
-              <FilterChip
-                label={budgetLabel}
-                onRemove={() => {
-                  priceFocusedRef.current = false;
-                  setMinPriceInput('');
-                  setMaxPriceInput('');
-                  pushParams({
-                    [LISTING_URL_PARAMS.minPrice]: null,
-                    [LISTING_URL_PARAMS.maxPrice]: null,
-                  });
-                }}
-              />
-            ) : null}
-
-            {selectedSubtype && hasFilterableSpecFields ? (
-              <button
-                type="button"
-                onClick={() => setSpecOpen(true)}
-                className={cn(
-                  'inline-flex items-center gap-1.5 rounded-full py-1.5 ps-3 pe-3 text-xs font-semibold transition-all',
-                  activeSpecCount > 0
-                    ? 'bg-brand text-white shadow-md shadow-brand/20'
-                    : 'bg-white text-primary-dark ring-1 ring-gray-200 hover:ring-brand/30',
-                )}
-              >
-                <SlidersHorizontal className="h-3.5 w-3.5" />
-                {t('filters.moreOptions')}
-                {activeSpecCount > 0 ? (
-                  <span className="inline-flex h-4 min-w-4 items-center justify-center rounded-full bg-white/20 px-1 text-[10px]">
-                    {activeSpecCount}
-                  </span>
-                ) : null}
-              </button>
-            ) : null}
+              {propertySubtypes.map((subtype) => (
+                <SubtypeChip
+                  key={subtype.id}
+                  label={subtype.name}
+                  selected={currentPropertySubtype === subtype.slug}
+                  onClick={() => {
+                    const next = new URLSearchParams(searchParamsRef.current.toString());
+                    next.set(LISTING_URL_PARAMS.propertySubtype, subtype.slug);
+                    clearSpecFromSearchParams(next);
+                    next.delete(LISTING_URL_PARAMS.cursor);
+                    applySearchParams(next);
+                  }}
+                />
+              ))}
+            </div>
           </div>
-        ) : null}
+        )}
+      </FilterExpandPanel>
+
+      <FilterExpandPanel open={activePanel === 'transaction'}>
+        <div className="flex flex-wrap gap-1.5">
+          <button
+            type="button"
+            onClick={() => pushParams({ [LISTING_URL_PARAMS.transactionType]: null })}
+            className={cn(
+              'rounded-lg border px-3 py-1.5 text-xs font-medium transition-all',
+              !currentTransaction
+                ? 'border-brand bg-brand text-white'
+                : 'border-gray-200 bg-white text-gray-600 hover:border-brand/30',
+            )}
+          >
+            {t('filters.allTransactions')}
+          </button>
+          {catalog.transactionTypes.map((type) => (
+            <button
+              key={type.id}
+              type="button"
+              onClick={() => pushParams({ [LISTING_URL_PARAMS.transactionType]: type.slug })}
+              className={cn(
+                'rounded-lg border px-3 py-1.5 text-xs font-medium transition-all',
+                currentTransaction === type.slug
+                  ? 'border-brand bg-brand text-white'
+                  : 'border-gray-200 bg-white text-gray-600 hover:border-brand/30',
+              )}
+            >
+              {type.display_name_ar || type.name}
+            </button>
+          ))}
+        </div>
+      </FilterExpandPanel>
+
+      <FilterExpandPanel open={activePanel === 'budget'}>
+        <BudgetPanel
+          compact
+          minPrice={minPriceInput}
+          maxPrice={maxPriceInput}
+          onMinChange={setMinPriceInput}
+          onMaxChange={setMaxPriceInput}
+        />
+      </FilterExpandPanel>
+    </>
+  );
+
+  return (
+    <div ref={barRef} className={className}>
+      <div
+        className={cn(
+          'hidden overflow-hidden rounded-2xl border border-gray-200/70 bg-white shadow-[var(--shadow-soft)] ring-1 ring-black/[0.03] lg:block',
+          pending && 'opacity-90',
+        )}
+      >
+        {filterContent}
+      </div>
+
+      <div className="lg:hidden">
+        <button
+          type="button"
+          onClick={() => setMobileOpen(true)}
+          className="flex w-full items-center justify-center gap-2 rounded-xl border border-gray-200 bg-white px-4 py-3 text-sm font-semibold text-primary-dark shadow-[var(--shadow-soft)]"
+        >
+          <SlidersHorizontal className="h-4 w-4 text-brand" />
+          {t('filters.openFilters')}
+          {activeFilterCount > 0 ? (
+            <span className="inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-brand px-1.5 text-[11px] font-bold text-white">
+              {activeFilterCount}
+            </span>
+          ) : null}
+        </button>
+
+        <AnimatePresence>
+          {mobileOpen ? (
+            <>
+              <motion.button
+                type="button"
+                aria-label={t('filters.closeSpec')}
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                onClick={() => setMobileOpen(false)}
+                className="fixed inset-0 z-40 bg-primary-dark/20 backdrop-blur-[2px]"
+              />
+              <motion.div
+                role="dialog"
+                aria-modal="true"
+                initial={{ opacity: 0, y: 16 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: 12 }}
+                transition={{ duration: 0.24, ease: [0.22, 1, 0.36, 1] }}
+                className="fixed inset-x-3 bottom-3 top-16 z-50 flex flex-col overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-[var(--shadow-float)]"
+              >
+                <div className="flex items-center justify-between border-b border-gray-100 px-4 py-3">
+                  <p className="text-sm font-bold text-primary-dark">{t('filters.openFilters')}</p>
+                  <button
+                    type="button"
+                    onClick={() => setMobileOpen(false)}
+                    className="flex h-8 w-8 items-center justify-center rounded-lg text-gray-400 hover:bg-gray-100 hover:text-gray-600"
+                  >
+                    <X className="h-4 w-4" />
+                  </button>
+                </div>
+                <div className="flex-1 overflow-y-auto">{filterContent}</div>
+              </motion.div>
+            </>
+          ) : null}
+        </AnimatePresence>
       </div>
 
       <SpecFiltersPanel
@@ -610,6 +668,6 @@ export function ListingsFilterBar({
         onClose={() => setSpecOpen(false)}
         onApply={applySearchParams}
       />
-    </>
+    </div>
   );
 }

@@ -6,6 +6,7 @@ import { PublicPropertySubtype } from '@/features/catalog/types/property-subtype
 import { ListingsFilterBar } from '@/features/listings/components/filter/ListingsFilterBar';
 import { ListingsInfiniteGrid } from '@/features/listings/components/ListingsInfiniteGrid';
 import { PublicListing } from '@/features/listings/types/listing';
+import { ScrollToTopButton } from '@/components/ui/scroll-to-top-button';
 
 interface ListingsPageViewProps {
   catalog: PublicCatalog;
@@ -28,7 +29,6 @@ export function ListingsPageView({
 }: ListingsPageViewProps) {
   return (
     <div className="space-y-8">
-
       <ListingsFilterBar
         catalog={catalog}
         initialNeighborhoods={initialNeighborhoods}
@@ -40,6 +40,8 @@ export function ListingsPageView({
         initialCursor={nextCursor}
         initialHasMore={hasMore}
       />
+
+      <ScrollToTopButton />
     </div>
   );
 }
