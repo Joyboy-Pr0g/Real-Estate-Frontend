@@ -1,0 +1,16 @@
+
+> real-estate-frontend@0.1.0 dev
+> next dev --port 3001
+
+▲ Next.js 16.3.1 (Turbopack)
+- Local:         http://localhost:3001
+- Network:       http://192.168.1.104:3001
+- Environments: .env.local
+✓ Ready in 1031ms
+✓ Running next.config.ts took 100ms
+
+ GET / 200 in 2.5s (next.js: 596ms, application-code: 1869ms)
+ GET / 200 in 747ms (next.js: 8ms, application-code: 739ms)
+○ Compiling /listings/[id] ...
+ GET /listings/3584897f-5285-4a68-a5d6-f07673d75256 200 in 15.9s (next.js: 13.8s, application-code: 2.1s)
+[?25h

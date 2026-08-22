@@ -12,6 +12,7 @@ export const listingSearchQuerySchema = z.object({
   property_type_id: z.string().uuid().optional(),
   property_subtype_id: z.string().uuid().optional(),
   transaction_type_id: z.string().uuid().optional(),
+  office_id: z.string().uuid().optional(),
   min_price: z.string().optional(),
   max_price: z.string().optional(),
   spec: z.custom<ListingSpecFilters>().optional(),

@@ -1,7 +1,10 @@
 import { serverFetch } from '@/lib/api/server';
 import { appendSpecToSearchParams } from '@/features/listings/lib/spec-url';
 import { backendPaths } from '@/lib/api/endpoints';
+import { ApiError } from '@/lib/errors/api-error';
 import { PublicListing } from '../types/listing';
+import { PublicListingDetail } from '../types/listing-detail';
+import { NearByPointCategory, NearByPointsResult } from '../types/near-by-points';
 import { ListingSearchQuery } from '../schemas/search-schema';
 
 function buildSearchParams(params: ListingSearchQuery): Record<string, string | number> {
@@ -16,6 +19,7 @@ function buildSearchParams(params: ListingSearchQuery): Record<string, string | 
   if (params.property_type_id) out.property_type_id = params.property_type_id;
   if (params.property_subtype_id) out.property_subtype_id = params.property_subtype_id;
   if (params.transaction_type_id) out.transaction_type_id = params.transaction_type_id;
+  if (params.office_id) out.office_id = params.office_id;
   if (params.min_price) out.min_price = params.min_price;
   if (params.max_price) out.max_price = params.max_price;
 
@@ -46,5 +50,31 @@ export const listingService = {
 
   async getFeatured(limit = 8) {
     return this.search({ limit, sort: 'created_at' });
+  },
+
+  async getById(id: string): Promise<PublicListingDetail | null> {
+    try {
+      const response = await serverFetch<PublicListingDetail>(backendPaths.listings.byId(id), {
+        cacheProfile: 'short',
+      });
+      return response.data ?? null;
+    } catch (error) {
+      if (error instanceof ApiError && error.status === 404) return null;
+      throw error;
+    }
+  },
+
+  async getNearByPoints(
+    id: string,
+    params: { category?: NearByPointCategory; radius?: number },
+  ): Promise<NearByPointsResult | null> {
+    const response = await serverFetch<NearByPointsResult>(backendPaths.listings.nearByPoints(id), {
+      cacheProfile: 'short',
+      searchParams: {
+        ...(params.category ? { category: params.category } : {}),
+        ...(params.radius ? { radius: params.radius } : {}),
+      },
+    });
+    return response.data ?? null;
   },
 };

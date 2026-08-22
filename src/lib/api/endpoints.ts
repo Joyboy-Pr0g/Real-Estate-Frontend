@@ -4,6 +4,8 @@ export const backendPaths = {
     byId: (id: string) => `/listings/${id}`,
     nearByPoints: (id: string) => `/listings/${id}/near-by-points`,
     saved: '/listings/saved',
+    save: (id: string) => `/listings/${id}/save`,
+    view: (id: string) => `/listings/${id}/view`,
   },
   cities: {
     public: '/cities/public',
@@ -39,6 +41,7 @@ export const backendPaths = {
     adminById: (id: string) => `/neighborhoods/${id}`,
   },
   features: {
+    public: '/features',
     admin: '/features',
     adminById: (id: string) => `/features/${id}`,
     adminSub: '/features/sub',
@@ -69,6 +72,9 @@ export const backendPaths = {
 export const bffPaths = {
   listings: {
     search: '/api/listings/search',
+    nearByPoints: (id: string) => `/api/listings/${id}/near-by-points`,
+    save: (id: string) => `/api/listings/${id}/save`,
+    view: (id: string) => `/api/listings/${id}/view`,
   },
   cities: {
     public: '/api/cities/public',

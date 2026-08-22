@@ -1,5 +1,6 @@
 import { serverFetch } from '@/lib/api/server';
 import { backendPaths } from '@/lib/api/endpoints';
+import { ApiError } from '@/lib/errors/api-error';
 import {
   PublicCatalog,
   PublicCity,
@@ -46,6 +47,18 @@ export const catalogService = {
       { cacheProfile: 'long' },
     );
     return res.data ?? [];
+  },
+
+  async getPropertySubtypeBySlug(slug: string): Promise<PublicPropertySubtype | null> {
+    try {
+      const res = await serverFetch<PublicPropertySubtype>(backendPaths.propertySubtypes.bySlug(slug), {
+        cacheProfile: 'long',
+      });
+      return res.data ?? null;
+    } catch (error) {
+      if (error instanceof ApiError && error.status === 404) return null;
+      throw error;
+    }
   },
 
   async getPublicCatalog(): Promise<PublicCatalog> {

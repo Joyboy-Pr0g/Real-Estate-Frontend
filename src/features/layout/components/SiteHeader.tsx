@@ -9,6 +9,7 @@ import { ButtonLink } from '@/components/ui/button';
 import { Container } from '@/components/ui/container';
 import { AuthUser } from '@/features/auth/types/user';
 import { UserMenu } from '@/features/layout/components/UserMenu';
+import { useSiteHeaderOverride } from '@/features/layout/context/site-header-override';
 import { useLocale } from '@/lib/i18n/locale-provider';
 import { cn } from '@/lib/utils/cn';
 
@@ -27,14 +28,18 @@ export function SiteHeader({ categoryNav, user = null }: SiteHeaderProps) {
     [0, 32],
     ['none', '0 1px 0 rgba(0,0,0,0.06), 0 8px 32px rgba(15,23,42,0.08)'],
   );
+  const { override, hidden } = useSiteHeaderOverride();
 
   return (
-    <motion.header
-      style={{ boxShadow }}
-      className="sticky top-0 z-50 glass-panel border-b border-gray-200/60"
-    >
+    <>
+      <motion.header
+        style={{ boxShadow }}
+        animate={{ y: hidden ? '-100%' : '0%' }}
+        transition={{ duration: 0.25, ease: 'easeInOut' }}
+        className="sticky top-0 z-50 glass-panel border-b border-gray-200/60"
+      >
       <Container>
-        <div className="flex h-[72px] items-center gap-4 justify-between">
+        <div className="flex h-[68px] items-center gap-4 justify-between">
           <Link href="/" className="flex items-center gap-2.5 shrink-0 group">
             <motion.span
               whileHover={{ scale: 1.05 }}
@@ -128,6 +133,17 @@ export function SiteHeader({ categoryNav, user = null }: SiteHeaderProps) {
           </motion.nav>
         ) : null}
       </Container>
-    </motion.header>
+      </motion.header>
+
+      <motion.div
+        initial={false}
+        animate={{ y: hidden ? '0%' : '-100%' }}
+        transition={{ duration: 0.25, ease: 'easeInOut' }}
+        className="fixed inset-x-0 top-0 z-50 glass-panel border-b border-gray-200/60"
+        aria-hidden={!hidden}
+      >
+        {override}
+      </motion.div>
+    </>
   );
 }
