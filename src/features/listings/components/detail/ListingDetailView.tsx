@@ -47,6 +47,7 @@ export function ListingDetailView({
             <div className="lg:col-span-1">
               <ListingSpecGrid
                 price={listing.price}
+                customId={listing.custom_id}
                 propertyType={listing.property_type}
                 transactionType={listing.transaction_type}
                 publishedAt={listing.published_at}

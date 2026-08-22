@@ -1,7 +1,8 @@
 export const backendPaths = {
   listings: {
     search: '/listings/search',
-    byId: (id: string) => `/listings/${id}`,
+    getBySlug: (slug: string) => `/listings/slug/${slug}`,
+    getById: (id: string) => `/listings/${id}`,
     nearByPoints: (id: string) => `/listings/${id}/near-by-points`,
     saved: '/listings/saved',
     save: (id: string) => `/listings/${id}/save`,

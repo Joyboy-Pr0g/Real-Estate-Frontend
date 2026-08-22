@@ -43,7 +43,7 @@ export function ListingCard({ listing }: ListingCardProps) {
   };
 
   return (
-    <Link href={`/listings/${listing.id}`} className="group block">
+    <Link href={`/listings/${listing.slug}`} className="group block">
       <article>
         {/* Image */}
         <div className="relative aspect-[4/3] overflow-hidden rounded-2xl bg-gray-100 mb-3">

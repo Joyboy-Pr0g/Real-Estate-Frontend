@@ -1,4 +1,4 @@
-import { Building2, Calendar, MapPin, MapPinned } from 'lucide-react';
+import { Building2, Calendar, Hash, MapPin, MapPinned } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 import {
   getPropertyTypeIcon,
@@ -22,6 +22,7 @@ import { cn } from '@/lib/utils/cn';
 
 interface ListingSpecGridProps {
   price: string;
+  customId: number;
   propertyType: PublicListingCatalogItemDetailed;
   transactionType: PublicListingCatalogItemDetailed & { display_name_ar: string };
   publishedAt: string | null;
@@ -68,6 +69,7 @@ function SpecTile({
 
 export async function ListingSpecGrid({
   price,
+  customId,
   propertyType,
   transactionType,
   publishedAt,
@@ -85,34 +87,11 @@ export async function ListingSpecGrid({
   const TransactionTypeIcon = getTransactionTypeIcon(transactionType.icon ?? '');
 
   return (
-    <div className="rounded-2xl bg-white p-5 shadow-[var(--shadow-soft)] ring-1 ring-gray-100">
+    <div className="rounded-2xl bg-white p-5 shadow-(--shadow-soft) ring-1 ring-gray-100">
       <p className="text-2xl font-bold text-primary-dark">{formatPriceYER(price)}</p>
 
       <div className="mt-4 grid grid-cols-2 gap-3">
-        <SpecTile
-          icon={PropertyTypeIcon}
-          label={t('filters.propertyType')}
-          value={propertyType.name}
-        />
-        <SpecTile
-          icon={TransactionTypeIcon}
-          label={t('filters.transactionType')}
-          value={transactionType.display_name_ar}
-        />
-        <SpecTile
-          icon={Calendar}
-          label={t('detail.specs.publishedAt')}
-          wide
-          value={publishedAt ? formatDateTime(publishedAt) : '—'}
-        />
-        <SpecTile icon={Building2} label={t('filters.city')} value={cityName} />
-        <SpecTile icon={MapPin} label={t('filters.neighborhood')} value={neighborhoodName} />
-        <SpecTile
-          icon={MapPinned}
-          label={t('detail.specs.address')}
-          value={address || '—'}
-          wide
-        />
+
       </div>
 
       {entries.length > 0 ? (

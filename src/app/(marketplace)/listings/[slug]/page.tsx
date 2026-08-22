@@ -6,12 +6,12 @@ import { ListingDetailView } from '@/features/listings/components/detail/Listing
 import { getSession } from '@/lib/auth/session';
 
 interface ListingDetailPageProps {
-  params: Promise<{ id: string }>;
+  params: Promise<{ slug: string }>;
 }
 
 export async function generateMetadata({ params }: ListingDetailPageProps): Promise<Metadata> {
-  const { id } = await params;
-  const listing = await listingService.getById(id);
+  const { slug } = await params;
+  const listing = await listingService.getBySlug(slug);
   if (!listing) return {};
 
   return {
@@ -21,8 +21,8 @@ export async function generateMetadata({ params }: ListingDetailPageProps): Prom
 }
 
 export default async function ListingDetailPage({ params }: ListingDetailPageProps) {
-  const { id } = await params;
-  const listing = await listingService.getById(id);
+  const { slug } = await params;
+  const listing = await listingService.getBySlug(slug);
   if (!listing) notFound();
 
   const [mainFeatures, similar, user] = await Promise.all([

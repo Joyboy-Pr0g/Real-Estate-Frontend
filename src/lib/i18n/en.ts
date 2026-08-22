@@ -91,6 +91,7 @@ export const en: Record<TranslationKey, string> = {
   'detail.office.phoneLabel': 'Phone number',
   'detail.office.sendMessage': 'Send message',
   'detail.specs.title': 'Specifications',
+  'detail.specs.listingNumber': 'Listing number',
   'detail.specs.publishedAt': 'Published',
   'detail.specs.address': 'Address',
   'detail.specs.yes': 'Yes',

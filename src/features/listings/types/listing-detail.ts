@@ -56,6 +56,7 @@ export type ListingPropertySpecs = Record<string, string | number | boolean>;
 
 export interface PublicListingDetail {
   id: string;
+  custom_id: number;
   title: string;
   slug: string;
   price: string;

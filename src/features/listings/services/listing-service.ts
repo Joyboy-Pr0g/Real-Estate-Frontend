@@ -54,7 +54,19 @@ export const listingService = {
 
   async getById(id: string): Promise<PublicListingDetail | null> {
     try {
-      const response = await serverFetch<PublicListingDetail>(backendPaths.listings.byId(id), {
+      const response = await serverFetch<PublicListingDetail>(backendPaths.listings.getById(id), {
+        cacheProfile: 'short',
+      });
+      return response.data ?? null;
+    } catch (error) {
+      if (error instanceof ApiError && error.status === 404) return null;
+      throw error;
+    }
+  },
+
+  async getBySlug(slug: string): Promise<PublicListingDetail | null> {
+    try {
+      const response = await serverFetch<PublicListingDetail>(backendPaths.listings.getBySlug(slug), {
         cacheProfile: 'short',
       });
       return response.data ?? null;

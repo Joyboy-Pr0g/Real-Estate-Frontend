@@ -89,6 +89,7 @@ export const ar = {
   'detail.office.phoneLabel': 'رقم الهاتف',
   'detail.office.sendMessage': 'إرسال رسالة',
   'detail.specs.title': 'المواصفات',
+  'detail.specs.listingNumber': 'رقم الإعلان',
   'detail.specs.publishedAt': 'تاريخ النشر',
   'detail.specs.address': 'العنوان',
   'detail.specs.yes': 'نعم',
