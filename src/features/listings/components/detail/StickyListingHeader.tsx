@@ -45,66 +45,68 @@ function CondensedBar({
   const booleanLabels = { yes: t('detail.specs.yes'), no: t('detail.specs.no') };
 
   return (
-    <Container>
-      <div className="flex h-17 items-center justify-between gap-4 py-4">
-        <div className="min-w-0 flex-1">
-          <div className="flex items-center gap-3">
-            <p className="truncate text-sm font-bold text-primary-dark">{title}</p>
-            <SaveButton listingId={listingId} isAuthenticated={isAuthenticated} />
+    <div className="border-b border-gray-200/60 bg-white/85 shadow-[0_12px_28px_-8px_rgba(15,23,42,0.25)] backdrop-blur-md">
+      <Container>
+        <div className="flex h-17 items-center justify-between gap-4 py-4">
+          <div className="min-w-0 flex-1">
+            <div className="flex items-center gap-3">
+              <p className="truncate text-sm font-bold text-primary-dark">{title}</p>
+              <SaveButton listingId={listingId} isAuthenticated={isAuthenticated} />
+            </div>
+
+            <div className="mt-1 flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-gray-600">
+              <span className="flex items-center gap-1.5 font-bold text-brand-dark">
+                <Banknote className="h-4 w-4 shrink-0 text-brand" />
+                {formatPriceYER(price)}
+              </span>
+              <span className="flex items-center gap-1.5 font-medium">
+                <MapPin className="h-4 w-4 shrink-0 text-gray-400" />
+                {neighborhoodName}, {cityName}
+              </span>
+              {highlights.map((key) => {
+                const Icon = getSpecIcon(key);
+                const label = getSpecFieldLabel(key, specSchema);
+                const value = formatSpecDisplayValue(key, specs[key], specSchema, booleanLabels);
+
+                return (
+                  <span
+                    key={key}
+                    className="flex items-center gap-1.5 font-medium"
+                    title={label}
+                  >
+                    <Icon className="h-4 w-4 shrink-0 text-gray-400" />
+                    {value}
+                  </span>
+                );
+              })}
+            </div>
           </div>
 
-          <div className="mt-1 flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-gray-600">
-            <span className="flex items-center gap-1.5 font-bold text-brand-dark">
-              <Banknote className="h-4 w-4 shrink-0 text-brand" />
-              {formatPriceYER(price)}
-            </span>
-            <span className="flex items-center gap-1.5 font-medium">
-              <MapPin className="h-4 w-4 shrink-0 text-gray-400" />
-              {neighborhoodName}, {cityName}
-            </span>
-            {highlights.map((key) => {
-              const Icon = getSpecIcon(key);
-              const label = getSpecFieldLabel(key, specSchema);
-              const value = formatSpecDisplayValue(key, specs[key], specSchema, booleanLabels);
-
-              return (
-                <span
-                  key={key}
-                  className="flex items-center gap-1.5 font-medium"
-                  title={label}
-                >
-                  <Icon className="h-4 w-4 shrink-0 text-gray-400" />
-                  {value}
-                </span>
-              );
-            })}
+          <div className="hidden shrink-0 items-center gap-2.5 rounded-xl bg-gray-50 px-3 py-1.5 sm:flex">
+            <div className="relative h-9 w-9 shrink-0 overflow-hidden rounded-lg bg-gray-100 ring-1 ring-gray-200">
+              {office.office_photo_url ? (
+                <Image src={office.office_photo_url} alt={office.name} fill className="object-cover" sizes="36px" />
+              ) : (
+                <div className="flex h-full items-center justify-center text-gray-300">
+                  <Building2 className="h-4 w-4" />
+                </div>
+              )}
+            </div>
+            <div className="min-w-0">
+              <p className="truncate text-xs font-bold text-primary-dark">{office.name}</p>
+              <a
+                href={`tel:${office.phone_number}`}
+                className="flex items-center gap-1 text-[11px] text-gray-500 hover:text-brand-dark"
+                dir="ltr"
+              >
+                <Phone className="h-2.5 w-2.5" />
+                {office.phone_number}
+              </a>
+            </div>
           </div>
         </div>
-
-        <div className="hidden shrink-0 items-center gap-2.5 rounded-xl bg-gray-50 px-3 py-1.5 sm:flex">
-          <div className="relative h-9 w-9 shrink-0 overflow-hidden rounded-lg bg-gray-100 ring-1 ring-gray-200">
-            {office.office_photo_url ? (
-              <Image src={office.office_photo_url} alt={office.name} fill className="object-cover" sizes="36px" />
-            ) : (
-              <div className="flex h-full items-center justify-center text-gray-300">
-                <Building2 className="h-4 w-4" />
-              </div>
-            )}
-          </div>
-          <div className="min-w-0">
-            <p className="truncate text-xs font-bold text-primary-dark">{office.name}</p>
-            <a
-              href={`tel:${office.phone_number}`}
-              className="flex items-center gap-1 text-[11px] text-gray-500 hover:text-brand-dark"
-              dir="ltr"
-            >
-              <Phone className="h-2.5 w-2.5" />
-              {office.phone_number}
-            </a>
-          </div>
-        </div>
-      </div>
-    </Container>
+      </Container>
+    </div>
   );
 }
 

@@ -4,17 +4,24 @@ import { useEffect, useRef, useState } from 'react';
 import Image from 'next/image';
 import {
   Building2,
+  Calendar,
   ChevronLeft,
   ChevronRight,
+  Hash,
   ImageIcon,
   Maximize,
+  MapPin,
+  MapPinned,
   Minus,
   Plus,
   PlayCircle,
   X,
 } from 'lucide-react';
 import { CarouselArrow } from '@/features/home/components/CarouselArrow';
-import { ListingDetailPhoto } from '@/features/listings/types/listing-detail';
+import { getPropertyTypeIcon, getTransactionTypeIcon } from '@/features/catalog/utils/catalog-icons';
+import { SpecTile } from '@/features/listings/components/detail/SpecTile';
+import { ListingDetailPhoto, PublicListingCatalogItemDetailed } from '@/features/listings/types/listing-detail';
+import { formatDateTime } from '@/lib/utils/format';
 import { useLocale } from '@/lib/i18n/locale-provider';
 import { cn } from '@/lib/utils/cn';
 
@@ -23,6 +30,13 @@ interface ListingGalleryProps {
   photos: ListingDetailPhoto[];
   videoUrl: string | null;
   videoThumbnail: string | null;
+  customId: number;
+  propertyType: PublicListingCatalogItemDetailed;
+  transactionType: PublicListingCatalogItemDetailed & { display_name_ar: string };
+  publishedAt: string | null;
+  cityName: string;
+  neighborhoodName: string;
+  address: string;
 }
 
 type ViewMode = 'photos' | 'video';
@@ -145,9 +159,23 @@ function LightboxViewer({
   );
 }
 
-export function ListingGallery({ title, photos, videoUrl, videoThumbnail }: ListingGalleryProps) {
+export function ListingGallery({
+  title,
+  photos,
+  videoUrl,
+  videoThumbnail,
+  customId,
+  propertyType,
+  transactionType,
+  publishedAt,
+  cityName,
+  neighborhoodName,
+  address,
+}: ListingGalleryProps) {
   const { t, dir } = useLocale();
   const sortedPhotos = [...photos].sort((a, b) => a.order - b.order);
+  const PropertyTypeIcon = getPropertyTypeIcon(propertyType.icon);
+  const TransactionTypeIcon = getTransactionTypeIcon(transactionType.icon ?? '');
   const [mode, setMode] = useState<ViewMode>('photos');
   const [activeIndex, setActiveIndex] = useState(0);
   const [lightboxOpen, setLightboxOpen] = useState(false);
@@ -190,8 +218,9 @@ export function ListingGallery({ title, photos, videoUrl, videoThumbnail }: List
   const activePhoto = sortedPhotos[activeIndex];
 
   return (
-    <div className="overflow-hidden rounded-2xl bg-white shadow-(--shadow-soft) ring-1 ring-gray-100">
-      <div className="relative aspect-16/10 w-full bg-gray-100">
+    <div className="space-y-3">
+    <div className="w-full overflow-hidden rounded-2xl bg-white shadow-(--shadow-soft) ring-1 ring-gray-100">
+      <div className="relative aspect-[4/3] w-full bg-gray-100">
         {mode === 'photos' ? (
           activePhoto ? (
             <button
@@ -306,6 +335,27 @@ export function ListingGallery({ title, photos, videoUrl, videoThumbnail }: List
           onClose={() => setLightboxOpen(false)}
         />
       ) : null}
+    </div>
+
+      <div className="rounded-2xl bg-white p-5 shadow-(--shadow-soft) ring-1 ring-gray-100">
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+          <SpecTile icon={Hash} label={t('detail.specs.listingNumber')} value={String(customId)} />
+          <SpecTile icon={PropertyTypeIcon} label={t('filters.propertyType')} value={propertyType.name} />
+          <SpecTile
+            icon={TransactionTypeIcon}
+            label={t('filters.transactionType')}
+            value={transactionType.display_name_ar}
+          />
+          <SpecTile
+            icon={Calendar}
+            label={t('detail.specs.publishedAt')}
+            value={publishedAt ? formatDateTime(publishedAt) : '—'}
+          />
+          <SpecTile icon={Building2} label={t('filters.city')} value={cityName} />
+          <SpecTile icon={MapPin} label={t('filters.neighborhood')} value={neighborhoodName} />
+          <SpecTile icon={MapPinned} label={t('detail.specs.address')} value={address || '—'} wide />
+        </div>
+      </div>
     </div>
   );
 }

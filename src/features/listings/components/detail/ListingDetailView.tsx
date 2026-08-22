@@ -28,25 +28,19 @@ export function ListingDetailView({
   isAuthenticated,
 }: ListingDetailViewProps) {
   return (
-    <div className="py-6">
+    <div className="py-4">
       <Container>
-        <div className="space-y-4">
+        <div className="space-y-3">
           <ListingBreadcrumb listing={listing} />
           <ListingTitleBar listingId={listing.id} title={listing.title} isAuthenticated={isAuthenticated} />
-          <ListingOfficeCard office={listing.office} />
 
-          <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
-            <div className="lg:col-span-2">
+          <div className="grid grid-cols-1 gap-4 lg:grid-cols-[2fr_1.4fr_1fr]">
+            <div>
               <ListingGallery
                 title={listing.title}
                 photos={listing.photos}
                 videoUrl={listing.video_url}
                 videoThumbnail={listing.video_thumbnail}
-              />
-            </div>
-            <div className="lg:col-span-1">
-              <ListingSpecGrid
-                price={listing.price}
                 customId={listing.custom_id}
                 propertyType={listing.property_type}
                 transactionType={listing.transaction_type}
@@ -54,9 +48,17 @@ export function ListingDetailView({
                 cityName={listing.city.name}
                 neighborhoodName={listing.neighborhood.name}
                 address={listing.address}
+              />
+            </div>
+            <div>
+              <ListingSpecGrid
+                price={listing.price}
                 specs={listing.property_specs}
                 schema={listing.property_subtype.spec_schema}
               />
+            </div>
+            <div>
+              <ListingOfficeCard office={listing.office} />
             </div>
           </div>
 
