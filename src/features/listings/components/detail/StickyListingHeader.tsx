@@ -46,7 +46,13 @@ export function StickyListingHeader(props: StickyListingHeaderProps) {
 
     const observer = new IntersectionObserver(
       ([entry]) => {
-        setOverride(<CondensedBar {...props} />, !entry.isIntersecting);
+        // isIntersecting alone can't tell "not yet scrolled down to the
+        // sentinel" (below the viewport) apart from "scrolled past it"
+        // (above the viewport) — both report isIntersecting: false. Only
+        // the second case should hide the header, so gate on the sentinel's
+        // actual position relative to the sticky header's height (68px).
+        const scrolledPast = entry.boundingClientRect.top < 68;
+        setOverride(<CondensedBar {...props} />, scrolledPast);
       },
       { rootMargin: '-68px 0px 0px 0px' },
     );
