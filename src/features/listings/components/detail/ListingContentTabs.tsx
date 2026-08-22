@@ -21,7 +21,7 @@ export function ListingContentTabs({ details, location }: ListingContentTabsProp
   ];
 
   return (
-    <div className="rounded-2xl bg-white shadow-[var(--shadow-soft)] ring-1 ring-gray-100">
+    <div className="rounded-2xl bg-white shadow-(--shadow-soft) ring-1 ring-gray-100">
       <div className="flex gap-1 border-b border-gray-100 px-4 pt-3">
         {tabs.map((tab) => (
           <button

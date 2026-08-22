@@ -1,7 +1,13 @@
+import { PropertySpecSchema } from '@/features/catalog/types/property-subtype';
+
 export interface PublicListingCatalogItemDetailed {
   name: string;
   icon: string | null;
   slug: string;
+}
+
+export interface PublicListingPropertySubtype extends PublicListingCatalogItemDetailed {
+  spec_schema?: PropertySpecSchema | null;
 }
 
 export interface ListingDetailOffice {
@@ -56,8 +62,8 @@ export interface PublicListingDetail {
   description: string;
   office: ListingDetailOffice;
   property_type: PublicListingCatalogItemDetailed;
-  transaction_type: PublicListingCatalogItemDetailed;
-  property_subtype: PublicListingCatalogItemDetailed;
+  transaction_type: PublicListingCatalogItemDetailed & { display_name_ar: string };
+  property_subtype: PublicListingPropertySubtype;
   city: ListingDetailCity;
   neighborhood: ListingDetailNeighborhood;
   address: string;

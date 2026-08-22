@@ -13,11 +13,9 @@ import { ViewTracker } from '@/features/listings/components/detail/ViewTracker';
 import { PublicListingDetail } from '@/features/listings/types/listing-detail';
 import { PublicMainFeature } from '@/features/catalog/types/feature';
 import { PublicListing } from '@/features/listings/types/listing';
-import { PropertySpecSchema } from '@/features/catalog/types/property-subtype';
 
 interface ListingDetailViewProps {
   listing: PublicListingDetail;
-  specSchema: PropertySpecSchema | null;
   mainFeatures: PublicMainFeature[];
   similarListings: PublicListing[];
   isAuthenticated: boolean;
@@ -25,7 +23,6 @@ interface ListingDetailViewProps {
 
 export function ListingDetailView({
   listing,
-  specSchema,
   mainFeatures,
   similarListings,
   isAuthenticated,
@@ -48,16 +45,30 @@ export function ListingDetailView({
               />
             </div>
             <div className="lg:col-span-1">
-              <ListingSpecGrid price={listing.price} specs={listing.property_specs} schema={specSchema} />
+              <ListingSpecGrid
+                price={listing.price}
+                propertyType={listing.property_type}
+                transactionType={listing.transaction_type}
+                publishedAt={listing.published_at}
+                cityName={listing.city.name}
+                neighborhoodName={listing.neighborhood.name}
+                address={listing.address}
+                specs={listing.property_specs}
+                schema={listing.property_subtype.spec_schema}
+              />
             </div>
           </div>
 
           <StickyListingHeader
+            listingId={listing.id}
             title={listing.title}
             price={listing.price}
             cityName={listing.city.name}
             neighborhoodName={listing.neighborhood.name}
             specs={listing.property_specs}
+            specSchema={listing.property_subtype.spec_schema}
+            office={listing.office}
+            isAuthenticated={isAuthenticated}
           />
 
           <ListingContentTabs
