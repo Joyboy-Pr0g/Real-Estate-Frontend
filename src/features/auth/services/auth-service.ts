@@ -6,6 +6,7 @@ import {
   LoginInput,
   RegisterInput,
   SendCodeInput,
+  UpdateProfileInput,
   VerifyEmailInput,
 } from '@/features/auth/schemas/auth-schemas';
 import { AuthUser, CreateUserPayload, UserRole } from '@/features/auth/types/user';
@@ -39,6 +40,10 @@ export async function logout(): Promise<void> {
 export async function getMe(): Promise<AuthUser> {
   const res = await clientFetch<AuthUser>(bffPaths.auth.me);
   return res.data!;
+}
+
+export async function updateProfile(data: Partial<UpdateProfileInput>): Promise<void> {
+  await clientFetch(bffPaths.auth.me, { method: 'PATCH', body: data });
 }
 
 export async function verifyEmail(data: VerifyEmailInput): Promise<void> {

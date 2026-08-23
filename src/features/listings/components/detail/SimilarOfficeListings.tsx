@@ -10,9 +10,17 @@ import { useLocale } from '@/lib/i18n/locale-provider';
 interface SimilarOfficeListingsProps {
   officeName: string;
   listings: PublicListing[];
+  isAuthenticated?: boolean;
+  savedIds?: string[];
 }
 
-export function SimilarOfficeListings({ officeName, listings }: SimilarOfficeListingsProps) {
+export function SimilarOfficeListings({
+  officeName,
+  listings,
+  isAuthenticated = false,
+  savedIds = [],
+}: SimilarOfficeListingsProps) {
+  const savedSet = new Set(savedIds);
   const { t, dir } = useLocale();
   const scrollRef = useRef<HTMLDivElement>(null);
   const [canPrev, setCanPrev] = useState(false);
@@ -73,7 +81,11 @@ export function SimilarOfficeListings({ officeName, listings }: SimilarOfficeLis
       >
         {listings.map((listing) => (
           <div key={listing.id} className="snap-start shrink-0 w-[280px] sm:w-[300px]">
-            <ListingCard listing={listing} />
+            <ListingCard
+              listing={listing}
+              isAuthenticated={isAuthenticated}
+              initialSaved={savedSet.has(listing.id)}
+            />
           </div>
         ))}
       </div>

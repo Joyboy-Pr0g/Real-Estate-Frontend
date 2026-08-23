@@ -19,6 +19,8 @@ interface ListingDetailViewProps {
   mainFeatures: PublicMainFeature[];
   similarListings: PublicListing[];
   isAuthenticated: boolean;
+  isSaved?: boolean;
+  similarSavedIds?: string[];
 }
 
 export function ListingDetailView({
@@ -26,13 +28,20 @@ export function ListingDetailView({
   mainFeatures,
   similarListings,
   isAuthenticated,
+  isSaved = false,
+  similarSavedIds = [],
 }: ListingDetailViewProps) {
   return (
     <div className="py-4">
       <Container>
         <div className="space-y-3">
           <ListingBreadcrumb listing={listing} />
-          <ListingTitleBar listingId={listing.id} title={listing.title} isAuthenticated={isAuthenticated} />
+          <ListingTitleBar
+            listingId={listing.id}
+            title={listing.title}
+            isAuthenticated={isAuthenticated}
+            initialSaved={isSaved}
+          />
 
           <div className="grid grid-cols-1 gap-4 lg:grid-cols-[2fr_1.4fr_1fr]">
             <div>
@@ -57,8 +66,8 @@ export function ListingDetailView({
                 schema={listing.property_subtype.spec_schema}
               />
             </div>
-            <div>
-              <ListingOfficeCard office={listing.office} />
+            <div className="w-full">
+              <ListingOfficeCard seller={listing.seller} />
             </div>
           </div>
 
@@ -70,8 +79,9 @@ export function ListingDetailView({
             neighborhoodName={listing.neighborhood.name}
             specs={listing.property_specs}
             specSchema={listing.property_subtype.spec_schema}
-            office={listing.office}
+            seller={listing.seller}
             isAuthenticated={isAuthenticated}
+            initialSaved={isSaved}
           />
 
           <ListingContentTabs
@@ -93,7 +103,14 @@ export function ListingDetailView({
             }
           />
 
-          <SimilarOfficeListings officeName={listing.office.name} listings={similarListings} />
+          {listing.seller.type === 'office' ? (
+            <SimilarOfficeListings
+              officeName={listing.seller.name}
+              listings={similarListings}
+              isAuthenticated={isAuthenticated}
+              savedIds={similarSavedIds}
+            />
+          ) : null}
         </div>
       </Container>
 

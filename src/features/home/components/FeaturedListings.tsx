@@ -1,7 +1,9 @@
 import { Container } from '@/components/ui/container';
 import { ListingsCarousel } from '@/features/home/components/ListingsCarousel';
 import { homeListingsService } from '@/features/home/services/home-listings-service';
+import { listingService } from '@/features/listings/services/listing-service';
 import { getServerTranslations } from '@/lib/i18n/server';
+import { getSession } from '@/lib/auth/session';
 import { ApiError } from '@/lib/errors/api-error';
 
 export async function FeaturedListings() {
@@ -19,6 +21,9 @@ export async function FeaturedListings() {
   }
 
   const hasListings = sections.some((section) => section.listings.length > 0);
+  const user = await getSession();
+  const listingIds = sections.flatMap((section) => section.listings.map((listing) => listing.id));
+  const savedIds = user ? await listingService.getSavedListingIds(listingIds) : [];
 
   if (error) {
     return (
@@ -50,6 +55,8 @@ export async function FeaturedListings() {
       title={t('featured.title')}
       subtitle={t('featured.subtitle')}
       viewAllLabel={t('featured.viewAll')}
+      isAuthenticated={Boolean(user)}
+      savedIds={savedIds}
     />
   );
 }

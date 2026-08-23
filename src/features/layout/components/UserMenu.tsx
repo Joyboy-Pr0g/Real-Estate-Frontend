@@ -3,12 +3,10 @@
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import {
-  Building2,
   ChevronDown,
   Globe,
   LayoutDashboard,
   LogOut,
-  Settings,
   User,
   Users,
 } from 'lucide-react';
@@ -30,8 +28,7 @@ interface UserMenuProps {
 
 function getDashboardHref(role: AuthUser['role']) {
   if (role === 'platform_admin') return '/admin';
-  if (role === 'office') return '/offices';
-  return '/listings';
+  return '/dashboard';
 }
 
 export function UserMenu({ user }: UserMenuProps) {
@@ -74,22 +71,6 @@ export function UserMenu({ user }: UserMenuProps) {
             </Link>
           </DropdownMenuItem>
         ) : null}
-
-        {user.role === 'office' ? (
-          <DropdownMenuItem asChild>
-            <Link href="/offices" className="cursor-pointer">
-              <Building2 className="h-4 w-4" />
-              {t('nav.offices')}
-            </Link>
-          </DropdownMenuItem>
-        ) : null}
-
-        <DropdownMenuItem asChild>
-          <Link href="/listings" className="cursor-pointer">
-            <Settings className="h-4 w-4" />
-            {t('nav.listings')}
-          </Link>
-        </DropdownMenuItem>
 
         <DropdownMenuSeparator />
 

@@ -71,7 +71,6 @@ export function AdminNeighborhoodsPanel({
       if (cityId) params.set('city_id', cityId);
       const query = params.toString();
       router.push(query ? `${pathname}?${query}` : pathname);
-      router.refresh();
     },
     [pathname, router],
   );

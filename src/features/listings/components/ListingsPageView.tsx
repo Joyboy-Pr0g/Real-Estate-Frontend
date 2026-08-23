@@ -15,7 +15,8 @@ interface ListingsPageViewProps {
   hasMore: boolean;
   initialNeighborhoods?: PublicNeighborhood[];
   initialPropertySubtypes?: PublicPropertySubtype[];
-  title: string;
+  isAuthenticated?: boolean;
+  initialSavedIds?: string[];
 }
 
 export function ListingsPageView({
@@ -25,7 +26,8 @@ export function ListingsPageView({
   hasMore,
   initialNeighborhoods,
   initialPropertySubtypes,
-  title,
+  isAuthenticated = false,
+  initialSavedIds = [],
 }: ListingsPageViewProps) {
   return (
     <div className="space-y-8">
@@ -39,6 +41,8 @@ export function ListingsPageView({
         initialListings={listings}
         initialCursor={nextCursor}
         initialHasMore={hasMore}
+        isAuthenticated={isAuthenticated}
+        initialSavedIds={initialSavedIds}
       />
 
       <ScrollToTopButton />

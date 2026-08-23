@@ -94,7 +94,6 @@ export function AdminUsersPanel({
       if (deleted) params.set('include_deleted', 'true');
       const query = params.toString();
       router.push(query ? `${pathname}?${query}` : pathname);
-      router.refresh();
     },
     [pathname, router],
   );

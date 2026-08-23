@@ -57,7 +57,6 @@ export function AdminSubFeaturesPanel({
       if (mainFeatureId) params.set('main_feature_id', mainFeatureId);
       const query = params.toString();
       router.push(query ? `${pathname}?${query}` : pathname);
-      router.refresh();
     },
     [pathname, router],
   );

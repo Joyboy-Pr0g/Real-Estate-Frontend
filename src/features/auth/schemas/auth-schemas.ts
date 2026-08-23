@@ -152,6 +152,30 @@ export const sendCodeBodySchema = z.object({
   email: z.string().trim().email(),
 });
 
+export function createUpdateProfileSchema(t: SchemaTranslate) {
+  return z.object({
+    f_name: z.string().trim().min(2, t('validation.firstNameMin')).max(20).optional(),
+    l_name: z.string().trim().min(2, t('validation.lastNameMin')).max(20).optional(),
+    email: z.string().trim().email(t('validation.invalidEmail')).optional(),
+    phone_number: z
+      .string()
+      .trim()
+      .regex(/^\+?[\d\s\-()]+$/, t('validation.invalidPhone'))
+      .min(7, t('validation.invalidPhone'))
+      .max(20)
+      .optional(),
+  });
+}
+
+export type UpdateProfileInput = z.infer<ReturnType<typeof createUpdateProfileSchema>>;
+
+export const updateProfileBodySchema = z.object({
+  f_name: z.string().trim().min(2).max(20).optional(),
+  l_name: z.string().trim().min(2).max(20).optional(),
+  email: z.string().trim().email().optional(),
+  phone_number: z.string().trim().regex(/^\+?[\d\s\-()]+$/).min(7).max(20).optional(),
+});
+
 export const sendRoleBodySchema = z.object({
   role: z.enum(['buyer', 'office']),
 });

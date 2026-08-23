@@ -1,11 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { AUTH_COOKIE_NAME, decodeTokenRole, isPlatformAdminRole } from '@/lib/auth/constants';
 
-export function middleware(request: NextRequest) {
+export function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
   const token = request.cookies.get(AUTH_COOKIE_NAME)?.value;
 
   const isAdminRoute = pathname.startsWith('/admin');
+  const isDashboardRoute = pathname.startsWith('/dashboard');
   const isAuthRoute =
     pathname === '/login' ||
     pathname === '/register' ||
@@ -32,7 +33,7 @@ export function middleware(request: NextRequest) {
     return NextResponse.next();
   }
 
-  if (!isAdminRoute) {
+  if (!isAdminRoute && !isDashboardRoute) {
     return NextResponse.next();
   }
 
@@ -51,8 +52,12 @@ export function middleware(request: NextRequest) {
     return response;
   }
 
-  if (!isPlatformAdminRole(role)) {
+  if (isAdminRoute && !isPlatformAdminRole(role)) {
     return NextResponse.redirect(new URL('/', request.url));
+  }
+
+  if (isDashboardRoute && isPlatformAdminRole(role)) {
+    return NextResponse.redirect(new URL('/admin', request.url));
   }
 
   return NextResponse.next();

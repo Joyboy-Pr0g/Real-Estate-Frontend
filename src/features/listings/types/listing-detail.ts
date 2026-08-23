@@ -18,9 +18,20 @@ export interface ListingDetailOffice {
   city_name: string;
   neighborhood_name: string;
   address: string;
-  office_photo_url: string;
+  photo_url: string;
   verification_status: string;
 }
+
+export interface ListingDetailIndividualLister {
+  id: string;
+  name: string;
+  phone_number: string;
+  verification_status: string;
+}
+
+export type PublicListingSeller =
+  | ({ type: 'office' } & ListingDetailOffice)
+  | ({ type: 'individual' } & ListingDetailIndividualLister);
 
 export interface ListingDetailCity {
   id: string;
@@ -48,11 +59,21 @@ export interface ListingDetailNeighborhood {
 
 export interface ListingDetailPhoto {
   url: string;
+  public_id: string;
   is_main: boolean;
   order: number;
 }
 
 export type ListingPropertySpecs = Record<string, string | number | boolean>;
+
+export interface ListingHistoryEntry {
+  id: string;
+  action: 'sold' | 'rented';
+  price: string;
+  notes: string | null;
+  started_at: string;
+  ended_at: string | null;
+}
 
 export interface PublicListingDetail {
   id: string;
@@ -61,7 +82,7 @@ export interface PublicListingDetail {
   slug: string;
   price: string;
   description: string;
-  office: ListingDetailOffice;
+  seller: PublicListingSeller;
   property_type: PublicListingCatalogItemDetailed;
   transaction_type: PublicListingCatalogItemDetailed & { display_name_ar: string };
   property_subtype: PublicListingPropertySubtype;
@@ -75,9 +96,11 @@ export interface PublicListingDetail {
   published_at: string | null;
   created_at: string;
   updated_at: string;
+  deleted_at: string | null;
   features_ids: string[];
-  histories: unknown[];
+  histories: ListingHistoryEntry[];
   photos: ListingDetailPhoto[];
   video_url: string | null;
+  video_public_id: string | null;
   video_thumbnail: string | null;
 }

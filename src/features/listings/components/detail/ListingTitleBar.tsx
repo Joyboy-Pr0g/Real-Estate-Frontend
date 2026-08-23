@@ -9,9 +9,10 @@ interface ListingTitleBarProps {
   listingId: string;
   title: string;
   isAuthenticated: boolean;
+  initialSaved?: boolean;
 }
 
-export function ListingTitleBar({ listingId, title, isAuthenticated }: ListingTitleBarProps) {
+export function ListingTitleBar({ listingId, title, isAuthenticated, initialSaved = false }: ListingTitleBarProps) {
   const { t } = useLocale();
   const [copied, setCopied] = useState(false);
 
@@ -39,7 +40,7 @@ export function ListingTitleBar({ listingId, title, isAuthenticated }: ListingTi
       <h1 className="text-xl font-bold text-primary-dark sm:text-2xl">{title}</h1>
 
       <div className="flex shrink-0 items-center gap-2">
-        <SaveButton listingId={listingId} isAuthenticated={isAuthenticated} />
+        <SaveButton listingId={listingId} isAuthenticated={isAuthenticated} initialSaved={initialSaved} />
         <button
           type="button"
           onClick={() => window.print()}

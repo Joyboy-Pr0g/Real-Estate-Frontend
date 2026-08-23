@@ -12,12 +12,13 @@ import { cn } from '@/lib/utils/cn';
 interface SaveButtonProps {
   listingId: string;
   isAuthenticated: boolean;
+  initialSaved?: boolean;
 }
 
-export function SaveButton({ listingId, isAuthenticated }: SaveButtonProps) {
+export function SaveButton({ listingId, isAuthenticated, initialSaved = false }: SaveButtonProps) {
   const { t } = useLocale();
   const router = useRouter();
-  const [saved, setSaved] = useState(false);
+  const [saved, setSaved] = useState(initialSaved);
   const [pending, setPending] = useState(false);
 
   const toggleSave = async () => {

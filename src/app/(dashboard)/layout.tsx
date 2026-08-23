@@ -1,0 +1,20 @@
+import { redirect } from 'next/navigation';
+import { DashboardSidebar } from '@/features/dashboard/components/DashboardSidebar';
+import { getSession } from '@/lib/auth/session';
+import { getMyIndividualListerProfile } from '@/features/individual-lister/services/individual-lister-service';
+
+export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
+  const user = await getSession();
+  if (!user) redirect('/login');
+  if (user.role === 'platform_admin') redirect('/admin');
+
+  const individualListerProfile = user.role === 'office' ? null : await getMyIndividualListerProfile();
+  const isVerifiedIndividualLister = individualListerProfile?.verification_status === 'verified';
+
+  return (
+    <div className="flex min-h-screen flex-col bg-gray-50 lg:flex-row">
+      <DashboardSidebar user={user} isVerifiedIndividualLister={isVerifiedIndividualLister} />
+      <main className="min-w-0 flex-1 overflow-auto">{children}</main>
+    </div>
+  );
+}

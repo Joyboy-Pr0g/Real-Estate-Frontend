@@ -24,7 +24,7 @@ export async function proxyToBackend(
     let body: BodyInit | Record<string, unknown> | undefined;
 
     const resolvedMethod = method ?? request.method;
-    if (resolvedMethod !== 'GET' && resolvedMethod !== 'DELETE') {
+    if (resolvedMethod !== 'GET') {
       if (contentType.includes('multipart/form-data')) {
         body = await request.formData();
       } else {

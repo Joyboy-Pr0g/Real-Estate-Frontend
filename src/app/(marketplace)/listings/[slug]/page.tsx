@@ -27,16 +27,25 @@ export default async function ListingDetailPage({ params }: ListingDetailPagePro
 
   const [mainFeatures, similar, user] = await Promise.all([
     featureService.getMainFeatures(),
-    listingService.search({ office_id: listing.office.id, limit: 12 }),
+    listing.seller?.type === 'office'
+      ? listingService.search({ office_id: listing.seller.id, limit: 12 })
+      : Promise.resolve(null),
     getSession(),
   ]);
+
+  const similarListings = similar?.items.filter((item) => item.id !== listing.id) ?? [];
+  const savedIds = user
+    ? await listingService.getSavedListingIds([listing.id, ...similarListings.map((item) => item.id)])
+    : [];
 
   return (
     <ListingDetailView
       listing={listing}
       mainFeatures={mainFeatures}
-      similarListings={similar.items.filter((item) => item.id !== listing.id)}
+      similarListings={similarListings}
       isAuthenticated={Boolean(user)}
+      isSaved={savedIds.includes(listing.id)}
+      similarSavedIds={savedIds}
     />
   );
 }

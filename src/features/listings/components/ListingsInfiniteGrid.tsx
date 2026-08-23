@@ -3,14 +3,18 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { ListingGrid } from '@/features/listings/components/ListingGrid';
+import { checkSavedListingIds } from '@/features/listings/services/listing-client';
 import { PublicListing } from '@/features/listings/types/listing';
 import { bffPaths } from '@/lib/api/endpoints';
 import { useLocale } from '@/lib/i18n/locale-provider';
+import { CarouselSkeleton } from '@/features/shared/components/LoadingSkeletons';
 
 interface ListingsInfiniteGridProps {
   initialListings: PublicListing[];
   initialCursor: string | null;
   initialHasMore: boolean;
+  isAuthenticated?: boolean;
+  initialSavedIds?: string[];
 }
 
 interface SearchApiResponse {
@@ -25,6 +29,8 @@ export function ListingsInfiniteGrid({
   initialListings,
   initialCursor,
   initialHasMore,
+  isAuthenticated = false,
+  initialSavedIds = [],
 }: ListingsInfiniteGridProps) {
   const { t } = useLocale();
   const searchParams = useSearchParams();
@@ -35,6 +41,7 @@ export function ListingsInfiniteGrid({
   const [hasMore, setHasMore] = useState(initialHasMore);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(false);
+  const [savedIds, setSavedIds] = useState(initialSavedIds);
 
   const queryKey = searchParams.toString();
 
@@ -43,6 +50,8 @@ export function ListingsInfiniteGrid({
     setCursor(initialCursor);
     setHasMore(initialHasMore);
     setError(false);
+    setSavedIds(initialSavedIds);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [queryKey, initialListings, initialCursor, initialHasMore]);
 
   const loadMore = useCallback(async () => {
@@ -64,15 +73,22 @@ export function ListingsInfiniteGrid({
         throw new Error(json.message ?? 'Request failed');
       }
 
-      setListings((prev) => [...prev, ...(json.data ?? [])]);
+      const newItems = json.data ?? [];
+      setListings((prev) => [...prev, ...newItems]);
       setCursor(json.next_cursor ?? null);
       setHasMore(json.has_more ?? false);
+
+      if (isAuthenticated && newItems.length > 0) {
+        checkSavedListingIds(newItems.map((item) => item.id))
+          .then((ids) => setSavedIds((prev) => [...prev, ...ids]))
+          .catch(() => {});
+      }
     } catch {
       setError(true);
     } finally {
       setLoading(false);
     }
-  }, [cursor, hasMore, loading, searchParams]);
+  }, [cursor, hasMore, loading, searchParams, isAuthenticated]);
 
   useEffect(() => {
     const node = sentinelRef.current;
@@ -99,11 +115,11 @@ export function ListingsInfiniteGrid({
 
   return (
     <div className="space-y-8">
-      <ListingGrid listings={listings} />
+      <ListingGrid listings={listings} isAuthenticated={isAuthenticated} savedIds={savedIds} />
 
       <div ref={sentinelRef} className="flex min-h-8 items-center justify-center">
         {loading ? (
-          <p className="text-sm text-gray-400">{t('search.loading')}</p>
+          <CarouselSkeleton />
         ) : null}
         {error ? (
           <button

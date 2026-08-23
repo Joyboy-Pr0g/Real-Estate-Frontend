@@ -2,10 +2,23 @@ import { serverFetch } from '@/lib/api/server';
 import { appendSpecToSearchParams } from '@/features/listings/lib/spec-url';
 import { backendPaths } from '@/lib/api/endpoints';
 import { ApiError } from '@/lib/errors/api-error';
-import { PublicListing } from '../types/listing';
+import { getAuthToken } from '@/lib/auth/session';
+import { MyListingReport, PublicListing, SavedListingItem, ViewedListingItem } from '../types/listing';
 import { PublicListingDetail } from '../types/listing-detail';
 import { NearByPointCategory, NearByPointsResult } from '../types/near-by-points';
 import { ListingSearchQuery } from '../schemas/search-schema';
+
+interface CursorParams {
+  cursor?: string;
+  limit?: number;
+}
+
+function buildCursorParams(params: CursorParams): Record<string, string | number> {
+  const out: Record<string, string | number> = {};
+  if (params.cursor) out.cursor = params.cursor;
+  if (params.limit) out.limit = params.limit;
+  return out;
+}
 
 function buildSearchParams(params: ListingSearchQuery): Record<string, string | number> {
   const out: Record<string, string | number> = {
@@ -88,5 +101,125 @@ export const listingService = {
       },
     });
     return response.data ?? null;
+  },
+
+  async getSavedListingIds(listingIds: string[]): Promise<string[]> {
+    if (listingIds.length === 0) return [];
+
+    const token = await getAuthToken();
+    if (!token) return [];
+
+    const response = await serverFetch<string[]>(backendPaths.listings.checkSaved, {
+      token,
+      method: 'POST',
+      cacheProfile: 'none',
+      body: { listing_ids: listingIds },
+    });
+
+    return response.data ?? [];
+  },
+
+  async getMySaved(params: CursorParams = {}) {
+    const token = await getAuthToken();
+    if (!token) return { items: [], next_cursor: null, has_more: false };
+
+    const response = await serverFetch<SavedListingItem[]>(backendPaths.listings.saved, {
+      token,
+      cacheProfile: 'none',
+      searchParams: buildCursorParams(params),
+    });
+
+    return {
+      items: response.data ?? [],
+      next_cursor: response.next_cursor ?? null,
+      has_more: response.has_more ?? false,
+    };
+  },
+
+  async getMyViewHistory(params: CursorParams = {}) {
+    const token = await getAuthToken();
+    if (!token) return { items: [], next_cursor: null, has_more: false };
+
+    const response = await serverFetch<ViewedListingItem[]>(backendPaths.listings.myViewHistory, {
+      token,
+      cacheProfile: 'none',
+      searchParams: buildCursorParams(params),
+    });
+
+    return {
+      items: response.data ?? [],
+      next_cursor: response.next_cursor ?? null,
+      has_more: response.has_more ?? false,
+    };
+  },
+
+  async getMyListingById(id: string): Promise<PublicListingDetail | null> {
+    const token = await getAuthToken();
+    if (!token) return null;
+
+    try {
+      const response = await serverFetch<PublicListingDetail>(backendPaths.listings.mine(id), {
+        token,
+        cacheProfile: 'none',
+      });
+      return response.data ?? null;
+    } catch (error) {
+      if (error instanceof ApiError && (error.status === 404 || error.status === 403)) return null;
+      throw error;
+    }
+  },
+
+  async getMyListings(
+    params: CursorParams & {
+      status?: string;
+      property_type_id?: string;
+      property_subtype_id?: string;
+      transaction_type_id?: string;
+      city_id?: string;
+      neighborhood_id?: string;
+    } = {},
+  ) {
+    const token = await getAuthToken();
+    if (!token) return { items: [], next_cursor: null, has_more: false };
+
+    const response = await serverFetch<PublicListing[]>(backendPaths.listings.myListings, {
+      token,
+      cacheProfile: 'none',
+      searchParams: {
+        ...buildCursorParams(params),
+        ...(params.status ? { status: params.status } : {}),
+        ...(params.property_type_id ? { property_type_id: params.property_type_id } : {}),
+        ...(params.property_subtype_id ? { property_subtype_id: params.property_subtype_id } : {}),
+        ...(params.transaction_type_id ? { transaction_type_id: params.transaction_type_id } : {}),
+        ...(params.city_id ? { city_id: params.city_id } : {}),
+        ...(params.neighborhood_id ? { neighborhood_id: params.neighborhood_id } : {}),
+      },
+    });
+
+    return {
+      items: response.data ?? [],
+      next_cursor: response.next_cursor ?? null,
+      has_more: response.has_more ?? false,
+    };
+  },
+
+  async getMyReports(params: CursorParams & { status?: string } = {}) {
+    const token = await getAuthToken();
+    if (!token) return { items: [], next_cursor: null, has_more: false };
+
+    const response = await serverFetch<MyListingReport[]>(backendPaths.listings.myReports, {
+      token,
+      cacheProfile: 'none',
+      searchParams: {
+        ...buildCursorParams(params),
+        ...(params.status ? { status: params.status } : {}),
+      },
+    });
+
+    return {
+      items: response.data ?? [],
+      next_cursor: response.next_cursor ?? null,
+      has_more: response.has_more ?? false,
+    };
   },
 };

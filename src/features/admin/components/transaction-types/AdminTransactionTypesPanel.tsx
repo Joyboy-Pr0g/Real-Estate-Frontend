@@ -50,7 +50,6 @@ export function AdminTransactionTypesPanel({ initial, initialSearch = '' }: Admi
       if (search.trim()) params.set('search', search.trim());
       const query = params.toString();
       router.push(query ? `${pathname}?${query}` : pathname);
-      router.refresh();
     },
     [pathname, router],
   );

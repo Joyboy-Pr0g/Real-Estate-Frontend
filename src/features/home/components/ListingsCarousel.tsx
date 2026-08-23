@@ -18,14 +18,20 @@ interface ListingsCarouselProps {
   title: string;
   subtitle?: string;
   viewAllLabel?: string;
+  isAuthenticated?: boolean;
+  savedIds?: string[];
 }
 
 function TypeListingsRow({
   section,
   viewAllLabel,
+  isAuthenticated,
+  savedSet,
 }: {
   section: HomePropertyTypeSection;
   viewAllLabel: string;
+  isAuthenticated: boolean;
+  savedSet: Set<string>;
 }) {
   const { t, dir } = useLocale();
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -118,7 +124,11 @@ function TypeListingsRow({
             transition={{ delay: i * 0.06, duration: 0.45 }}
             className="snap-start shrink-0 w-[280px] sm:w-[300px]"
           >
-            <ListingCard listing={listing} />
+            <ListingCard
+              listing={listing}
+              isAuthenticated={isAuthenticated}
+              initialSaved={savedSet.has(listing.id)}
+            />
           </motion.div>
         ))}
       </div>
@@ -131,10 +141,13 @@ export function ListingsCarousel({
   title,
   subtitle,
   viewAllLabel,
+  isAuthenticated = false,
+  savedIds = [],
 }: ListingsCarouselProps) {
   const { t } = useLocale();
   const visibleSections = sections.filter((section) => section.listings.length > 0);
   const resolvedViewAllLabel = viewAllLabel ?? t('featured.viewAll');
+  const savedSet = new Set(savedIds);
 
   if (visibleSections.length === 0) {
     return null;
@@ -156,6 +169,8 @@ export function ListingsCarousel({
               key={section.id}
               section={section}
               viewAllLabel={resolvedViewAllLabel}
+              isAuthenticated={isAuthenticated}
+              savedSet={savedSet}
             />
           ))}
         </div>

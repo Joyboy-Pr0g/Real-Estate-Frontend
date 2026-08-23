@@ -8,6 +8,7 @@ import {
   Building2,
   ChevronsLeft,
   ChevronsRight,
+  Clock,
   Home,
   Landmark,
   Layers,
@@ -35,6 +36,16 @@ const SIDEBAR_COMPACT_KEY = 're-admin-sidebar-compact';
 const navItems = [
   { href: '/admin', labelKey: 'admin.dashboard' as const, icon: LayoutDashboard, exact: true },
   { href: '/admin/users', labelKey: 'admin.users' as const, icon: Users, exact: false },
+  { href: '/admin/offices', labelKey: 'admin.offices' as const, icon: Building2, exact: true },
+  { href: '/admin/offices/pending', labelKey: 'admin.pendingOffices' as const, icon: Clock, exact: false },
+  { href: '/admin/individual-listers', labelKey: 'admin.individualListers' as const, icon: Sparkles, exact: true },
+  {
+    href: '/admin/individual-listers/pending',
+    labelKey: 'admin.pendingIndividualListers' as const,
+    icon: Clock,
+    exact: false,
+  },
+  { href: '/admin/listings', labelKey: 'admin.listings' as const, icon: Home, exact: false },
   { href: '/admin/property-types', labelKey: 'admin.propertyTypes' as const, icon: Home, exact: false },
   { href: '/admin/property-subtypes', labelKey: 'admin.propertySubtypes' as const, icon: Layers, exact: false },
   { href: '/admin/transaction-types', labelKey: 'admin.transactionTypes' as const, icon: ArrowLeftRight, exact: false },
@@ -135,6 +146,7 @@ export function AdminSidebar({ user }: AdminSidebarProps) {
           <Link
             key={href}
             href={href}
+            prefetch={false}
             onClick={() => setOpen(false)}
             title={compact ? label : undefined}
             aria-label={compact ? label : undefined}

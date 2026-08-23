@@ -59,7 +59,6 @@ export function AdminPropertySubtypesPanel({
       if (propertyTypeId) params.set('property_type_id', propertyTypeId);
       const query = params.toString();
       router.push(query ? `${pathname}?${query}` : pathname);
-      router.refresh();
     },
     [pathname, router],
   );
