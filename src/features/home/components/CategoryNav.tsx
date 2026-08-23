@@ -95,7 +95,7 @@ export function CategoryNav({ catalog }: CategoryNavProps) {
           key={key}
           href={href}
           className={cn(
-            'relative flex flex-col items-center gap-1.5 min-w-[68px] max-w-[88px] px-2 py-2 rounded-xl transition-colors shrink-0',
+            'relative flex flex-col items-center gap-1.5 min-w-[60px] max-w-[70px] px-2 py-2 rounded-xl transition-colors shrink-0',
             active ? 'text-primary-dark' : 'text-gray-500 hover:text-brand hover:bg-brand-muted/60',
           )}
         >
