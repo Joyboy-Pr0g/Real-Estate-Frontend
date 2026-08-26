@@ -84,6 +84,11 @@ export function OfficeProfilePanel({ office, myRole, cities, initialNeighborhood
             {t('dashboard.rejectedReason')}: {office.rejected_reason}
           </p>
         ) : null}
+        {office.verification_status === 'suspended' && office.rejected_reason ? (
+          <p className="mt-3 text-sm text-gray-600">
+            {t('dashboard.suspendedReason')}: {office.rejected_reason}
+          </p>
+        ) : null}
 
         <dl className="mt-5 grid gap-4 sm:grid-cols-2">
           <div>

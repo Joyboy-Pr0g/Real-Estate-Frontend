@@ -8,6 +8,7 @@ import { toast } from '@/components/ui/toaster';
 import { getErrorMessage } from '@/lib/errors/api-error';
 import { useLocale } from '@/lib/i18n/locale-provider';
 import { CreateUserPayload, UserRole } from '@/features/auth/types/user';
+import { formatPhoneNumber } from '@/lib/utils/format';
 
 interface CreateUserDialogProps {
   open: boolean;
@@ -28,6 +29,11 @@ export function CreateUserDialog({ open, onClose, onCreated }: CreateUserDialogP
   });
 
   if (!open) return null;
+
+  const handlePhoneNumberChange = (e: ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    setFormData({ ...formData, phone_number: formatPhoneNumber(value) });
+  }
 
   const validateForm = () => {
     if (!formData.f_name) {
@@ -52,31 +58,6 @@ export function CreateUserDialog({ open, onClose, onCreated }: CreateUserDialogP
     }
     return true;
   }
-
-  const handlePhoneNumberChange = (event: ChangeEvent<HTMLInputElement>) => {
-    const cleaned = event.target.value.replace(/\D/g, '');
-
-    if (!cleaned) {
-      setFormData({ ...formData, phone_number: '' });
-      return;
-    }
-
-    const digits = cleaned.startsWith('967') ? cleaned.slice(3) : cleaned;
-
-    const trimmedDigits = digits.slice(0, 9);
-
-    let formatted = '+967';
-    if (trimmedDigits.length > 0) {
-      formatted += ` ${trimmedDigits.slice(0, 3)}`;
-    }
-    if (trimmedDigits.length > 3) {
-      formatted += ` ${trimmedDigits.slice(3, 6)}`;
-    }
-    if (trimmedDigits.length > 6) {
-      formatted += ` ${trimmedDigits.slice(6, 9)}`;
-    }
-    setFormData({ ...formData, phone_number: formatted });
-  };
 
   const resetForm = () => {
     setFormData({
@@ -167,12 +148,14 @@ export function CreateUserDialog({ open, onClose, onCreated }: CreateUserDialogP
             <label className="block space-y-1">
               <span className="text-xs font-medium text-gray-500">{t('admin.phone')}</span>
               <input
-                dir='ltr'
+                dir="ltr"
                 name="phone_number"
+                type="tel"
                 value={formData.phone_number}
                 onChange={handlePhoneNumberChange}
                 required
-                className="h-10 w-full rounded-lg border border-gray-200 px-3 text-sm" />
+                className="h-10 w-full rounded-lg border border-gray-200 px-3 text-sm"
+              />
             </label>
 
             <label className="block space-y-1">

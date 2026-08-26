@@ -43,6 +43,14 @@ export async function hardDeleteListing(id: string): Promise<void> {
   await clientFetch(bffPaths.listings.delete(id), { method: 'DELETE' });
 }
 
+export async function bulkDeleteListings(ids: string[]): Promise<number> {
+  const res = await clientFetch<{ deleted: number }>(bffPaths.admin.listingsBulk, {
+    method: 'DELETE',
+    body: { ids },
+  });
+  return res.data?.deleted ?? 0;
+}
+
 export async function deleteListingImage(id: string, publicId: string): Promise<void> {
   await clientFetch(bffPaths.listings.deleteImage(id), { method: 'DELETE', body: { public_id: publicId } });
 }

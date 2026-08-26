@@ -23,6 +23,9 @@ export const backendPaths = {
     officeAnalytics: (officeId: string) => `/listings/offices/${officeId}/analytics`,
     adminList: '/listings/admin',
     adminDetail: (id: string) => `/listings/admin/${id}`,
+    adminListingActionLogs: (id: string) => `/listings/admin/${id}/action-logs`,
+    listingOfficeActionLogs: (id: string) => `/listings/${id}/office-action-logs`,
+    adminBulk: '/listings/admin/bulk',
     deleteImage: (id: string) => `/listings/${id}/images`,
     deleteImagesBulk: (id: string) => `/listings/${id}/images/bulk`,
     deleteVideo: (id: string) => `/listings/${id}/video`,
@@ -75,6 +78,7 @@ export const backendPaths = {
     list: '/offices',
     byId: (id: string) => `/offices/${id}`,
     update: (id: string) => `/offices/${id}`,
+    resubmit: (id: string) => `/offices/${id}/resubmit`,
     addUser: (id: string) => `/offices/${id}/users`,
     removeUsers: (id: string) => `/offices/${id}/users`,
     verify: (id: string) => `/offices/${id}/verify`,
@@ -84,6 +88,8 @@ export const backendPaths = {
     softDelete: (id: string) => `/offices/${id}/soft-delete`,
     restore: (id: string) => `/offices/${id}/restore`,
     delete: (id: string) => `/offices/${id}`,
+    bulk: '/offices/bulk',
+    userActionLogs: (officeId: string, userId: string) => `/offices/${officeId}/users/${userId}/action-logs`,
   },
   individualListers: {
     my: '/individual-listers/my',
@@ -96,6 +102,7 @@ export const backendPaths = {
     softDelete: (id: string) => `/individual-listers/${id}/soft-delete`,
     restore: (id: string) => `/individual-listers/${id}/restore`,
     delete: (id: string) => `/individual-listers/${id}`,
+    bulk: '/individual-listers/bulk',
   },
   auth: {
     login: '/auth/login',
@@ -115,6 +122,11 @@ export const backendPaths = {
     changeUserPassword: (userId: string) => `/admin/users/${userId}/change-password`,
     softDeleteUser: (userId: string) => `/admin/users/${userId}/soft-delete`,
     restoreUser: (userId: string) => `/admin/users/${userId}/restore`,
+    usersBulk: '/admin/users/bulk',
+    actionLogsLatest: '/admin/action-logs/latest',
+    actionLogsByEntity: (entityId: string) => `/admin/action-logs/entity/${entityId}`,
+    officeActionLogs: '/admin/office-action-logs',
+    officeActionLogsBulk: '/admin/office-action-logs/bulk',
   },
 } as const;
 
@@ -122,6 +134,8 @@ export const bffPaths = {
   offices: {
     create: '/api/offices',
     update: (id: string) => `/api/offices/${id}`,
+    resubmit: (id: string) => `/api/offices/${id}/resubmit`,
+    softDelete: (id: string) => `/api/offices/${id}/soft-delete`,
     users: (id: string) => `/api/offices/${id}/users`,
   },
   individualListers: {
@@ -150,6 +164,7 @@ export const bffPaths = {
     deleteImage: (id: string) => `/api/listings/${id}/images`,
     deleteVideo: (id: string) => `/api/listings/${id}/video`,
     setMainImage: (id: string) => `/api/listings/${id}/images/main`,
+    officeActionLogs: (id: string) => `/api/listings/${id}/office-action-logs`,
   },
   cities: {
     public: '/api/cities/public',
@@ -187,6 +202,12 @@ export const bffPaths = {
     changeUserPassword: (userId: string) => `/api/admin/users/${userId}/change-password`,
     softDeleteUser: (userId: string) => `/api/admin/users/${userId}/soft-delete`,
     restoreUser: (userId: string) => `/api/admin/users/${userId}/restore`,
+    usersBulk: '/api/admin/users/bulk',
+    actionLogsLatest: '/api/admin/action-logs/latest',
+    actionLogsByEntity: (entityId: string) => `/api/admin/action-logs/entity/${entityId}`,
+    officeActionLogs: '/api/admin/office-action-logs',
+    officeActionLogsBulk: '/api/admin/office-action-logs/bulk',
+    listingActionLogs: (id: string) => `/api/admin/listings/${id}/action-logs`,
     propertyTypes: '/api/admin/property-types',
     propertyTypeById: (id: string) => `/api/admin/property-types/${id}`,
     activatePropertyType: (id: string) => `/api/admin/property-types/${id}/activate`,
@@ -213,6 +234,7 @@ export const bffPaths = {
     officeSoftDelete: (id: string) => `/api/admin/offices/${id}/soft-delete`,
     officeRestore: (id: string) => `/api/admin/offices/${id}/restore`,
     officeUsers: (id: string) => `/api/admin/offices/${id}/users`,
+    officesBulk: '/api/admin/offices/bulk',
     individualListers: '/api/admin/individual-listers',
     individualListerVerify: (id: string) => `/api/admin/individual-listers/${id}/verify`,
     individualListerReject: (id: string) => `/api/admin/individual-listers/${id}/reject`,
@@ -222,5 +244,6 @@ export const bffPaths = {
     individualListerRestore: (id: string) => `/api/admin/individual-listers/${id}/restore`,
     individualListerById: (id: string) => `/api/admin/individual-listers/${id}`,
     listings: '/api/admin/listings',
+    listingsBulk: '/api/admin/listings/bulk',
   },
 } as const;

@@ -22,6 +22,11 @@ export interface PublicListing {
   created_at: string;
 }
 
+export interface MyListingSummary extends PublicListing {
+  view_count: number;
+  save_count: number;
+}
+
 export interface ListingSearchResult {
   items: PublicListing[];
   next_cursor: string | null;

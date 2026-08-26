@@ -9,11 +9,19 @@ interface RejectReasonModalProps {
   open: boolean;
   title: string;
   loading?: boolean;
+  confirmLabel?: string;
   onConfirm: (reason: string) => void;
   onCancel: () => void;
 }
 
-export function RejectReasonModal({ open, title, loading = false, onConfirm, onCancel }: RejectReasonModalProps) {
+export function RejectReasonModal({
+  open,
+  title,
+  loading = false,
+  confirmLabel,
+  onConfirm,
+  onCancel,
+}: RejectReasonModalProps) {
   const { t } = useLocale();
   const [reason, setReason] = useState('');
 
@@ -46,7 +54,7 @@ export function RejectReasonModal({ open, title, loading = false, onConfirm, onC
           </Button>
           <Button type="button" onClick={handleConfirm} disabled={loading || reason.trim().length < 2} variant="danger">
             {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
-            {t('admin.reject')}
+            {confirmLabel ?? t('admin.reject')}
           </Button>
         </div>
       </div>

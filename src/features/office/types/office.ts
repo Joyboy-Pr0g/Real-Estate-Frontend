@@ -13,6 +13,7 @@ export interface MyOffice {
   phone_number: string;
   email: string;
   address: string;
+  office_photo_url: string;
   verification_status: OfficeVerificationStatus;
   rejected_reason: string | null;
   city: { id: string; name: string };

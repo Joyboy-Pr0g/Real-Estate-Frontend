@@ -1,9 +1,10 @@
+import { OfficeActionLogEntry } from '@/features/admin/types/action-logs';
 import { serverFetch } from '@/lib/api/server';
 import { appendSpecToSearchParams } from '@/features/listings/lib/spec-url';
 import { backendPaths } from '@/lib/api/endpoints';
 import { ApiError } from '@/lib/errors/api-error';
 import { getAuthToken } from '@/lib/auth/session';
-import { MyListingReport, PublicListing, SavedListingItem, ViewedListingItem } from '../types/listing';
+import { MyListingReport, MyListingSummary, PublicListing, SavedListingItem, ViewedListingItem } from '../types/listing';
 import { PublicListingDetail } from '../types/listing-detail';
 import { NearByPointCategory, NearByPointsResult } from '../types/near-by-points';
 import { ListingSearchQuery } from '../schemas/search-schema';
@@ -172,27 +173,31 @@ export const listingService = {
   async getMyListings(
     params: CursorParams & {
       status?: string;
+      search?: string;
       property_type_id?: string;
       property_subtype_id?: string;
       transaction_type_id?: string;
       city_id?: string;
       neighborhood_id?: string;
+      office_id?: string;
     } = {},
   ) {
     const token = await getAuthToken();
     if (!token) return { items: [], next_cursor: null, has_more: false };
 
-    const response = await serverFetch<PublicListing[]>(backendPaths.listings.myListings, {
+    const response = await serverFetch<MyListingSummary[]>(backendPaths.listings.myListings, {
       token,
       cacheProfile: 'none',
       searchParams: {
         ...buildCursorParams(params),
         ...(params.status ? { status: params.status } : {}),
+        ...(params.search ? { search: params.search } : {}),
         ...(params.property_type_id ? { property_type_id: params.property_type_id } : {}),
         ...(params.property_subtype_id ? { property_subtype_id: params.property_subtype_id } : {}),
         ...(params.transaction_type_id ? { transaction_type_id: params.transaction_type_id } : {}),
         ...(params.city_id ? { city_id: params.city_id } : {}),
         ...(params.neighborhood_id ? { neighborhood_id: params.neighborhood_id } : {}),
+        ...(params.office_id ? { office_id: params.office_id } : {}),
       },
     });
 
@@ -221,5 +226,32 @@ export const listingService = {
       next_cursor: response.next_cursor ?? null,
       has_more: response.has_more ?? false,
     };
+  },
+
+  async getListingOfficeActionLogs(listingId: string, params: { cursor?: string; limit?: number } = {}) {
+    const token = await getAuthToken();
+    if (!token) return { items: [], next_cursor: null, has_more: false };
+
+    try {
+      const response = await serverFetch<OfficeActionLogEntry[]>(
+        backendPaths.listings.listingOfficeActionLogs(listingId),
+        {
+          token,
+          cacheProfile: 'none',
+          searchParams: {
+            cursor: params.cursor,
+            limit: params.limit ?? 20,
+          },
+        },
+      );
+
+      return {
+        items: response.data ?? [],
+        next_cursor: response.next_cursor ?? null,
+        has_more: response.has_more ?? false,
+      };
+    } catch {
+      return { items: [], next_cursor: null, has_more: false };
+    }
   },
 };

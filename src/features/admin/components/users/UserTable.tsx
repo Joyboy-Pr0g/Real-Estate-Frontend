@@ -16,6 +16,9 @@ const roleKeys: Record<UserRole, TranslationKey> = {
 interface UserTableProps {
   users: AdminUserListItem[];
   actionUserId: string | null;
+  selectedIds?: Set<string>;
+  onToggleSelect?: (userId: string) => void;
+  onToggleSelectAll?: () => void;
   onActivate: (userId: string) => void;
   onDeactivate: (userId: string) => void;
   onChangeRole: (user: AdminUserListItem) => void;
@@ -28,6 +31,9 @@ interface UserTableProps {
 export function UserTable({
   users,
   actionUserId,
+  selectedIds,
+  onToggleSelect,
+  onToggleSelectAll,
   onActivate,
   onDeactivate,
   onChangeRole,
@@ -37,6 +43,7 @@ export function UserTable({
   onHardDelete,
 }: UserTableProps) {
   const { t } = useLocale();
+  const selectable = Boolean(selectedIds && onToggleSelect && onToggleSelectAll);
 
   const statusLabel = (user: AdminUserListItem) => {
     if (user.deleted_at) return t('admin.status.soft_deleted');
@@ -49,6 +56,17 @@ export function UserTable({
         <table className="w-full text-sm">
           <thead>
             <tr className="border-b border-gray-100 bg-gray-50/80 text-start">
+              {selectable ? (
+                <th className="w-10 px-4 py-4">
+                  <input
+                    type="checkbox"
+                    checked={users.length > 0 && selectedIds!.size === users.length}
+                    onChange={onToggleSelectAll}
+                    className="h-4 w-4 rounded border-gray-300"
+                    aria-label={t('admin.selectAll')}
+                  />
+                </th>
+              ) : null}
               <th className="px-5 py-4 font-semibold text-gray-600">{t('admin.userName')}</th>
               <th className="px-5 py-4 font-semibold text-gray-600">{t('admin.userEmail')}</th>
               <th className="px-5 py-4 font-semibold text-gray-600">{t('admin.userPhone')}</th>
@@ -61,6 +79,17 @@ export function UserTable({
           <tbody>
             {users.map((user) => (
               <tr key={user.id} className="border-b border-gray-50 last:border-0 hover:bg-gray-50/60">
+                {selectable ? (
+                  <td className="px-4 py-4">
+                    <input
+                      type="checkbox"
+                      checked={selectedIds!.has(user.id)}
+                      onChange={() => onToggleSelect!(user.id)}
+                      className="h-4 w-4 rounded border-gray-300"
+                      aria-label={`${user.f_name} ${user.l_name}`.trim()}
+                    />
+                  </td>
+                ) : null}
                 <td className="px-5 py-4">
                   <p className="font-semibold text-primary-dark">
                     {user.f_name} {user.l_name}

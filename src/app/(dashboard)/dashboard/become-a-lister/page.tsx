@@ -23,10 +23,7 @@ export default async function BecomeAListerPage() {
   return (
     <Container className="py-8">
       <h1 className="text-2xl font-bold text-primary-dark">{t('dashboard.becomeALister')}</h1>
-
-      <div className="mt-6">
-        <BecomeAListerPanel individualProfile={individualProfile} offices={offices} cities={cities} />
-      </div>
+      <BecomeAListerPanel individualProfile={individualProfile} offices={offices} cities={cities} />
     </Container>
   );
 }

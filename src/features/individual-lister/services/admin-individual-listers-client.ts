@@ -43,8 +43,8 @@ export async function rejectIndividualLister(id: string, reason: string): Promis
   await clientFetch(bffPaths.admin.individualListerReject(id), { method: 'PATCH', body: { reason } });
 }
 
-export async function suspendIndividualLister(id: string): Promise<void> {
-  await clientFetch(bffPaths.admin.individualListerSuspend(id), { method: 'PATCH' });
+export async function suspendIndividualLister(id: string, reason: string): Promise<void> {
+  await clientFetch(bffPaths.admin.individualListerSuspend(id), { method: 'PATCH', body: { reason } });
 }
 
 export async function unsuspendIndividualLister(id: string): Promise<void> {

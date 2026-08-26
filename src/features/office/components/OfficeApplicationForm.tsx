@@ -1,10 +1,10 @@
 'use client';
 
-import { FormEvent, useEffect, useState } from 'react';
+import { ChangeEvent, FormEvent, useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { toast } from '@/components/ui/toaster';
-import { applyAsOffice } from '@/features/office/services/office-client';
+import { applyAsOffice, resubmitOffice } from '@/features/office/services/office-client';
 import { MyOffice } from '@/features/office/types/office';
 import { PublicCity } from '@/features/catalog/types/catalog';
 import { PublicNeighborhood } from '@/features/catalog/types/neighborhood';
@@ -12,11 +12,14 @@ import { clientFetch } from '@/lib/api/client';
 import { bffPaths } from '@/lib/api/endpoints';
 import { getErrorMessage } from '@/lib/errors/api-error';
 import { useLocale } from '@/lib/i18n/locale-provider';
+import { FileUploadField } from '@/components/ui/file-upload-field';
+import { formatPhoneNumber } from '@/lib/utils/format';
 
 interface OfficeApplicationFormProps {
   cities: PublicCity[];
   existingOffice?: MyOffice | null;
   onCancel: () => void;
+  onSuccess?: () => void;
 }
 
 interface FileFields {
@@ -28,10 +31,8 @@ interface FileFields {
 
 const fieldClass =
   'h-11 w-full rounded-xl border border-gray-200 bg-gray-50 px-4 text-sm outline-none focus:border-brand/40 focus:bg-white';
-const fileClass =
-  'block w-full text-sm text-gray-600 file:me-3 file:rounded-lg file:border-0 file:bg-brand-muted file:px-3 file:py-2 file:text-sm file:font-medium file:text-brand-dark';
 
-export function OfficeApplicationForm({ cities, existingOffice, onCancel }: OfficeApplicationFormProps) {
+export function OfficeApplicationForm({ cities, existingOffice, onCancel, onSuccess }: OfficeApplicationFormProps) {
   const { t } = useLocale();
   const router = useRouter();
   const [name, setName] = useState(existingOffice?.name ?? '');
@@ -89,6 +90,11 @@ export function OfficeApplicationForm({ cities, existingOffice, onCancel }: Offi
     }
   };
 
+  const handlePhoneNumberChange = (e: ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    setPhoneNumber(formatPhoneNumber(value));
+  }
+
   const handleSubmit = async (event: FormEvent) => {
     event.preventDefault();
 
@@ -111,8 +117,13 @@ export function OfficeApplicationForm({ cities, existingOffice, onCancel }: Offi
       formData.append('commercial_license', files.commercial_license);
       formData.append('office_license', files.office_license);
 
-      await applyAsOffice(formData);
+      if (existingOffice) {
+        await resubmitOffice(existingOffice.id, formData);
+      } else {
+        await applyAsOffice(formData);
+      }
       toast.success(t('dashboard.applicationSubmitted'));
+      onSuccess?.();
       router.refresh();
     } catch (err) {
       toast.error(getErrorMessage(err));
@@ -134,8 +145,9 @@ export function OfficeApplicationForm({ cities, existingOffice, onCancel }: Offi
           <input
             required
             type="tel"
+            dir="ltr"
             value={phoneNumber}
-            onChange={(e) => setPhoneNumber(e.target.value)}
+            onChange={handlePhoneNumberChange}
             className={fieldClass}
           />
         </label>
@@ -193,46 +205,34 @@ export function OfficeApplicationForm({ cities, existingOffice, onCancel }: Offi
       </label>
 
       <div className="grid gap-4 sm:grid-cols-2">
-        <label className="block space-y-1.5">
-          <span className="text-sm font-medium text-primary-dark">{t('dashboard.office.idImage')}</span>
-          <input
-            type="file"
-            accept="image/jpeg,image/png,image/webp,application/pdf"
-            required
-            onChange={(e) => setFiles((f) => ({ ...f, id_image: e.target.files?.[0] ?? null }))}
-            className={fileClass}
-          />
-        </label>
-        <label className="block space-y-1.5">
-          <span className="text-sm font-medium text-primary-dark">{t('dashboard.office.officePhoto')}</span>
-          <input
-            type="file"
-            accept="image/jpeg,image/png,image/webp"
-            required
-            onChange={(e) => setFiles((f) => ({ ...f, office_photo: e.target.files?.[0] ?? null }))}
-            className={fileClass}
-          />
-        </label>
-        <label className="block space-y-1.5">
-          <span className="text-sm font-medium text-primary-dark">{t('dashboard.office.commercialLicense')}</span>
-          <input
-            type="file"
-            accept="image/jpeg,image/png,image/webp,application/pdf"
-            required
-            onChange={(e) => setFiles((f) => ({ ...f, commercial_license: e.target.files?.[0] ?? null }))}
-            className={fileClass}
-          />
-        </label>
-        <label className="block space-y-1.5">
-          <span className="text-sm font-medium text-primary-dark">{t('dashboard.office.officeLicense')}</span>
-          <input
-            type="file"
-            accept="image/jpeg,image/png,image/webp,application/pdf"
-            required
-            onChange={(e) => setFiles((f) => ({ ...f, office_license: e.target.files?.[0] ?? null }))}
-            className={fileClass}
-          />
-        </label>
+        <FileUploadField
+          label={t('dashboard.office.idImage')}
+          accept="image/jpeg,image/png,image/webp,application/pdf"
+          required
+          value={files.id_image}
+          onChange={(file) => setFiles((f) => ({ ...f, id_image: file }))}
+        />
+        <FileUploadField
+          label={t('dashboard.office.officePhoto')}
+          accept="image/jpeg,image/png,image/webp"
+          required
+          value={files.office_photo}
+          onChange={(file) => setFiles((f) => ({ ...f, office_photo: file }))}
+        />
+        <FileUploadField
+          label={t('dashboard.office.commercialLicense')}
+          accept="image/jpeg,image/png,image/webp,application/pdf"
+          required
+          value={files.commercial_license}
+          onChange={(file) => setFiles((f) => ({ ...f, commercial_license: file }))}
+        />
+        <FileUploadField
+          label={t('dashboard.office.officeLicense')}
+          accept="image/jpeg,image/png,image/webp,application/pdf"
+          required
+          value={files.office_license}
+          onChange={(file) => setFiles((f) => ({ ...f, office_license: file }))}
+        />
       </div>
 
       <div className="flex justify-end gap-2">

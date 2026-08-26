@@ -41,7 +41,6 @@ export function ProfileSettingsPanel({ user }: ProfileSettingsPanelProps) {
     () => ({
       f_name: user.f_name,
       l_name: user.l_name,
-      email: user.email,
       phone_number: user.phone_number,
     }),
     [user],
@@ -51,12 +50,12 @@ export function ProfileSettingsPanel({ user }: ProfileSettingsPanelProps) {
     register: registerProfile,
     handleSubmit: handleProfileSubmit,
     formState: { errors: profileErrors, isSubmitting: isProfileSubmitting },
-  } = useForm<UpdateProfileInput>({
-    resolver: zodResolver(profileSchema),
+  } = useForm<Pick<UpdateProfileInput, 'f_name' | 'l_name' | 'phone_number'>>({
+    resolver: zodResolver(profileSchema.pick({ f_name: true, l_name: true, phone_number: true })),
     defaultValues: original,
   });
 
-  const onProfileSubmit = async (values: UpdateProfileInput) => {
+  const onProfileSubmit = async (values: Pick<UpdateProfileInput, 'f_name' | 'l_name' | 'phone_number'>) => {
     const patch = buildPartialUpdate(values, original);
 
     if (!hasPartialChanges(patch)) {
@@ -132,11 +131,12 @@ export function ProfileSettingsPanel({ user }: ProfileSettingsPanelProps) {
             <input
               id="email"
               type="email"
-              autoComplete="email"
-              className={cn(fieldClassName, profileErrors.email && 'border-red-300')}
-              {...registerProfile('email')}
+              value={user.email}
+              readOnly
+              disabled
+              tabIndex={-1}
+              className={cn(fieldClassName, 'cursor-not-allowed bg-gray-100 text-gray-500')}
             />
-            <FieldError message={profileErrors.email?.message} />
           </div>
 
           <div className="space-y-1.5">

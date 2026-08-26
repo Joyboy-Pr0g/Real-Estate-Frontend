@@ -13,8 +13,6 @@ interface ListingsInfiniteGridProps {
   initialListings: PublicListing[];
   initialCursor: string | null;
   initialHasMore: boolean;
-  isAuthenticated?: boolean;
-  initialSavedIds?: string[];
 }
 
 interface SearchApiResponse {
@@ -29,8 +27,6 @@ export function ListingsInfiniteGrid({
   initialListings,
   initialCursor,
   initialHasMore,
-  isAuthenticated = false,
-  initialSavedIds = [],
 }: ListingsInfiniteGridProps) {
   const { t } = useLocale();
   const searchParams = useSearchParams();
@@ -41,7 +37,6 @@ export function ListingsInfiniteGrid({
   const [hasMore, setHasMore] = useState(initialHasMore);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(false);
-  const [savedIds, setSavedIds] = useState(initialSavedIds);
 
   const queryKey = searchParams.toString();
 
@@ -50,8 +45,6 @@ export function ListingsInfiniteGrid({
     setCursor(initialCursor);
     setHasMore(initialHasMore);
     setError(false);
-    setSavedIds(initialSavedIds);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [queryKey, initialListings, initialCursor, initialHasMore]);
 
   const loadMore = useCallback(async () => {
@@ -78,17 +71,12 @@ export function ListingsInfiniteGrid({
       setCursor(json.next_cursor ?? null);
       setHasMore(json.has_more ?? false);
 
-      if (isAuthenticated && newItems.length > 0) {
-        checkSavedListingIds(newItems.map((item) => item.id))
-          .then((ids) => setSavedIds((prev) => [...prev, ...ids]))
-          .catch(() => {});
-      }
     } catch {
       setError(true);
     } finally {
       setLoading(false);
     }
-  }, [cursor, hasMore, loading, searchParams, isAuthenticated]);
+  }, [cursor, hasMore, loading, searchParams]);
 
   useEffect(() => {
     const node = sentinelRef.current;
@@ -115,7 +103,7 @@ export function ListingsInfiniteGrid({
 
   return (
     <div className="space-y-8">
-      <ListingGrid listings={listings} isAuthenticated={isAuthenticated} savedIds={savedIds} />
+      <ListingGrid listings={listings} />
 
       <div ref={sentinelRef} className="flex min-h-8 items-center justify-center">
         {loading ? (

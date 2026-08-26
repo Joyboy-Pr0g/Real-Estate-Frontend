@@ -43,6 +43,7 @@ export function AdminOfficeDetailView({ office }: AdminOfficeDetailViewProps) {
   const [removingUserId, setRemovingUserId] = useState<string | null>(null);
   const [confirmAction, setConfirmAction] = useState<'soft_delete' | 'hard_delete' | null>(null);
   const [rejectOpen, setRejectOpen] = useState(false);
+  const [suspendOpen, setSuspendOpen] = useState(false);
 
   const deletedAt = office.deleted_at;
   const style = deletedAt ? 'bg-red-50 text-red-700 ring-1 ring-red-200' : STATUS_STYLES[office.verification_status];
@@ -137,7 +138,7 @@ export function AdminOfficeDetailView({ office }: AdminOfficeDetailViewProps) {
                   type="button"
                   variant="outline"
                   disabled={submitting}
-                  onClick={() => void runAction(() => suspendOffice(office.id), t('admin.officeSuspended'))}
+                  onClick={() => setSuspendOpen(true)}
                 >
                   {t('admin.suspend')}
                 </Button>
@@ -313,6 +314,19 @@ export function AdminOfficeDetailView({ office }: AdminOfficeDetailViewProps) {
         loading={submitting}
         onConfirm={handleReject}
         onCancel={() => setRejectOpen(false)}
+      />
+
+      <RejectReasonModal
+        open={suspendOpen}
+        title={t('admin.confirmTitle').replace('{name}', office.name)}
+        loading={submitting}
+        confirmLabel={t('admin.suspend')}
+        onConfirm={(reason) => {
+          void runAction(() => suspendOffice(office.id, reason), t('admin.officeSuspended')).then(() =>
+            setSuspendOpen(false),
+          );
+        }}
+        onCancel={() => setSuspendOpen(false)}
       />
     </div>
   );

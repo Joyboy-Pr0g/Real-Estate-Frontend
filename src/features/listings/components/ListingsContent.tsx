@@ -5,7 +5,6 @@ import { listingService } from '@/features/listings/services/listing-service';
 import { resolveListingSearchParams } from '@/features/listings/services/resolve-listing-search';
 import { ListingSearchUrlParams } from '@/features/listings/types/listing-search-url';
 import { getServerTranslations } from '@/lib/i18n/server';
-import { getSession } from '@/lib/auth/session';
 import { ApiError } from '@/lib/errors/api-error';
 
 interface ListingsContentProps {
@@ -58,11 +57,6 @@ export async function ListingsContent({ searchParams }: ListingsContentProps) {
     );
   }
 
-  const user = await getSession();
-  const initialSavedIds = user
-    ? await listingService.getSavedListingIds(listings.map((listing) => listing.id))
-    : [];
-
   return (
     <Container className="py-10 md:py-14">
       <ListingsPageView
@@ -72,8 +66,6 @@ export async function ListingsContent({ searchParams }: ListingsContentProps) {
         hasMore={hasMore}
         initialNeighborhoods={initialNeighborhoods}
         initialPropertySubtypes={initialPropertySubtypes}
-        isAuthenticated={Boolean(user)}
-        initialSavedIds={initialSavedIds}
       />
     </Container>
   );

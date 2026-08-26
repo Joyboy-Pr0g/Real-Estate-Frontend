@@ -69,6 +69,7 @@ export function AdminIndividualListersPanel({
   const [confirmAction, setConfirmAction] = useState<ConfirmAction>('soft_delete');
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [rejectTarget, setRejectTarget] = useState<IndividualListerProfile | null>(null);
+  const [suspendTarget, setSuspendTarget] = useState<IndividualListerProfile | null>(null);
 
   const [prevInitial, setPrevInitial] = useState(initial);
   if (initial !== prevInitial) {
@@ -142,6 +143,13 @@ export function AdminIndividualListersPanel({
     );
   };
 
+  const handleSuspend = (reason: string) => {
+    if (!suspendTarget) return;
+    void runAction(suspendTarget.id, () => suspendIndividualLister(suspendTarget.id, reason), t('admin.listerSuspended')).then(
+      () => setSuspendTarget(null),
+    );
+  };
+
   const loadMore = () => {
     if (!nextCursor) return;
     startTransition(async () => {
@@ -163,8 +171,7 @@ export function AdminIndividualListersPanel({
     onVerify: (lister: IndividualListerProfile) =>
       void runAction(lister.id, () => verifyIndividualLister(lister.id), t('admin.listerVerified')),
     onReject: (lister: IndividualListerProfile) => setRejectTarget(lister),
-    onSuspend: (lister: IndividualListerProfile) =>
-      void runAction(lister.id, () => suspendIndividualLister(lister.id), t('admin.listerSuspended')),
+    onSuspend: (lister: IndividualListerProfile) => setSuspendTarget(lister),
     onUnsuspend: (lister: IndividualListerProfile) =>
       void runAction(lister.id, () => unsuspendIndividualLister(lister.id), t('admin.listerUnsuspended')),
     onSoftDelete: (lister: IndividualListerProfile) => openConfirm(lister, 'soft_delete'),
@@ -273,6 +280,15 @@ export function AdminIndividualListersPanel({
         loading={rejectTarget ? actionId === rejectTarget.id : false}
         onConfirm={handleReject}
         onCancel={() => setRejectTarget(null)}
+      />
+
+      <RejectReasonModal
+        open={suspendTarget !== null}
+        title={t('admin.confirmTitle').replace('{name}', suspendTarget ? listerName(suspendTarget) : '')}
+        loading={suspendTarget ? actionId === suspendTarget.id : false}
+        confirmLabel={t('admin.suspend')}
+        onConfirm={handleSuspend}
+        onCancel={() => setSuspendTarget(null)}
       />
     </div>
   );

@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState, useTransition } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
-import { Archive, Home, Loader2, Search } from 'lucide-react';
+import { Archive, Home, Loader2, Search, Trash2 } from 'lucide-react';
 import { AdminPageHeader } from '@/components/ui/admin-page-header';
 import { ConfirmModal } from '@/components/ui/confirm-modal';
 import { TogglePill } from '@/components/ui/toggle-pill';
@@ -10,8 +10,10 @@ import { Button } from '@/components/ui/button';
 import { SearchableSelect } from '@/components/ui/searchable-select';
 import { ListingTable } from '@/features/admin/components/listings/ListingTable';
 import { ListingCard } from '@/features/admin/components/listings/ListingCard';
-import { draftListing, softDeleteListing, restoreListing, hardDeleteListing } from '@/features/listings/services/listing-client';
+import { draftListing, softDeleteListing, restoreListing, hardDeleteListing, bulkDeleteListings } from '@/features/listings/services/listing-client';
 import { loadMoreAdminListings } from '@/features/listings/services/admin-listings-client';
+import { AdminAuditTrigger } from '@/features/admin/components/audit/AdminAuditTrigger';
+import { useAdminLatestActions } from '@/features/admin/hooks/use-admin-latest-actions';
 import { AdminListingsPage, AdminListingSummary, PublicListing } from '@/features/listings/types/listing';
 import { PublicCity, PublicPropertyType, PublicTransactionType } from '@/features/catalog/types/catalog';
 import { PublicPropertySubtype } from '@/features/catalog/types/property-subtype';
@@ -108,6 +110,15 @@ export function AdminListingsPanel({
   const [confirmListing, setConfirmListing] = useState<AdminListingSummary | null>(null);
   const [confirmAction, setConfirmAction] = useState<ConfirmAction>('soft_delete');
   const [confirmOpen, setConfirmOpen] = useState(false);
+  const [selected, setSelected] = useState<Set<string>>(new Set());
+  const [bulkConfirmOpen, setBulkConfirmOpen] = useState(false);
+  const [bulkDeleting, setBulkDeleting] = useState(false);
+
+  const latestActions = useAdminLatestActions(
+    'listing',
+    listings.map((listing) => listing.id),
+    listings.length,
+  );
 
   const [prevInitial, setPrevInitial] = useState(initial);
   if (initial !== prevInitial) {
@@ -115,6 +126,7 @@ export function AdminListingsPanel({
     setListings(initial.items);
     setNextCursor(initial.next_cursor);
     setHasMore(initial.has_more);
+    setSelected(new Set());
   }
 
   const applyFilters = useCallback(() => {
@@ -266,6 +278,38 @@ export function AdminListingsPanel({
     onHardDelete: (listing: AdminListingSummary) => openConfirm(listing, 'hard_delete'),
   };
 
+  const toggleSelect = (id: string) => {
+    setSelected((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  };
+
+  const toggleSelectAll = () => {
+    if (selected.size === listings.length) {
+      setSelected(new Set());
+    } else {
+      setSelected(new Set(listings.map((listing) => listing.id)));
+    }
+  };
+
+  const handleBulkDelete = async () => {
+    setBulkDeleting(true);
+    try {
+      const deleted = await bulkDeleteListings([...selected]);
+      toast.success(t('admin.bulkHardDeleted').replace('{count}', String(deleted)));
+      setSelected(new Set());
+      setBulkConfirmOpen(false);
+      refreshList();
+    } catch (error) {
+      toast.error(getErrorMessage(error));
+    } finally {
+      setBulkDeleting(false);
+    }
+  };
+
   return (
     <div className={cn('space-y-6 transition-opacity', isPending && 'opacity-60')}>
       <AdminPageHeader
@@ -305,6 +349,13 @@ export function AdminListingsPanel({
                   label={t('admin.includeDeleted')}
                   icon={<Archive size={15} />}
                 />
+
+                {selected.size > 0 ? (
+                  <Button type="button" variant="dangerOutline" onClick={() => setBulkConfirmOpen(true)} className="rounded-xl">
+                    <Trash2 className="h-4 w-4" />
+                    {t('admin.deleteSelected').replace('{count}', String(selected.size))}
+                  </Button>
+                ) : null}
               </div>
             </div>
 
@@ -402,7 +453,14 @@ export function AdminListingsPanel({
         </div>
       ) : (
         <>
-          <ListingTable listings={listings} {...actionProps} />
+          <ListingTable
+            listings={listings}
+            latestActions={latestActions}
+            selectedIds={selected}
+            onToggleSelect={toggleSelect}
+            onToggleSelectAll={toggleSelectAll}
+            {...actionProps}
+          />
           <div className="space-y-3 lg:hidden">
             {listings.map((listing) => (
               <ListingCard key={listing.id} listing={listing} {...actionProps} />
@@ -440,6 +498,18 @@ export function AdminListingsPanel({
           onConfirm={handleConfirm}
         />
       ) : null}
+
+      <ConfirmModal
+        open={bulkConfirmOpen}
+        title={t('admin.confirmBulkHardDeleteTitle')}
+        description={t('admin.confirmBulkHardDeleteDescription').replace('{count}', String(selected.size))}
+        confirmText={t('admin.hardDelete')}
+        cancelText={t('admin.cancel')}
+        danger
+        loading={bulkDeleting}
+        onCancel={() => setBulkConfirmOpen(false)}
+        onConfirm={() => void handleBulkDelete()}
+      />
     </div>
   );
 }

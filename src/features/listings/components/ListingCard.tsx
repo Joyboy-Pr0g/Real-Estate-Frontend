@@ -2,21 +2,15 @@
 
 import Image from 'next/image';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
-import { motion } from 'framer-motion';
-import { Building2, Heart, Star } from 'lucide-react';
+import { Building2, Star } from 'lucide-react';
 import { useState } from 'react';
 import { PublicListing } from '@/features/listings/types/listing';
 import { formatPriceYER } from '@/lib/utils/currency';
 import { useLocale } from '@/lib/i18n/locale-provider';
-import { clientFetch } from '@/lib/api/client';
-import { bffPaths } from '@/lib/api/endpoints';
 import { cn } from '@/lib/utils/cn';
 
 interface ListingCardProps {
   listing: PublicListing;
-  isAuthenticated?: boolean;
-  initialSaved?: boolean;
 }
 
 function isRentListing(listing: PublicListing): boolean {
@@ -30,40 +24,15 @@ function isRecentListing(createdAt: string): boolean {
   return Date.now() - created < week;
 }
 
-export function ListingCard({ listing, isAuthenticated = false, initialSaved = false }: ListingCardProps) {
+export function ListingCard({ listing }: ListingCardProps) {
   const { t } = useLocale();
-  const router = useRouter();
   const forRent = isRentListing(listing);
   const isNew = isRecentListing(listing.created_at);
-  const [saved, setSaved] = useState(initialSaved);
-  const [pending, setPending] = useState(false);
   const [imgLoaded, setImgLoaded] = useState(false);
 
   const locationLine = t('card.inCity')
     .replace('{type}', listing.property_type.name)
     .replace('{city}', listing.city_name);
-
-  const handleSave = async (e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-
-    if (!isAuthenticated) {
-      router.push(`/login?redirect=/listings/${listing.slug}`);
-      return;
-    }
-    if (pending) return;
-
-    setPending(true);
-    const nextSaved = !saved;
-    try {
-      await clientFetch(bffPaths.listings.save(listing.id), { method: nextSaved ? 'POST' : 'DELETE' });
-      setSaved(nextSaved);
-    } catch {
-      // no-op: leave saved state unchanged on failure
-    } finally {
-      setPending(false);
-    }
-  };
 
   return (
     <Link href={`/listings/${listing.slug}`} className="group block">
@@ -97,24 +66,6 @@ export function ListingCard({ listing, isAuthenticated = false, initialSaved = f
               {isNew ? t('card.new') : t('card.featured')}
             </span>
           )}
-
-          {/* Save */}
-          <motion.button
-            type="button"
-            onClick={(e) => void handleSave(e)}
-            disabled={pending}
-            whileHover={{ scale: 1.08 }}
-            whileTap={{ scale: 0.92 }}
-            className="absolute top-3 end-3 flex h-8 w-8 items-center justify-center rounded-full bg-black/20 backdrop-blur-sm hover:bg-white/90 transition-colors group/save disabled:opacity-70"
-            aria-label="Save"
-          >
-            <Heart
-              className={cn(
-                'h-[18px] w-[18px] transition-colors',
-                saved ? 'fill-secondary text-secondary' : 'text-white group-hover/save:text-primary-dark',
-              )}
-            />
-          </motion.button>
 
           {/* Transaction pill */}
           <span

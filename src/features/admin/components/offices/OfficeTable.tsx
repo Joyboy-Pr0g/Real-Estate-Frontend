@@ -28,6 +28,9 @@ interface OfficeRowActions {
 
 interface OfficeTableProps extends OfficeRowActions {
   offices: OfficeDetail[];
+  selectedIds?: Set<string>;
+  onToggleSelect?: (officeId: string) => void;
+  onToggleSelectAll?: () => void;
 }
 
 function StatusBadge({ office }: { office: OfficeDetail }) {
@@ -48,6 +51,9 @@ function StatusBadge({ office }: { office: OfficeDetail }) {
 
 export function OfficeTable({
   offices,
+  selectedIds,
+  onToggleSelect,
+  onToggleSelectAll,
   actionId,
   onVerify,
   onReject,
@@ -58,6 +64,7 @@ export function OfficeTable({
   onHardDelete,
 }: OfficeTableProps) {
   const { t } = useLocale();
+  const selectable = Boolean(selectedIds && onToggleSelect && onToggleSelectAll);
 
   return (
     <div className="hidden overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-[var(--shadow-soft)] lg:block">
@@ -65,6 +72,17 @@ export function OfficeTable({
         <table className="w-full text-sm">
           <thead>
             <tr className="border-b border-gray-100 bg-gray-50/80 text-start">
+              {selectable ? (
+                <th className="w-10 px-4 py-4">
+                  <input
+                    type="checkbox"
+                    checked={offices.length > 0 && selectedIds!.size === offices.length}
+                    onChange={onToggleSelectAll}
+                    className="h-4 w-4 rounded border-gray-300"
+                    aria-label={t('admin.selectAll')}
+                  />
+                </th>
+              ) : null}
               <th className="px-5 py-4 font-semibold text-gray-600">{t('dashboard.office.name')}</th>
               <th className="px-5 py-4 font-semibold text-gray-600">{t('dashboard.emailLabel')}</th>
               <th className="px-5 py-4 font-semibold text-gray-600">{t('auth.phone')}</th>
@@ -76,6 +94,17 @@ export function OfficeTable({
           <tbody>
             {offices.map((office) => (
               <tr key={office.id} className="border-b border-gray-50 last:border-0 hover:bg-gray-50/60">
+                {selectable ? (
+                  <td className="px-4 py-4">
+                    <input
+                      type="checkbox"
+                      checked={selectedIds!.has(office.id)}
+                      onChange={() => onToggleSelect!(office.id)}
+                      className="h-4 w-4 rounded border-gray-300"
+                      aria-label={office.name}
+                    />
+                  </td>
+                ) : null}
                 <td className="px-5 py-4">
                   <Link href={`/admin/offices/${office.id}`} className="font-semibold text-primary-dark hover:underline">
                     {office.name}

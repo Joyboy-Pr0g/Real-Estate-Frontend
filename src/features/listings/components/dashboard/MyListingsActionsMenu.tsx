@@ -15,6 +15,7 @@ import { useLocale } from '@/lib/i18n/locale-provider';
 interface MyListingsActionsMenuProps {
   listing: PublicListing;
   editHref: string;
+  viewHref?: string;
   disabled?: boolean;
   onPublish: () => void;
   onDraft: () => void;
@@ -26,6 +27,7 @@ interface MyListingsActionsMenuProps {
 export function MyListingsActionsMenu({
   listing,
   editHref,
+  viewHref,
   disabled = false,
   onPublish,
   onDraft,
@@ -39,11 +41,19 @@ export function MyListingsActionsMenu({
     <DropdownMenu>
       <DropdownMenuTrigger
         disabled={disabled}
-        className="inline-flex h-8 w-8 items-center justify-center rounded-lg border border-gray-200 text-gray-500 transition-colors hover:bg-gray-50 hover:text-primary-dark disabled:opacity-50"
+        className="inline-flex h-8 w-8 items-center justify-center rounded-lg border border-gray-200/80 bg-white/95 text-gray-600 shadow-sm backdrop-blur-sm transition-colors hover:bg-white hover:text-primary-dark disabled:opacity-50"
       >
         <MoreHorizontal size={16} />
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-52">
+        {viewHref ? (
+          <DropdownMenuItem asChild>
+            <Link href={viewHref} className="cursor-pointer">
+              {t('admin.viewDetails')}
+            </Link>
+          </DropdownMenuItem>
+        ) : null}
+
         <DropdownMenuItem asChild>
           <Link href={editHref} className="cursor-pointer">
             {t('admin.edit')}

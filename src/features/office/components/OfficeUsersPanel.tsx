@@ -1,8 +1,9 @@
 'use client';
 
+import Link from 'next/link';
 import { FormEvent, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Plus, UserRound } from 'lucide-react';
+import { ClipboardList, Plus, UserRound } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { ConfirmModal } from '@/components/ui/confirm-modal';
 import { toast } from '@/components/ui/toaster';
@@ -199,6 +200,14 @@ export function OfficeUsersPanel({ officeId, members, currentUserId }: OfficeUse
               <span className={cn('shrink-0 rounded-full px-2.5 py-1 text-xs font-semibold', ROLE_STYLES[member.role])}>
                 {t(`dashboard.office.role.${member.role.replace('office_', '')}` as TranslationKey)}
               </span>
+
+              <Link
+                href={`/dashboard/office/${officeId}/users/${member.user_id}`}
+                className="inline-flex items-center gap-1 rounded-xl border border-gray-200 px-3 py-2 text-xs font-medium text-gray-600 hover:bg-gray-50"
+              >
+                <ClipboardList className="h-3.5 w-3.5" />
+                {t('dashboard.office.viewUserLogs')}
+              </Link>
             </div>
           );
         })}

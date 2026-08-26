@@ -9,11 +9,11 @@ export default async function DashboardLayout({ children }: { children: React.Re
   if (user.role === 'platform_admin') redirect('/admin');
 
   const individualListerProfile = user.role === 'office' ? null : await getMyIndividualListerProfile();
-  const isVerifiedIndividualLister = individualListerProfile?.verification_status === 'verified';
+  const hasIndividualListerProfile = individualListerProfile !== null;
 
   return (
     <div className="flex min-h-screen flex-col bg-gray-50 lg:flex-row">
-      <DashboardSidebar user={user} isVerifiedIndividualLister={isVerifiedIndividualLister} />
+      <DashboardSidebar user={user} hasIndividualListerProfile={hasIndividualListerProfile} />
       <main className="min-w-0 flex-1 overflow-auto">{children}</main>
     </div>
   );

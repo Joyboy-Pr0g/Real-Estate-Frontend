@@ -3,6 +3,7 @@ import { backendPaths } from '@/lib/api/endpoints';
 import { getAuthToken } from '@/lib/auth/session';
 import { AdminListingsFilters, AdminListingsPage, AdminListingSummary } from '@/features/listings/types/listing';
 import { PublicListingDetail } from '@/features/listings/types/listing-detail';
+import { ListingActionLogsBundle } from '@/features/admin/types/action-logs';
 
 export async function getAdminListings(filters: AdminListingsFilters = {}): Promise<AdminListingsPage> {
   const token = await getAuthToken();
@@ -42,6 +43,22 @@ export async function getAdminListingDetail(id: string): Promise<PublicListingDe
     const response = await serverFetch<PublicListingDetail>(backendPaths.listings.adminDetail(id), {
       token,
       cacheProfile: 'none',
+    });
+    return response.data ?? null;
+  } catch {
+    return null;
+  }
+}
+
+export async function getAdminListingActionLogs(id: string): Promise<ListingActionLogsBundle | null> {
+  const token = await getAuthToken();
+  if (!token) return null;
+
+  try {
+    const response = await serverFetch<ListingActionLogsBundle>(backendPaths.listings.adminListingActionLogs(id), {
+      token,
+      cacheProfile: 'none',
+      searchParams: { limit: 20 },
     });
     return response.data ?? null;
   } catch {

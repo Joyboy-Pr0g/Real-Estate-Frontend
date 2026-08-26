@@ -1,7 +1,9 @@
 'use client';
 
 import { FormEvent, useState } from 'react';
+import { Loader2 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
+import * as Tabs from '@radix-ui/react-tabs';
 import { Button } from '@/components/ui/button';
 import { toast } from '@/components/ui/toaster';
 import { ListingSpecFieldsInput } from '@/features/listings/components/dashboard/ListingSpecFieldsInput';
@@ -17,6 +19,7 @@ import { clientFetch } from '@/lib/api/client';
 import { bffPaths } from '@/lib/api/endpoints';
 import { getErrorMessage } from '@/lib/errors/api-error';
 import { useLocale } from '@/lib/i18n/locale-provider';
+import { cn } from '@/lib/utils/cn';
 
 interface EditListingFormProps {
   listing: PublicListingDetail;
@@ -26,7 +29,14 @@ interface EditListingFormProps {
 }
 
 const fieldClass =
-  'h-11 w-full rounded-xl border border-gray-200 bg-gray-50 px-4 text-sm outline-none focus:border-brand/40 focus:bg-white';
+  'h-11 w-full rounded-xl border border-gray-200 bg-gray-50 px-4 text-sm text-start outline-none focus:border-brand/40 focus:bg-white';
+
+const tabTriggerClass =
+  'inline-flex shrink-0 items-center justify-center rounded-lg px-3 py-2 text-sm font-medium text-gray-500 transition-colors hover:text-primary-dark focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand/20 data-[state=active]:bg-brand-muted data-[state=active]:text-brand-dark sm:px-4';
+
+function FieldLabel({ children }: { children: React.ReactNode }) {
+  return <span className="text-sm font-medium text-primary-dark">{children}</span>;
+}
 
 export function EditListingForm({
   listing,
@@ -34,7 +44,7 @@ export function EditListingForm({
   initialNeighborhoods,
   redirectPath = '/dashboard/listings',
 }: EditListingFormProps) {
-  const { t } = useLocale();
+  const { t, dir } = useLocale();
   const router = useRouter();
 
   const [title, setTitle] = useState(listing.title);
@@ -89,6 +99,11 @@ export function EditListingForm({
   const handleSubmit = async (event: FormEvent) => {
     event.preventDefault();
 
+    if (existingPhotos.length === 0 && newImages.length === 0) {
+      toast.error(t('dashboard.listings.imagesRequired'));
+      return;
+    }
+
     setSubmitting(true);
     try {
       const formData = new FormData();
@@ -115,155 +130,196 @@ export function EditListingForm({
   };
 
   return (
-    <form onSubmit={handleSubmit} className="max-w-3xl space-y-6">
-      <section className="space-y-4 rounded-2xl border border-gray-200 bg-white p-6 shadow-[var(--shadow-soft)]">
-        <div className="grid gap-4 sm:grid-cols-3 text-sm">
-          <div>
-            <span className="block text-xs font-medium text-gray-400">{t('dashboard.listings.propertyType')}</span>
-            <span className="font-medium text-primary-dark">{listing.property_type.name}</span>
+    <form onSubmit={handleSubmit} dir={dir} className="mx-auto w-full max-w-3xl text-start">
+      <Tabs.Root defaultValue="main" dir={dir} className="rounded-2xl border border-gray-200 bg-white shadow-[var(--shadow-soft)]">
+        <Tabs.List className="flex gap-1 overflow-x-auto border-b border-gray-100 p-2">
+          <Tabs.Trigger value="main" className={tabTriggerClass}>
+            {t('dashboard.listings.tabMain')}
+          </Tabs.Trigger>
+          <Tabs.Trigger value="address" className={tabTriggerClass}>
+            {t('dashboard.listings.tabAddress')}
+          </Tabs.Trigger>
+          <Tabs.Trigger value="specs" className={tabTriggerClass}>
+            {t('dashboard.listings.tabSpecs')}
+          </Tabs.Trigger>
+          <Tabs.Trigger value="media" className={tabTriggerClass}>
+            {t('dashboard.listings.tabMedia')}
+          </Tabs.Trigger>
+        </Tabs.List>
+
+        <Tabs.Content value="main" className="space-y-4 p-6">
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            <div className="space-y-1.5">
+              <span className="text-xs font-medium text-gray-400">{t('dashboard.listings.propertyType')}</span>
+              <p className="text-sm font-medium text-primary-dark">{listing.property_type.name}</p>
+            </div>
+            <div className="space-y-1.5">
+              <span className="text-xs font-medium text-gray-400">{t('dashboard.listings.propertySubtype')}</span>
+              <p className="text-sm font-medium text-primary-dark">{listing.property_subtype.name}</p>
+            </div>
+            <div className="space-y-1.5 sm:col-span-2 lg:col-span-1">
+              <span className="text-xs font-medium text-gray-400">{t('dashboard.listings.transactionType')}</span>
+              <p className="text-sm font-medium text-primary-dark">
+                {listing.transaction_type.display_name_ar || listing.transaction_type.name}
+              </p>
+            </div>
           </div>
-          <div>
-            <span className="block text-xs font-medium text-gray-400">{t('dashboard.listings.propertySubtype')}</span>
-            <span className="font-medium text-primary-dark">{listing.property_subtype.name}</span>
-          </div>
-          <div>
-            <span className="block text-xs font-medium text-gray-400">{t('dashboard.listings.transactionType')}</span>
-            <span className="font-medium text-primary-dark">
-              {listing.transaction_type.display_name_ar || listing.transaction_type.name}
-            </span>
-          </div>
-        </div>
 
-        <label className="block space-y-1.5">
-          <span className="text-sm font-medium text-primary-dark">{t('dashboard.listings.title')}</span>
-          <input required value={title} onChange={(e) => setTitle(e.target.value)} className={fieldClass} />
-        </label>
-
-        <label className="block space-y-1.5">
-          <span className="text-sm font-medium text-primary-dark">{t('dashboard.listings.description')}</span>
-          <textarea
-            required
-            rows={4}
-            value={description}
-            onChange={(e) => setDescription(e.target.value)}
-            className={fieldClass.replace('h-11', 'min-h-28 py-2.5')}
-          />
-        </label>
-
-        <label className="block space-y-1.5">
-          <span className="text-sm font-medium text-primary-dark">{t('dashboard.listings.price')}</span>
-          <input
-            required
-            inputMode="decimal"
-            value={price}
-            onChange={(e) => setPrice(e.target.value)}
-            className={fieldClass}
-          />
-        </label>
-      </section>
-
-      <section className="space-y-4 rounded-2xl border border-gray-200 bg-white p-6 shadow-[var(--shadow-soft)]">
-        <div className="grid gap-4 sm:grid-cols-2">
-          <label className="block space-y-1.5">
-            <span className="text-sm font-medium text-primary-dark">{t('admin.city')}</span>
-            <select required value={cityId} onChange={(e) => void handleCityChange(e.target.value)} className={fieldClass}>
-              <option value="">—</option>
-              {cities.map((city) => (
-                <option key={city.id} value={city.id}>
-                  {city.name}
-                </option>
-              ))}
-            </select>
+          <label className="block max-w-xl space-y-1.5">
+            <FieldLabel>{t('dashboard.listings.title')}</FieldLabel>
+            <input required value={title} onChange={(e) => setTitle(e.target.value)} className={fieldClass} />
           </label>
 
           <label className="block space-y-1.5">
-            <span className="text-sm font-medium text-primary-dark">{t('dashboard.neighborhood')}</span>
-            <select
+            <FieldLabel>{t('dashboard.listings.description')}</FieldLabel>
+            <textarea
               required
-              value={neighborhoodId}
-              onChange={(e) => setNeighborhoodId(e.target.value)}
-              disabled={!cityId || loadingNeighborhoods}
-              className={fieldClass}
-            >
-              <option value="">—</option>
-              {neighborhoods.map((neighborhood) => (
-                <option key={neighborhood.id} value={neighborhood.id}>
-                  {neighborhood.name}
-                </option>
-              ))}
-            </select>
+              rows={4}
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+              className={cn(fieldClass, 'min-h-28 py-2.5')}
+            />
           </label>
-        </div>
 
-        <label className="block space-y-1.5">
-          <span className="text-sm font-medium text-primary-dark">{t('dashboard.address')}</span>
-          <input required value={address} onChange={(e) => setAddress(e.target.value)} className={fieldClass} />
-        </label>
-
-        <div className="grid gap-4 sm:grid-cols-2">
-          <label className="block space-y-1.5">
-            <span className="text-sm font-medium text-primary-dark">{t('dashboard.listings.latitude')}</span>
+          <label className="block max-w-xs space-y-1.5">
+            <FieldLabel>{t('dashboard.listings.price')}</FieldLabel>
             <input
               required
+              type="number"
               inputMode="decimal"
-              value={latitude}
-              onChange={(e) => setLatitude(e.target.value)}
+              min="0"
+              step="any"
+              value={price}
+              onChange={(e) => {
+                const val = e.target.value;
+                if (/^\d*\.?\d*$/.test(val)) {
+                  setPrice(val);
+                }
+              }}
               className={fieldClass}
             />
           </label>
+        </Tabs.Content>
+
+        <Tabs.Content value="address" className="space-y-4 p-6">
+          <div className="grid gap-4 sm:grid-cols-2">
+            <label className="block space-y-1.5">
+              <FieldLabel>{t('admin.city')}</FieldLabel>
+              <select
+                required
+                value={cityId}
+                onChange={(e) => void handleCityChange(e.target.value)}
+                className={fieldClass}
+              >
+                <option value="">—</option>
+                {cities.map((city) => (
+                  <option key={city.id} value={city.id}>
+                    {city.name}
+                  </option>
+                ))}
+              </select>
+            </label>
+
+            <label className="block space-y-1.5">
+              <FieldLabel>{t('dashboard.neighborhood')}</FieldLabel>
+              <select
+                required
+                value={neighborhoodId}
+                onChange={(e) => setNeighborhoodId(e.target.value)}
+                disabled={!cityId || loadingNeighborhoods}
+                className={fieldClass}
+              >
+                {loadingNeighborhoods ? (
+                  <option value="">
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  </option>
+                ) : (
+                  <option value="">—</option>
+                )}
+                {neighborhoods.map((neighborhood) => (
+                  <option key={neighborhood.id} value={neighborhood.id}>
+                    {neighborhood.name}
+                  </option>
+                ))}
+              </select>
+            </label>
+          </div>
+
           <label className="block space-y-1.5">
-            <span className="text-sm font-medium text-primary-dark">{t('dashboard.listings.longitude')}</span>
-            <input
-              required
-              inputMode="decimal"
-              value={longitude}
-              onChange={(e) => setLongitude(e.target.value)}
-              className={fieldClass}
-            />
+            <FieldLabel>{t('dashboard.address')}</FieldLabel>
+            <input required value={address} onChange={(e) => setAddress(e.target.value)} className={fieldClass} />
           </label>
-        </div>
-      </section>
 
-      <section className="space-y-4 rounded-2xl border border-gray-200 bg-white p-6 shadow-[var(--shadow-soft)]">
-        <h2 className="text-sm font-bold text-primary-dark">{t('dashboard.listings.specsTitle')}</h2>
-        <ListingSpecFieldsInput
-          schema={listing.property_subtype.spec_schema!}
-          values={specs}
-          onChange={handleSpecChange}
-        />
-      </section>
+          <div className="grid gap-4 sm:grid-cols-2">
+            <label className="block space-y-1.5">
+              <FieldLabel>{t('dashboard.listings.latitude')}</FieldLabel>
+              <input
+                required
+                inputMode="decimal"
+                dir="ltr"
+                value={latitude}
+                onChange={(e) => setLatitude(e.target.value)}
+                className={fieldClass}
+              />
+            </label>
+            <label className="block space-y-1.5">
+              <FieldLabel>{t('dashboard.listings.longitude')}</FieldLabel>
+              <input
+                required
+                inputMode="decimal"
+                dir="ltr"
+                value={longitude}
+                onChange={(e) => setLongitude(e.target.value)}
+                className={fieldClass}
+              />
+            </label>
+          </div>
+        </Tabs.Content>
 
-      <section className="space-y-4 rounded-2xl border border-gray-200 bg-white p-6 shadow-[var(--shadow-soft)]">
-        <label className="block space-y-1.5">
-          <span className="text-sm font-medium text-primary-dark">{t('dashboard.listings.images')}</span>
-          <ExistingPhotosGallery listingId={listing.id} photos={existingPhotos} onPhotosChange={setExistingPhotos} />
-        </label>
-
-        <label className="block space-y-1.5">
-          <span className="text-sm font-medium text-primary-dark">{t('dashboard.listings.addImages')}</span>
-          <ImageGalleryInput images={newImages} onChange={setNewImages} />
-        </label>
-
-        <label className="block space-y-1.5">
-          <span className="text-sm font-medium text-primary-dark">{t('dashboard.listings.video')}</span>
-          {existingVideo ? (
-            <ExistingVideoPreview
-              listingId={listing.id}
-              videoUrl={existingVideo.url}
-              videoPublicId={existingVideo.public_id}
-              onRemoved={() => setExistingVideo(null)}
+        <Tabs.Content value="specs" className="p-6">
+          {listing.property_subtype.spec_schema ? (
+            <ListingSpecFieldsInput
+              schema={listing.property_subtype.spec_schema}
+              values={specs}
+              onChange={handleSpecChange}
             />
           ) : (
-            <VideoInput video={video} onChange={setVideo} />
+            <p className="text-sm text-gray-400">{t('dashboard.listings.selectSubtypeFirst')}</p>
           )}
-        </label>
-      </section>
+        </Tabs.Content>
 
-      <div className="flex justify-end gap-2">
-        <Button type="submit" disabled={submitting}>
-          {submitting ? t('dashboard.submitting') : t('dashboard.submit')}
-        </Button>
-      </div>
+        <Tabs.Content value="media" className="space-y-6 p-6">
+          <label className="block space-y-1.5">
+            <FieldLabel>{t('dashboard.listings.images')}</FieldLabel>
+            <ExistingPhotosGallery listingId={listing.id} photos={existingPhotos} onPhotosChange={setExistingPhotos} />
+          </label>
+
+          <label className="block space-y-1.5">
+            <FieldLabel>{t('dashboard.listings.addImages')}</FieldLabel>
+            <ImageGalleryInput images={newImages} onChange={setNewImages} />
+          </label>
+
+          <label className="block space-y-1.5">
+            <FieldLabel>{t('dashboard.listings.video')}</FieldLabel>
+            {existingVideo ? (
+              <ExistingVideoPreview
+                listingId={listing.id}
+                videoUrl={existingVideo.url}
+                videoPublicId={existingVideo.public_id}
+                onRemoved={() => setExistingVideo(null)}
+              />
+            ) : (
+              <VideoInput video={video} onChange={setVideo} />
+            )}
+          </label>
+
+          <div className={cn('flex pt-2', dir === 'rtl' ? 'justify-start' : 'justify-end')}>
+            <Button type="submit" disabled={submitting}>
+              {submitting ? t('dashboard.submitting') : t('dashboard.submit')}
+            </Button>
+          </div>
+        </Tabs.Content>
+      </Tabs.Root>
     </form>
   );
 }

@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState, useTransition } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
-import { Archive, Building2, Loader2, Search } from 'lucide-react';
+import { Archive, Building2, Loader2, Search, Trash2 } from 'lucide-react';
 import { AdminPageHeader } from '@/components/ui/admin-page-header';
 import { ConfirmModal } from '@/components/ui/confirm-modal';
 import { TogglePill } from '@/components/ui/toggle-pill';
@@ -18,6 +18,7 @@ import {
   adminSoftDeleteOffice,
   restoreOffice,
   hardDeleteOffice,
+  bulkDeleteOffices,
   loadMoreAdminOffices,
 } from '@/features/office/services/admin-offices-client';
 import { AdminOfficesPage, OfficeDetail, OfficeVerificationStatus } from '@/features/office/types/office';
@@ -65,6 +66,10 @@ export function AdminOfficesPanel({
   const [confirmAction, setConfirmAction] = useState<ConfirmAction>('soft_delete');
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [rejectOfficeTarget, setRejectOfficeTarget] = useState<OfficeDetail | null>(null);
+  const [suspendOfficeTarget, setSuspendOfficeTarget] = useState<OfficeDetail | null>(null);
+  const [selected, setSelected] = useState<Set<string>>(new Set());
+  const [bulkConfirmOpen, setBulkConfirmOpen] = useState(false);
+  const [bulkDeleting, setBulkDeleting] = useState(false);
 
   const [prevInitial, setPrevInitial] = useState(initial);
   if (initial !== prevInitial) {
@@ -72,6 +77,7 @@ export function AdminOfficesPanel({
     setOffices(initial.items);
     setNextCursor(initial.next_cursor);
     setHasMore(initial.has_more);
+    setSelected(new Set());
   }
 
   const applyFilters = useCallback(
@@ -135,6 +141,13 @@ export function AdminOfficesPanel({
     );
   };
 
+  const handleSuspend = (reason: string) => {
+    if (!suspendOfficeTarget) return;
+    void runAction(suspendOfficeTarget.id, () => suspendOffice(suspendOfficeTarget.id, reason), t('admin.officeSuspended')).then(
+      () => setSuspendOfficeTarget(null),
+    );
+  };
+
   const loadMore = () => {
     if (!nextCursor) return;
     startTransition(async () => {
@@ -155,12 +168,44 @@ export function AdminOfficesPanel({
     actionId,
     onVerify: (office: OfficeDetail) => void runAction(office.id, () => verifyOffice(office.id), t('admin.officeVerified')),
     onReject: (office: OfficeDetail) => setRejectOfficeTarget(office),
-    onSuspend: (office: OfficeDetail) => void runAction(office.id, () => suspendOffice(office.id), t('admin.officeSuspended')),
+    onSuspend: (office: OfficeDetail) => setSuspendOfficeTarget(office),
     onUnsuspend: (office: OfficeDetail) =>
       void runAction(office.id, () => unsuspendOffice(office.id), t('admin.officeUnsuspended')),
     onSoftDelete: (office: OfficeDetail) => openConfirm(office, 'soft_delete'),
     onRestore: (office: OfficeDetail) => void runAction(office.id, () => restoreOffice(office.id), t('admin.officeRestored')),
     onHardDelete: (office: OfficeDetail) => openConfirm(office, 'hard_delete'),
+  };
+
+  const toggleSelect = (id: string) => {
+    setSelected((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  };
+
+  const toggleSelectAll = () => {
+    if (selected.size === offices.length) {
+      setSelected(new Set());
+    } else {
+      setSelected(new Set(offices.map((office) => office.id)));
+    }
+  };
+
+  const handleBulkDelete = async () => {
+    setBulkDeleting(true);
+    try {
+      const deleted = await bulkDeleteOffices([...selected]);
+      toast.success(t('admin.bulkHardDeleted').replace('{count}', String(deleted)));
+      setSelected(new Set());
+      setBulkConfirmOpen(false);
+      refreshList();
+    } catch (error) {
+      toast.error(getErrorMessage(error));
+    } finally {
+      setBulkDeleting(false);
+    }
   };
 
   return (
@@ -207,6 +252,13 @@ export function AdminOfficesPanel({
                 label={t('admin.includeDeleted')}
                 icon={<Archive size={15} />}
               />
+
+              {selected.size > 0 ? (
+                <Button type="button" variant="dangerOutline" onClick={() => setBulkConfirmOpen(true)} className="rounded-xl">
+                  <Trash2 className="h-4 w-4" />
+                  {t('admin.deleteSelected').replace('{count}', String(selected.size))}
+                </Button>
+              ) : null}
             </div>
           </div>
         }
@@ -218,7 +270,13 @@ export function AdminOfficesPanel({
         </div>
       ) : (
         <>
-          <OfficeTable offices={offices} {...actionProps} />
+          <OfficeTable
+            offices={offices}
+            selectedIds={selected}
+            onToggleSelect={toggleSelect}
+            onToggleSelectAll={toggleSelectAll}
+            {...actionProps}
+          />
           <div className="space-y-3 lg:hidden">
             {offices.map((office) => (
               <OfficeCard key={office.id} office={office} {...actionProps} />
@@ -257,12 +315,33 @@ export function AdminOfficesPanel({
         />
       ) : null}
 
+      <ConfirmModal
+        open={bulkConfirmOpen}
+        title={t('admin.confirmBulkHardDeleteTitle')}
+        description={t('admin.confirmBulkHardDeleteDescription').replace('{count}', String(selected.size))}
+        confirmText={t('admin.hardDelete')}
+        cancelText={t('admin.cancel')}
+        danger
+        loading={bulkDeleting}
+        onCancel={() => setBulkConfirmOpen(false)}
+        onConfirm={() => void handleBulkDelete()}
+      />
+
       <RejectReasonModal
         open={rejectOfficeTarget !== null}
         title={t('admin.confirmTitle').replace('{name}', rejectOfficeTarget?.name ?? '')}
         loading={rejectOfficeTarget ? actionId === rejectOfficeTarget.id : false}
         onConfirm={handleReject}
         onCancel={() => setRejectOfficeTarget(null)}
+      />
+
+      <RejectReasonModal
+        open={suspendOfficeTarget !== null}
+        title={t('admin.confirmTitle').replace('{name}', suspendOfficeTarget?.name ?? '')}
+        loading={suspendOfficeTarget ? actionId === suspendOfficeTarget.id : false}
+        confirmLabel={t('admin.suspend')}
+        onConfirm={handleSuspend}
+        onCancel={() => setSuspendOfficeTarget(null)}
       />
     </div>
   );

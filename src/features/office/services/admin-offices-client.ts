@@ -36,8 +36,8 @@ export async function rejectOffice(id: string, reason: string): Promise<void> {
   await clientFetch(bffPaths.admin.officeReject(id), { method: 'PATCH', body: { reason } });
 }
 
-export async function suspendOffice(id: string): Promise<void> {
-  await clientFetch(bffPaths.admin.officeSuspend(id), { method: 'PATCH' });
+export async function suspendOffice(id: string, reason: string): Promise<void> {
+  await clientFetch(bffPaths.admin.officeSuspend(id), { method: 'PATCH', body: { reason } });
 }
 
 export async function unsuspendOffice(id: string): Promise<void> {
@@ -54,6 +54,14 @@ export async function restoreOffice(id: string): Promise<void> {
 
 export async function hardDeleteOffice(id: string): Promise<void> {
   await clientFetch(bffPaths.admin.officeById(id), { method: 'DELETE' });
+}
+
+export async function bulkDeleteOffices(ids: string[]): Promise<number> {
+  const res = await clientFetch<{ deleted: number }>(bffPaths.admin.officesBulk, {
+    method: 'DELETE',
+    body: { ids },
+  });
+  return res.data?.deleted ?? 0;
 }
 
 export async function forceRemoveOfficeUsers(officeId: string, userIds: string[]): Promise<void> {

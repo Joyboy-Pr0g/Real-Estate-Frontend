@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState, useTransition } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
-import { Archive, Loader2, Plus, Search, Users } from 'lucide-react';
+import { Archive, Loader2, Plus, Search, Trash2, Users } from 'lucide-react';
 import { AdminPageHeader } from '@/components/ui/admin-page-header';
 import { ConfirmModal } from '@/components/ui/confirm-modal';
 import { TogglePill } from '@/components/ui/toggle-pill';
@@ -15,6 +15,7 @@ import {
   activateUser,
   deactivateUser,
   hardDeleteUser,
+  bulkDeleteUsers,
   loadMoreUsers,
   restoreUser,
   softDeleteUser,
@@ -76,6 +77,9 @@ export function AdminUsersPanel({
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [roleChangeUser, setRoleChangeUser] = useState<AdminUserListItem | null>(null);
   const [roleChangeOpen, setRoleChangeOpen] = useState(false);
+  const [selected, setSelected] = useState<Set<string>>(new Set());
+  const [bulkConfirmOpen, setBulkConfirmOpen] = useState(false);
+  const [bulkDeleting, setBulkDeleting] = useState(false);
 
   const [prevInitial, setPrevInitial] = useState(initial);
   if (initial !== prevInitial) {
@@ -83,6 +87,7 @@ export function AdminUsersPanel({
     setUsers(initial.items);
     setNextCursor(initial.next_cursor);
     setHasMore(initial.has_more);
+    setSelected(new Set());
   }
 
   const applyFilters = useCallback(
@@ -191,6 +196,38 @@ export function AdminUsersPanel({
 
   const fullName = (user: AdminUserListItem) => `${user.f_name} ${user.l_name}`.trim();
 
+  const toggleSelect = (id: string) => {
+    setSelected((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  };
+
+  const toggleSelectAll = () => {
+    if (selected.size === users.length) {
+      setSelected(new Set());
+    } else {
+      setSelected(new Set(users.map((user) => user.id)));
+    }
+  };
+
+  const handleBulkDelete = async () => {
+    setBulkDeleting(true);
+    try {
+      const deleted = await bulkDeleteUsers([...selected]);
+      toast.success(t('admin.bulkHardDeleted').replace('{count}', String(deleted)));
+      setSelected(new Set());
+      setBulkConfirmOpen(false);
+      refreshList();
+    } catch (error) {
+      toast.error(getErrorMessage(error));
+    } finally {
+      setBulkDeleting(false);
+    }
+  };
+
   return (
     <div className={cn('space-y-6 transition-opacity', isPending && 'opacity-60')}>
       <AdminPageHeader
@@ -254,6 +291,13 @@ export function AdminUsersPanel({
                 <Plus size={16} />
                 {t('admin.addUser')}
               </Button>
+
+              {selected.size > 0 ? (
+                <Button type="button" variant="dangerOutline" onClick={() => setBulkConfirmOpen(true)} className="rounded-xl">
+                  <Trash2 className="h-4 w-4" />
+                  {t('admin.deleteSelected').replace('{count}', String(selected.size))}
+                </Button>
+              ) : null}
             </div>
           </div>
         }
@@ -268,6 +312,9 @@ export function AdminUsersPanel({
           <UserTable
             users={users}
             actionUserId={actionUserId}
+            selectedIds={selected}
+            onToggleSelect={toggleSelect}
+            onToggleSelectAll={toggleSelectAll}
             onActivate={(id) => void runAction(id, () => activateUser(id), { successMessage: t('admin.userActivated') })}
             onDeactivate={(id) => void runAction(id, () => deactivateUser(id), { successMessage: t('admin.userDeactivated') })}
             onChangeRole={openRoleChange}
@@ -324,6 +371,18 @@ export function AdminUsersPanel({
           onConfirm={handleConfirm}
         />
       ) : null}
+
+      <ConfirmModal
+        open={bulkConfirmOpen}
+        title={t('admin.confirmBulkHardDeleteTitle')}
+        description={t('admin.confirmBulkHardDeleteDescription').replace('{count}', String(selected.size))}
+        confirmText={t('admin.hardDelete')}
+        cancelText={t('admin.cancel')}
+        danger
+        loading={bulkDeleting}
+        onCancel={() => setBulkConfirmOpen(false)}
+        onConfirm={() => void handleBulkDelete()}
+      />
 
       <ChangeRoleModal
         open={roleChangeOpen}

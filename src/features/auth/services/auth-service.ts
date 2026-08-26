@@ -119,6 +119,14 @@ export async function hardDeleteUser(userId: string): Promise<void> {
   await clientFetch(bffPaths.admin.userById(userId), { method: 'DELETE' });
 }
 
+export async function bulkDeleteUsers(ids: string[]): Promise<number> {
+  const res = await clientFetch<{ deleted: number }>(bffPaths.admin.usersBulk, {
+    method: 'DELETE',
+    body: { ids },
+  });
+  return res.data?.deleted ?? 0;
+}
+
 export async function loadMoreUsers(params: Record<string, string>): Promise<{
   items: import('@/features/auth/types/user').AdminUserListItem[];
   next_cursor: string | null;

@@ -4,7 +4,6 @@ import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import {
-  BarChart3,
   Building2,
   ChevronsLeft,
   ChevronsRight,
@@ -16,7 +15,6 @@ import {
   LogOut,
   Menu,
   Sparkles,
-  Users,
   X,
 } from 'lucide-react';
 import { AuthUser } from '@/features/auth/types/user';
@@ -28,7 +26,7 @@ import type { TranslationKey } from '@/lib/i18n/ar';
 
 interface DashboardSidebarProps {
   user: AuthUser;
-  isVerifiedIndividualLister: boolean;
+  hasIndividualListerProfile: boolean;
 }
 
 interface NavItem {
@@ -40,7 +38,7 @@ interface NavItem {
 
 const SIDEBAR_COMPACT_KEY = 're-dashboard-sidebar-compact';
 
-function buildNavItems(isOffice: boolean, isVerifiedIndividualLister: boolean): NavItem[] {
+function buildNavItems(isOffice: boolean, hasIndividualListerProfile: boolean): NavItem[] {
   const items: NavItem[] = [
     { href: '/dashboard', labelKey: 'dashboard.overview', icon: LayoutDashboard, exact: true },
     { href: '/dashboard/saved', labelKey: 'dashboard.savedListings', icon: Heart, exact: false },
@@ -51,14 +49,12 @@ function buildNavItems(isOffice: boolean, isVerifiedIndividualLister: boolean): 
   if (isOffice) {
     items.push(
       { href: '/dashboard/office', labelKey: 'dashboard.office', icon: Building2, exact: false },
-      { href: '/dashboard/office/users', labelKey: 'dashboard.officeUsers', icon: Users, exact: false },
       { href: '/dashboard/office/listings', labelKey: 'dashboard.officeListings', icon: Home, exact: false },
-      { href: '/dashboard/office/analytics', labelKey: 'dashboard.analytics', icon: BarChart3, exact: false },
     );
     return items;
   }
 
-  if (isVerifiedIndividualLister) {
+  if (hasIndividualListerProfile) {
     items.push({ href: '/dashboard/listings', labelKey: 'dashboard.listings', icon: Home, exact: false });
   }
 
@@ -72,7 +68,7 @@ function buildNavItems(isOffice: boolean, isVerifiedIndividualLister: boolean): 
   return items;
 }
 
-export function DashboardSidebar({ user, isVerifiedIndividualLister }: DashboardSidebarProps) {
+export function DashboardSidebar({ user, hasIndividualListerProfile }: DashboardSidebarProps) {
   const pathname = usePathname();
   const router = useRouter();
   const { t } = useLocale();
@@ -115,7 +111,7 @@ export function DashboardSidebar({ user, isVerifiedIndividualLister }: Dashboard
     router.refresh();
   };
 
-  const navItems = buildNavItems(user.role === 'office', isVerifiedIndividualLister);
+  const navItems = buildNavItems(user.role === 'office', hasIndividualListerProfile);
 
   const brand = (
     <div
