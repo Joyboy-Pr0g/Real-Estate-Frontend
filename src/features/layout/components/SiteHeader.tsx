@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { motion, useScroll, useTransform } from 'framer-motion';
-import { Building2, Globe, Menu, X } from 'lucide-react';
+import { Building2, Globe, Map, Menu, X } from 'lucide-react';
 import { useState, type ReactNode } from 'react';
 import { ButtonLink } from '@/components/ui/button';
 import { Container } from '@/components/ui/container';
@@ -38,7 +38,7 @@ export function SiteHeader({ categoryNav, user = null }: SiteHeaderProps) {
         transition={{ duration: 0.25, ease: 'easeInOut' }}
         className="sticky top-0 z-50 glass-panel border-b border-gray-200/60"
       >
-        <Container>
+        <Container >
           <div className="flex h-[68px] items-center gap-4 justify-between">
             <Link href="/" className="flex items-center gap-2.5 shrink-0 group">
               <motion.span
@@ -109,6 +109,7 @@ export function SiteHeader({ categoryNav, user = null }: SiteHeaderProps) {
               {[
                 { href: '/', label: t('nav.home') },
                 { href: '/listings', label: t('nav.listings') },
+                { href: '/listings/map', label: t('nav.map') },
                 ...(user
                   ? [{ href: user.role === 'platform_admin' ? '/admin' : '/dashboard', label: t('nav.dashboard') }]
                   : []),

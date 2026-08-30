@@ -8,7 +8,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { Button } from '@/components/ui/button';
 import { createLoginSchema, LoginInput } from '@/features/auth/schemas/auth-schemas';
 import { login } from '@/features/auth/services/auth-service';
-import { getErrorMessage } from '@/lib/errors/api-error';
+import { getErrorMessage, isEmailNotVerifiedError } from '@/lib/errors/api-error';
 import { useLocale } from '@/lib/i18n/locale-provider';
 import { cn } from '@/lib/utils/cn';
 
@@ -51,6 +51,19 @@ export function LoginForm() {
 
       router.refresh();
     } catch (err) {
+      if (isEmailNotVerifiedError(err)) {
+        const params = new URLSearchParams({
+          email: values.email.trim(),
+          sent: '1',
+        });
+        const redirect = searchParams.get('redirect');
+        if (redirect) {
+          params.set('redirect', redirect);
+        }
+        router.push(`/verify-email?${params.toString()}`);
+        return;
+      }
+
       setError(getErrorMessage(err));
     }
   };

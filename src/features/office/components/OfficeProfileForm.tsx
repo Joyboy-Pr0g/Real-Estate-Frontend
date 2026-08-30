@@ -1,6 +1,6 @@
 'use client';
 
-import { FormEvent, useState } from 'react';
+import { ChangeEvent, FormEvent, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { toast } from '@/components/ui/toaster';
@@ -12,6 +12,7 @@ import { clientFetch } from '@/lib/api/client';
 import { bffPaths } from '@/lib/api/endpoints';
 import { getErrorMessage } from '@/lib/errors/api-error';
 import { useLocale } from '@/lib/i18n/locale-provider';
+import { formatPhoneNumber } from '@/lib/utils/format';
 
 interface OfficeProfileFormProps {
   office: OfficeDetail;
@@ -30,7 +31,7 @@ export function OfficeProfileForm({ office, cities, initialNeighborhoods, onDone
   const router = useRouter();
 
   const [name, setName] = useState(office.name);
-  const [phoneNumber, setPhoneNumber] = useState(office.phone_number);
+  const [phoneNumber, setPhoneNumber] = useState(formatPhoneNumber(office.phone_number));
   const [email, setEmail] = useState(office.email);
   const [address, setAddress] = useState(office.address);
   const [cityId, setCityId] = useState(office.city.id);
@@ -60,6 +61,10 @@ export function OfficeProfileForm({ office, cities, initialNeighborhoods, onDone
     } finally {
       setLoadingNeighborhoods(false);
     }
+  };
+
+  const handlePhoneNumberChange = (e: ChangeEvent<HTMLInputElement>) => {
+    setPhoneNumber(formatPhoneNumber(e.target.value));
   };
 
   const handleSubmit = async (event: FormEvent) => {
@@ -103,8 +108,9 @@ export function OfficeProfileForm({ office, cities, initialNeighborhoods, onDone
           <input
             required
             type="tel"
+            dir="ltr"
             value={phoneNumber}
-            onChange={(e) => setPhoneNumber(e.target.value)}
+            onChange={handlePhoneNumberChange}
             className={fieldClass}
           />
         </label>

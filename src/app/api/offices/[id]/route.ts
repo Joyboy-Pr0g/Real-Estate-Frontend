@@ -13,3 +13,11 @@ export async function PUT(request: NextRequest, context: RouteContext) {
     method: 'PUT',
   });
 }
+
+export async function DELETE(request: NextRequest, context: RouteContext) {
+  const { id } = await context.params;
+  return proxyToBackend(request, {
+    path: backendPaths.offices.delete(id),
+    method: 'DELETE',
+  });
+}

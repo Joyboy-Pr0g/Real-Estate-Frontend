@@ -34,6 +34,7 @@ export default async function OfficeListingsPage({ searchParams }: OfficeListing
       <div className="mt-6">
         {primaryOffice && primaryOffice.verification_status !== 'verified' ? (
           <VerificationStatusBanner
+            office_name={primaryOffice.name}
             status={primaryOffice.verification_status}
             reason={primaryOffice.rejected_reason}
           />

@@ -15,6 +15,7 @@ interface ListingsPageViewProps {
   hasMore: boolean;
   initialNeighborhoods?: PublicNeighborhood[];
   initialPropertySubtypes?: PublicPropertySubtype[];
+  isAuthenticated?: boolean;
 }
 
 export function ListingsPageView({
@@ -24,6 +25,7 @@ export function ListingsPageView({
   hasMore,
   initialNeighborhoods,
   initialPropertySubtypes,
+  isAuthenticated = false,
 }: ListingsPageViewProps) {
   return (
     <div className="space-y-8">
@@ -31,6 +33,7 @@ export function ListingsPageView({
         catalog={catalog}
         initialNeighborhoods={initialNeighborhoods}
         initialPropertySubtypes={initialPropertySubtypes}
+        isAuthenticated={isAuthenticated}
       />
 
       <ListingsInfiniteGrid

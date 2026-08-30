@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState, useTransition } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
-import { Archive, Building2, Loader2, Search, Trash2 } from 'lucide-react';
+import { Archive, Building2, Loader2, Search } from 'lucide-react';
 import { AdminPageHeader } from '@/components/ui/admin-page-header';
 import { ConfirmModal } from '@/components/ui/confirm-modal';
 import { TogglePill } from '@/components/ui/toggle-pill';
@@ -68,6 +68,7 @@ export function AdminOfficesPanel({
   const [rejectOfficeTarget, setRejectOfficeTarget] = useState<OfficeDetail | null>(null);
   const [suspendOfficeTarget, setSuspendOfficeTarget] = useState<OfficeDetail | null>(null);
   const [selected, setSelected] = useState<Set<string>>(new Set());
+  const [canSelect, setCanSelect] = useState(false);
   const [bulkConfirmOpen, setBulkConfirmOpen] = useState(false);
   const [bulkDeleting, setBulkDeleting] = useState(false);
 
@@ -253,16 +254,25 @@ export function AdminOfficesPanel({
                 icon={<Archive size={15} />}
               />
 
-              {selected.size > 0 ? (
-                <Button type="button" variant="dangerOutline" onClick={() => setBulkConfirmOpen(true)} className="rounded-xl">
-                  <Trash2 className="h-4 w-4" />
-                  {t('admin.deleteSelected').replace('{count}', String(selected.size))}
+              {!canSelect ? (
+                <Button type="button" variant="outline" onClick={() => setCanSelect(true)} className="hidden sm:block rounded-xl">
+                  {t('admin.select')}
                 </Button>
-              ) : null}
+              ) : (
+                <Button type="button" variant="outline" onClick={() => setCanSelect(false)} className="hidden sm:block rounded-xl">
+                  {t('admin.unSelect')}
+                </Button>
+              )}
             </div>
           </div>
         }
       />
+
+      {selected.size > 0 && (
+        <Button variant="dangerOutline" onClick={() => void handleBulkDelete()} className="rounded-xl">
+          {t('admin.deleteSelected').replace('{count}', String(selected.size))}
+        </Button>
+      )}
 
       {offices.length === 0 ? (
         <div className="rounded-2xl border border-gray-200 bg-white p-12 text-center shadow-[var(--shadow-soft)]">
@@ -272,6 +282,7 @@ export function AdminOfficesPanel({
         <>
           <OfficeTable
             offices={offices}
+            selectable={canSelect}
             selectedIds={selected}
             onToggleSelect={toggleSelect}
             onToggleSelectAll={toggleSelectAll}

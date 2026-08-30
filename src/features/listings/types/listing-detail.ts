@@ -20,6 +20,11 @@ export interface ListingDetailOffice {
   address: string;
   photo_url: string;
   verification_status: string;
+  created_by?: {
+    name: string;
+    phone_number: string;
+    email: string;
+  };
 }
 
 export interface ListingDetailIndividualLister {

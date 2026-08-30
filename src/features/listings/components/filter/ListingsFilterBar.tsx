@@ -10,6 +10,7 @@ import {
   Sparkles,
   Wallet,
   X,
+  Bookmark,
 } from 'lucide-react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { useRouter, useSearchParams } from 'next/navigation';
@@ -30,6 +31,8 @@ import {
   SubtypeChip,
 } from '@/features/listings/components/filter/FilterSegment';
 import { SpecFiltersPanel } from '@/features/listings/components/filter/SpecFiltersPanel';
+import { SaveFavoriteFilterModal } from '@/features/listings/components/filter/SaveFavoriteFilterModal';
+import { serializeListingFiltersFromSearchParams, buildListingsLoginRedirectFromSearchParams } from '@/features/listings/lib/serialize-listing-filters';
 import { normalizePublicNeighborhoods } from '@/features/catalog/lib/normalize-neighborhood';
 import { buildListingsHref } from '@/features/listings/lib/build-listings-url';
 import {
@@ -51,14 +54,18 @@ interface ListingsFilterBarProps {
   catalog: PublicCatalog;
   initialNeighborhoods?: PublicNeighborhood[];
   initialPropertySubtypes?: PublicPropertySubtype[];
+  isAuthenticated?: boolean;
   className?: string;
+  basePath?: string;
 }
 
 export function ListingsFilterBar({
   catalog,
   initialNeighborhoods = [],
   initialPropertySubtypes = [],
+  isAuthenticated = false,
   className,
+  basePath = '/listings',
 }: ListingsFilterBarProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -70,6 +77,7 @@ export function ListingsFilterBar({
   const [activePanel, setActivePanel] = useState<PanelId | null>(null);
   const [specOpen, setSpecOpen] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [saveFilterOpen, setSaveFilterOpen] = useState(false);
 
   const [locationStepOverride, setLocationStepOverride] = useState<LocationStep | null>(null);
   const [propertyStepOverride, setPropertyStepOverride] = useState<PropertyStep | null>(null);
@@ -136,22 +144,22 @@ export function ListingsFilterBar({
   const pushParams = useCallback(
     (updates: Record<string, string | null>, options?: { clearSpec?: boolean }) => {
       startTransition(() => {
-        router.push(buildListingsHref(searchParamsRef.current, updates, options));
+        router.push(buildListingsHref(searchParamsRef.current, updates, { ...options, basePath }));
         router.refresh();
       });
     },
-    [router],
+    [router, basePath],
   );
 
   const applySearchParams = useCallback(
     (next: URLSearchParams) => {
       startTransition(() => {
         const query = next.toString();
-        router.push(query ? `/listings?${query}` : '/listings');
+        router.push(query ? `${basePath}?${query}` : basePath);
         router.refresh();
       });
     },
-    [router],
+    [router, basePath],
   );
 
   const togglePanel = (id: PanelId) => {
@@ -262,11 +270,19 @@ export function ListingsFilterBar({
     setMinPriceInput('');
     setMaxPriceInput('');
     setActivePanel(null);
-    startTransition(() => router.push('/listings'));
+    startTransition(() => router.push(basePath));
     window.setTimeout(() => {
       suppressPriceSyncRef.current = false;
     }, 600);
   };
+
+  const handleSaveFilterClick = useCallback(() => {
+    if (!isAuthenticated) {
+      router.push(buildListingsLoginRedirectFromSearchParams(searchParams));
+      return;
+    }
+    setSaveFilterOpen(true);
+  }, [isAuthenticated, router, searchParams]);
 
   const activeFilterCount = [
     currentCity,
@@ -313,14 +329,24 @@ export function ListingsFilterBar({
         <div className="flex items-center gap-2">
           {pending ? <Loader2 className="h-4 w-4 animate-spin text-gray-400" aria-hidden /> : null}
           {activeFilterCount > 0 ? (
-            <button
-              type="button"
-              onClick={clearAll}
-              className="inline-flex items-center gap-1.5 rounded-full bg-gray-100/90 px-2.5 py-1.5 text-[11px] font-semibold text-gray-600 transition-colors hover:bg-gray-200/90 hover:text-primary-dark"
-            >
-              <RotateCcw className="h-3.5 w-3.5" />
-              {t('filters.clearAll')}
-            </button>
+            <>
+              <button
+                type="button"
+                onClick={handleSaveFilterClick}
+                className="inline-flex items-center gap-1.5 rounded-full bg-brand-muted px-2.5 py-1.5 text-[11px] font-semibold text-brand-dark transition-colors hover:bg-brand/15"
+              >
+                <Bookmark className="h-3.5 w-3.5" />
+                {t('filters.saveFilter')}
+              </button>
+              <button
+                type="button"
+                onClick={clearAll}
+                className="inline-flex items-center gap-1.5 rounded-full bg-gray-100/90 px-2.5 py-1.5 text-[11px] font-semibold text-gray-600 transition-colors hover:bg-gray-200/90 hover:text-primary-dark"
+              >
+                <RotateCcw className="h-3.5 w-3.5" />
+                {t('filters.clearAll')}
+              </button>
+            </>
           ) : null}
         </div>
       </div>
@@ -667,6 +693,12 @@ export function ListingsFilterBar({
         searchParams={searchParams}
         onClose={() => setSpecOpen(false)}
         onApply={applySearchParams}
+      />
+
+      <SaveFavoriteFilterModal
+        open={saveFilterOpen}
+        filters={serializeListingFiltersFromSearchParams(searchParams)}
+        onClose={() => setSaveFilterOpen(false)}
       />
     </div>
   );

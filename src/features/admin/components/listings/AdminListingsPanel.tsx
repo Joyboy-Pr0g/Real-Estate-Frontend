@@ -1,8 +1,8 @@
 'use client';
 
-import { useCallback, useEffect, useRef, useState, useTransition } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState, useTransition } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
-import { Archive, Home, Loader2, Search, Trash2 } from 'lucide-react';
+import { Archive, Building2, Home, Loader2, MapPin, Search, UserRound, X } from 'lucide-react';
 import { AdminPageHeader } from '@/components/ui/admin-page-header';
 import { ConfirmModal } from '@/components/ui/confirm-modal';
 import { TogglePill } from '@/components/ui/toggle-pill';
@@ -56,7 +56,32 @@ interface AdminListingsPanelProps {
 type ConfirmAction = 'soft_delete' | 'hard_delete';
 
 const fieldClass =
-  'h-11 rounded-xl border border-gray-200 bg-white px-3 text-sm outline-none focus:border-brand/40';
+  'h-10 w-full rounded-xl border border-gray-200 bg-white px-3 text-sm outline-none transition-colors focus:border-brand/40 focus:ring-2 focus:ring-brand/10';
+
+const searchClass =
+  'h-11 w-full rounded-xl border border-gray-200 bg-gray-50 ps-10 pe-3 text-sm outline-none transition-colors focus:border-brand/40 focus:bg-white focus:ring-2 focus:ring-brand/10';
+
+function FilterGroup({
+  title,
+  icon: Icon,
+  children,
+}: {
+  title: string;
+  icon: typeof Building2;
+  children: React.ReactNode;
+}) {
+  return (
+    <section className="rounded-xl border border-gray-100 bg-linear-to-b from-gray-50/80 to-white p-3.5">
+      <div className="mb-3 flex items-center gap-2.5">
+        <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-white text-brand shadow-sm ring-1 ring-gray-100">
+          <Icon className="h-4 w-4" strokeWidth={1.75} />
+        </span>
+        <h3 className="text-xs font-semibold uppercase tracking-wider text-gray-500">{title}</h3>
+      </div>
+      <div className="grid gap-2">{children}</div>
+    </section>
+  );
+}
 
 export function AdminListingsPanel({
   initial,
@@ -111,6 +136,7 @@ export function AdminListingsPanel({
   const [confirmAction, setConfirmAction] = useState<ConfirmAction>('soft_delete');
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [selected, setSelected] = useState<Set<string>>(new Set());
+  const [canSelect, setCanSelect] = useState(false);
   const [bulkConfirmOpen, setBulkConfirmOpen] = useState(false);
   const [bulkDeleting, setBulkDeleting] = useState(false);
 
@@ -210,6 +236,50 @@ export function AdminListingsPanel({
   const handleIndividualListerChange = (id: string, label: string) => {
     setIndividualListerId(id);
     setIndividualListerLabel(label);
+  };
+
+  const activeFilterCount = useMemo(() => {
+    let count = 0;
+    if (statusFilter) count += 1;
+    if (debouncedSearch.trim()) count += 1;
+    if (propertyTypeId) count += 1;
+    if (propertySubtypeId) count += 1;
+    if (transactionTypeId) count += 1;
+    if (cityId) count += 1;
+    if (neighborhoodId) count += 1;
+    if (officeId) count += 1;
+    if (individualListerId) count += 1;
+    if (includeDeleted) count += 1;
+    return count;
+  }, [
+    statusFilter,
+    debouncedSearch,
+    propertyTypeId,
+    propertySubtypeId,
+    transactionTypeId,
+    cityId,
+    neighborhoodId,
+    officeId,
+    individualListerId,
+    includeDeleted,
+  ]);
+
+  const clearAllFilters = () => {
+    setSearchInput('');
+    setStatusFilter('');
+    setPropertyTypeId('');
+    setPropertySubtypeId('');
+    setSubtypes([]);
+    setTransactionTypeId('');
+    setCityId('');
+    setNeighborhoodId('');
+    setNeighborhoods([]);
+    setOfficeId('');
+    setOfficeLabel('');
+    setIndividualListerId('');
+    setIndividualListerLabel('');
+    setIncludeDeleted(false);
+    router.push(pathname);
   };
 
   const refreshList = useCallback(() => {
@@ -320,21 +390,30 @@ export function AdminListingsPanel({
         title={t('admin.listings')}
         countLabel={t('admin.usersCount').replace('{count}', String(listings.length))}
         filters={
-          <div className="space-y-3">
-            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-              <div className="relative w-full max-w-xl">
-                <Search size={16} className="pointer-events-none absolute start-3 top-1/2 -translate-y-1/2 text-gray-400" />
+          <div className="space-y-4">
+            <div className="flex flex-col gap-3 xl:flex-row xl:items-stretch">
+              <label className="relative min-w-0 flex-1">
+                <Search
+                  size={18}
+                  className="pointer-events-none absolute start-3.5 top-1/2 -translate-y-1/2 text-gray-400"
+                  strokeWidth={1.75}
+                />
                 <input
                   type="search"
                   value={searchInput}
                   onChange={(e) => setSearchInput(e.target.value)}
-                  placeholder={t('admin.searchUsers')}
-                  className="h-11 w-full rounded-xl border border-gray-200 bg-gray-50 ps-9 pe-3 text-sm outline-none transition-colors focus:border-brand/40 focus:bg-white"
+                  placeholder={t('admin.searchListings')}
+                  className={searchClass}
                 />
-              </div>
+              </label>
 
-              <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
-                <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)} className={fieldClass}>
+              <div className="flex flex-wrap items-center gap-2 xl:max-w-md xl:justify-end">
+                <select
+                  value={statusFilter}
+                  onChange={(e) => setStatusFilter(e.target.value)}
+                  className={cn(fieldClass, 'min-w-[140px] flex-1 sm:flex-none')}
+                  aria-label={t('admin.filterStatus')}
+                >
                   <option value="">{t('dashboard.listings.allStatuses')}</option>
                   {STATUSES.map((status) => (
                     <option key={status} value={status}>
@@ -350,102 +429,147 @@ export function AdminListingsPanel({
                   icon={<Archive size={15} />}
                 />
 
-                {selected.size > 0 ? (
-                  <Button type="button" variant="dangerOutline" onClick={() => setBulkConfirmOpen(true)} className="rounded-xl">
-                    <Trash2 className="h-4 w-4" />
-                    {t('admin.deleteSelected').replace('{count}', String(selected.size))}
+                {!canSelect ? (
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => setCanSelect(true)}
+                    className="hidden shrink-0 rounded-xl sm:inline-flex"
+                  >
+                    {t('admin.select')}
                   </Button>
-                ) : null}
+                ) : (
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => setCanSelect(false)}
+                    className="hidden shrink-0 rounded-xl sm:inline-flex"
+                  >
+                    {t('admin.unSelect')}
+                  </Button>
+                )}
               </div>
             </div>
 
-            <div className="flex flex-wrap gap-3">
-              <select
-                value={propertyTypeId}
-                onChange={(e) => void handlePropertyTypeChange(e.target.value)}
-                className={fieldClass}
-              >
-                <option value="">{t('dashboard.listings.propertyType')}</option>
-                {propertyTypes.map((type) => (
-                  <option key={type.id} value={type.id}>
-                    {type.name}
-                  </option>
-                ))}
-              </select>
+            <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
+              <FilterGroup title={t('admin.propertyTypes')} icon={Building2}>
+                <select
+                  value={propertyTypeId}
+                  onChange={(e) => void handlePropertyTypeChange(e.target.value)}
+                  className={fieldClass}
+                >
+                  <option value="">{t('filters.allPropertyTypes')}</option>
+                  {propertyTypes.map((type) => (
+                    <option key={type.id} value={type.id}>
+                      {type.name}
+                    </option>
+                  ))}
+                </select>
 
-              <select
-                value={propertySubtypeId}
-                onChange={(e) => setPropertySubtypeId(e.target.value)}
-                disabled={!propertyTypeId || loadingSubtypes}
-                className={fieldClass}
-              >
-                <option value="">{t('dashboard.listings.propertySubtype')}</option>
-                {subtypes.map((subtype) => (
-                  <option key={subtype.id} value={subtype.id}>
-                    {subtype.name}
-                  </option>
-                ))}
-              </select>
+                <select
+                  value={propertySubtypeId}
+                  onChange={(e) => setPropertySubtypeId(e.target.value)}
+                  disabled={!propertyTypeId || loadingSubtypes}
+                  className={cn(fieldClass, 'disabled:cursor-not-allowed disabled:opacity-50')}
+                >
+                  <option value="">{t('filters.allSubtypes')}</option>
+                  {subtypes.map((subtype) => (
+                    <option key={subtype.id} value={subtype.id}>
+                      {subtype.name}
+                    </option>
+                  ))}
+                </select>
 
-              <select
-                value={transactionTypeId}
-                onChange={(e) => setTransactionTypeId(e.target.value)}
-                className={fieldClass}
-              >
-                <option value="">{t('dashboard.listings.transactionType')}</option>
-                {transactionTypes.map((type) => (
-                  <option key={type.id} value={type.id}>
-                    {type.display_name_ar || type.name}
-                  </option>
-                ))}
-              </select>
+                <select
+                  value={transactionTypeId}
+                  onChange={(e) => setTransactionTypeId(e.target.value)}
+                  className={fieldClass}
+                >
+                  <option value="">{t('filters.allTransactions')}</option>
+                  {transactionTypes.map((type) => (
+                    <option key={type.id} value={type.id}>
+                      {type.display_name_ar || type.name}
+                    </option>
+                  ))}
+                </select>
+              </FilterGroup>
 
-              <select value={cityId} onChange={(e) => void handleCityChange(e.target.value)} className={fieldClass}>
-                <option value="">{t('admin.city')}</option>
-                {cities.map((city) => (
-                  <option key={city.id} value={city.id}>
-                    {city.name}
-                  </option>
-                ))}
-              </select>
+              <FilterGroup title={t('filters.city')} icon={MapPin}>
+                <select
+                  value={cityId}
+                  onChange={(e) => void handleCityChange(e.target.value)}
+                  className={fieldClass}
+                >
+                  <option value="">{t('filters.allCities')}</option>
+                  {cities.map((city) => (
+                    <option key={city.id} value={city.id}>
+                      {city.name}
+                    </option>
+                  ))}
+                </select>
 
-              <select
-                value={neighborhoodId}
-                onChange={(e) => setNeighborhoodId(e.target.value)}
-                disabled={!cityId || loadingNeighborhoods}
-                className={fieldClass}
-              >
-                <option value="">{t('dashboard.neighborhood')}</option>
-                {neighborhoods.map((neighborhood) => (
-                  <option key={neighborhood.id} value={neighborhood.id}>
-                    {neighborhood.name}
-                  </option>
-                ))}
-              </select>
+                <select
+                  value={neighborhoodId}
+                  onChange={(e) => setNeighborhoodId(e.target.value)}
+                  disabled={!cityId || loadingNeighborhoods}
+                  className={cn(fieldClass, 'disabled:cursor-not-allowed disabled:opacity-50')}
+                >
+                  <option value="">{t('filters.allNeighborhoods')}</option>
+                  {neighborhoods.map((neighborhood) => (
+                    <option key={neighborhood.id} value={neighborhood.id}>
+                      {neighborhood.name}
+                    </option>
+                  ))}
+                </select>
+              </FilterGroup>
+
+              <FilterGroup title={t('admin.seller')} icon={UserRound}>
+                <SearchableSelect
+                  value={officeId}
+                  selectedLabel={officeLabel}
+                  onChange={handleOfficeChange}
+                  fetchOptions={searchOfficesForSelect}
+                  placeholder={t('admin.searchOffice')}
+                  className="w-full"
+                />
+
+                <SearchableSelect
+                  value={individualListerId}
+                  selectedLabel={individualListerLabel}
+                  onChange={handleIndividualListerChange}
+                  fetchOptions={searchIndividualListersForSelect}
+                  placeholder={t('admin.searchIndividualLister')}
+                  className="w-full"
+                />
+              </FilterGroup>
             </div>
 
-            <div className="flex flex-wrap gap-3">
-              <SearchableSelect
-                value={officeId}
-                selectedLabel={officeLabel}
-                onChange={handleOfficeChange}
-                fetchOptions={searchOfficesForSelect}
-                placeholder={t('admin.searchOffice')}
-                className="w-full sm:w-64"
-              />
-
-              <SearchableSelect
-                value={individualListerId}
-                selectedLabel={individualListerLabel}
-                onChange={handleIndividualListerChange}
-                fetchOptions={searchIndividualListersForSelect}
-                placeholder={t('admin.searchIndividualLister')}
-                className="w-full sm:w-64"
-              />
-            </div>
+            {activeFilterCount > 0 ? (
+              <div className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-brand/15 bg-brand-muted/40 px-3 py-2.5">
+                <p className="text-sm text-brand-dark">
+                  {t('filters.refineActive').replace('{count}', String(activeFilterCount))}
+                </p>
+                <button
+                  type="button"
+                  onClick={clearAllFilters}
+                  className="inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1 text-xs font-semibold text-brand-dark transition-colors hover:bg-white/80"
+                >
+                  <X className="h-3.5 w-3.5" />
+                  {t('filters.clearAll')}
+                </button>
+              </div>
+            ) : (
+              <p className="text-center text-xs text-gray-400">{t('filters.refineHint')}</p>
+            )}
           </div>
         }
       />
+
+      {selected.size > 0 && (
+        <Button variant="dangerOutline" onClick={() => void handleBulkDelete()} className="rounded-xl">
+          {t('admin.deleteSelected').replace('{count}', String(selected.size))}
+        </Button>
+      )}
 
       {listings.length === 0 ? (
         <div className="rounded-2xl border border-gray-200 bg-white p-12 text-center shadow-[var(--shadow-soft)]">
@@ -456,6 +580,7 @@ export function AdminListingsPanel({
           <ListingTable
             listings={listings}
             latestActions={latestActions}
+            selectable={canSelect}
             selectedIds={selected}
             onToggleSelect={toggleSelect}
             onToggleSelectAll={toggleSelectAll}

@@ -42,7 +42,22 @@ export async function getMe(): Promise<AuthUser> {
   return res.data!;
 }
 
-export async function updateProfile(data: Partial<UpdateProfileInput>): Promise<void> {
+export async function updateProfile(
+  data: Partial<UpdateProfileInput>,
+  photo?: File | null,
+): Promise<void> {
+  if (photo) {
+    const formData = new FormData();
+    Object.entries(data).forEach(([key, value]) => {
+      if (value !== undefined && value !== '') {
+        formData.append(key, String(value));
+      }
+    });
+    formData.append('user_photo', photo);
+    await clientFetch(bffPaths.auth.me, { method: 'PATCH', body: formData });
+    return;
+  }
+
   await clientFetch(bffPaths.auth.me, { method: 'PATCH', body: data });
 }
 

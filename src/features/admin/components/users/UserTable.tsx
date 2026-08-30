@@ -14,6 +14,7 @@ const roleKeys: Record<UserRole, TranslationKey> = {
 };
 
 interface UserTableProps {
+  selectable: boolean;
   users: AdminUserListItem[];
   actionUserId: string | null;
   selectedIds?: Set<string>;
@@ -29,6 +30,7 @@ interface UserTableProps {
 }
 
 export function UserTable({
+  selectable,
   users,
   actionUserId,
   selectedIds,
@@ -43,7 +45,6 @@ export function UserTable({
   onHardDelete,
 }: UserTableProps) {
   const { t } = useLocale();
-  const selectable = Boolean(selectedIds && onToggleSelect && onToggleSelectAll);
 
   const statusLabel = (user: AdminUserListItem) => {
     if (user.deleted_at) return t('admin.status.soft_deleted');

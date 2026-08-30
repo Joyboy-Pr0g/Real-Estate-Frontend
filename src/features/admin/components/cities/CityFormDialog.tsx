@@ -21,10 +21,23 @@ interface CityFormDialogProps {
 const fieldClass =
   'h-11 w-full rounded-xl border border-gray-200 bg-gray-50 px-4 text-sm outline-none focus:border-brand/40 focus:bg-white';
 
+function parseOptionalFloat(value: string): number | null {
+  const trimmed = value.trim();
+  if (!trimmed) return null;
+  const num = Number(trimmed);
+  return Number.isNaN(num) ? null : num;
+}
+
 export function CityFormDialog({ open, item, onClose, onSaved }: CityFormDialogProps) {
   const { t } = useLocale();
   const [pending, startTransition] = useTransition();
-  const [form, setForm] = useState<CityFormFields>({ name: '', governorate: '', pcode: '' });
+  const [form, setForm] = useState<CityFormFields>({
+    name: '',
+    governorate: '',
+    pcode: '',
+    latitude: null,
+    longitude: null,
+  });
   const [photoFile, setPhotoFile] = useState<File | null>(null);
   const [photoPreview, setPhotoPreview] = useState<string | null>(null);
 
@@ -34,6 +47,8 @@ export function CityFormDialog({ open, item, onClose, onSaved }: CityFormDialogP
       name: item?.name ?? '',
       governorate: item?.governorate ?? '',
       pcode: item?.pcode ?? '',
+      latitude: item?.latitude ?? null,
+      longitude: item?.longitude ?? null,
     });
     setPhotoFile(null);
     setPhotoPreview(item?.city_photo.url ?? null);
@@ -53,7 +68,9 @@ export function CityFormDialog({ open, item, onClose, onSaved }: CityFormDialogP
   const buildFormData = (fields: Partial<CityFormFields>, file: File | null): FormData => {
     const formData = new FormData();
     for (const [key, value] of Object.entries(fields)) {
-      if (value !== undefined) formData.append(key, value);
+      if (value !== undefined) {
+        formData.append(key, value === null ? '' : String(value));
+      }
     }
     if (file) formData.append('city_photo', file);
     return formData;
@@ -68,6 +85,8 @@ export function CityFormDialog({ open, item, onClose, onSaved }: CityFormDialogP
           name: form.name.trim(),
           governorate: form.governorate.trim(),
           pcode: form.pcode.trim(),
+          latitude: form.latitude,
+          longitude: form.longitude,
         };
 
         if (item) {
@@ -75,6 +94,8 @@ export function CityFormDialog({ open, item, onClose, onSaved }: CityFormDialogP
             name: item.name,
             governorate: item.governorate,
             pcode: item.pcode,
+            latitude: item.latitude,
+            longitude: item.longitude,
           };
           const patch = buildPartialUpdate(next, original);
 
@@ -145,6 +166,26 @@ export function CityFormDialog({ open, item, onClose, onSaved }: CityFormDialogP
               required
               value={form.pcode}
               onChange={(e) => setForm({ ...form, pcode: e.target.value })}
+              className={fieldClass}
+            />
+          </label>
+          <label className="block space-y-1.5">
+            <span className="text-sm font-medium text-primary-dark">{t('admin.latitude')}</span>
+            <input
+              type="number"
+              step="any"
+              value={form.latitude ?? ''}
+              onChange={(e) => setForm({ ...form, latitude: parseOptionalFloat(e.target.value) })}
+              className={fieldClass}
+            />
+          </label>
+          <label className="block space-y-1.5">
+            <span className="text-sm font-medium text-primary-dark">{t('admin.longitude')}</span>
+            <input
+              type="number"
+              step="any"
+              value={form.longitude ?? ''}
+              onChange={(e) => setForm({ ...form, longitude: parseOptionalFloat(e.target.value) })}
               className={fieldClass}
             />
           </label>

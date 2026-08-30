@@ -26,6 +26,7 @@ export default async function NewOfficeListingPage() {
       <div className="mt-6">
         {statusOffice && statusOffice.verification_status !== 'verified' ? (
           <VerificationStatusBanner
+            office_name={statusOffice.name}
             status={statusOffice.verification_status}
             reason={statusOffice.rejected_reason}
           />

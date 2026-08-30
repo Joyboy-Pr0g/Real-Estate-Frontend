@@ -1,6 +1,11 @@
 export type UserRole = 'buyer' | 'office' | 'platform_admin';
 export type UserStatus = 'active' | 'inactive' | 'blocked';
 
+export interface UserPhoto {
+  url: string;
+  public_id: string;
+}
+
 export interface AuthUser {
   id: string;
   f_name: string;
@@ -8,6 +13,7 @@ export interface AuthUser {
   email: string;
   email_verified_at: string | null;
   phone_number: string;
+  user_photo?: UserPhoto | null;
   role: UserRole;
   status: UserStatus;
   created_at?: string;

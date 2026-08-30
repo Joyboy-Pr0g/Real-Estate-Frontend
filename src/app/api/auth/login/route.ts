@@ -32,7 +32,14 @@ export async function POST(request: NextRequest) {
     });
   } catch (err) {
     if (err instanceof ApiError) {
-      return NextResponse.json({ success: false, message: err.message }, { status: err.status });
+      return NextResponse.json(
+        {
+          success: false,
+          message: err.message,
+          error: { message: err.message, details: err.details },
+        },
+        { status: err.status },
+      );
     }
     return NextResponse.json({ success: false, message: 'Login failed' }, { status: 500 });
   }

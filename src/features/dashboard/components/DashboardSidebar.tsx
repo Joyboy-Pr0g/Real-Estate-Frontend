@@ -16,6 +16,7 @@ import {
   Menu,
   Sparkles,
   X,
+  Bookmark,
 } from 'lucide-react';
 import { AuthUser } from '@/features/auth/types/user';
 import { logout } from '@/features/auth/services/auth-service';
@@ -42,6 +43,7 @@ function buildNavItems(isOffice: boolean, hasIndividualListerProfile: boolean): 
   const items: NavItem[] = [
     { href: '/dashboard', labelKey: 'dashboard.overview', icon: LayoutDashboard, exact: true },
     { href: '/dashboard/saved', labelKey: 'dashboard.savedListings', icon: Heart, exact: false },
+    { href: '/dashboard/favorite-filters', labelKey: 'dashboard.favoriteFilters.title', icon: Bookmark, exact: false },
     { href: '/dashboard/history', labelKey: 'dashboard.history', icon: History, exact: false },
     { href: '/dashboard/reports', labelKey: 'dashboard.reports', icon: Flag, exact: false },
   ];

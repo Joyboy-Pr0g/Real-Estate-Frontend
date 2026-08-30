@@ -80,6 +80,7 @@ export function AdminUsersPanel({
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [bulkConfirmOpen, setBulkConfirmOpen] = useState(false);
   const [bulkDeleting, setBulkDeleting] = useState(false);
+  const [canSelect, setCanSelect] = useState(false);
 
   const [prevInitial, setPrevInitial] = useState(initial);
   if (initial !== prevInitial) {
@@ -238,8 +239,8 @@ export function AdminUsersPanel({
         title={t('admin.users')}
         countLabel={t('admin.usersCount').replace('{count}', String(users.length))}
         filters={
-          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-            <div className="relative w-full max-w-xl">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+            <div className="relative w-full max-w-md">
               <Search
                 size={16}
                 className="pointer-events-none absolute start-3 top-1/2 -translate-y-1/2 text-gray-400"
@@ -257,7 +258,7 @@ export function AdminUsersPanel({
               <select
                 value={roleFilter}
                 onChange={(e) => setRoleFilter(e.target.value)}
-                className="h-11 rounded-xl border border-gray-200 bg-white px-3 text-sm outline-none focus:border-brand/40"
+                className="flex-1 h-11 rounded-xl border border-gray-200 bg-white px-3 text-sm outline-none focus:border-brand/40"
               >
                 <option value="">{t('admin.allRoles')}</option>
                 {ROLES.map((role) => (
@@ -270,7 +271,7 @@ export function AdminUsersPanel({
               <select
                 value={statusFilter}
                 onChange={(e) => setStatusFilter(e.target.value)}
-                className="h-11 rounded-xl border border-gray-200 bg-white px-3 text-sm outline-none focus:border-brand/40"
+                className="flex-1 h-11 rounded-xl border border-gray-200 bg-white px-3 text-sm outline-none focus:border-brand/40"
               >
                 <option value="">{t('admin.allStatuses')}</option>
                 {STATUSES.map((status) => (
@@ -279,7 +280,9 @@ export function AdminUsersPanel({
                   </option>
                 ))}
               </select>
+            </div>
 
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 flex-1">
               <TogglePill
                 checked={includeDeleted}
                 onCheckedChange={setIncludeDeleted}
@@ -292,16 +295,25 @@ export function AdminUsersPanel({
                 {t('admin.addUser')}
               </Button>
 
-              {selected.size > 0 ? (
-                <Button type="button" variant="dangerOutline" onClick={() => setBulkConfirmOpen(true)} className="rounded-xl">
-                  <Trash2 className="h-4 w-4" />
-                  {t('admin.deleteSelected').replace('{count}', String(selected.size))}
+              {!canSelect ? (
+                <Button type="button" variant="outline" onClick={() => setCanSelect(true)} className="hidden sm:block rounded-xl">
+                  {t('admin.select')}
                 </Button>
-              ) : null}
+              ) : (
+                <Button type="button" variant="outline" onClick={() => setCanSelect(false)} className="hidden sm:block rounded-xl">
+                  {t('admin.unSelect')}
+                </Button>
+              )}
             </div>
           </div>
         }
       />
+
+      {selected.size > 0 && (
+          <Button variant="dangerOutline" onClick={() => void handleBulkDelete()} className="rounded-xl">
+            {t('admin.deleteSelected').replace('{count}', String(selected.size))}
+          </Button>
+      )}
 
       {users.length === 0 ? (
         <div className="rounded-2xl border border-gray-200 bg-white p-12 text-center shadow-[var(--shadow-soft)]">
@@ -313,6 +325,7 @@ export function AdminUsersPanel({
             users={users}
             actionUserId={actionUserId}
             selectedIds={selected}
+            selectable={canSelect}
             onToggleSelect={toggleSelect}
             onToggleSelectAll={toggleSelectAll}
             onActivate={(id) => void runAction(id, () => activateUser(id), { successMessage: t('admin.userActivated') })}

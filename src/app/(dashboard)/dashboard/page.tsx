@@ -13,15 +13,15 @@ export default async function DashboardPage() {
 
   return (
     <Container className="py-8">
-      <div className="max-w-2xl">
+      <div className="mx-auto max-w-2xl">
         <h1 className="text-2xl font-bold text-primary-dark">
           {t('dashboard.welcome', { name: user.f_name })}
         </h1>
         <p className="mt-2 text-gray-500">{t('dashboard.dashboardHint')}</p>
-      </div>
 
-      <div className="mt-8">
-        <ProfileSettingsPanel user={user} />
+        <div className="mt-8">
+          <ProfileSettingsPanel user={user} />
+        </div>
       </div>
     </Container>
   );

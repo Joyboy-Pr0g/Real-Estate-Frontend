@@ -19,7 +19,10 @@ export interface ListingsUrlFilters {
   spec?: ListingSpecFilters;
 }
 
-export function buildListingsUrl(filters: ListingsUrlFilters = {}): string {
+export function buildListingsUrl(
+  filters: ListingsUrlFilters = {},
+  basePath = '/listings',
+): string {
   const params = new URLSearchParams();
 
   if (filters.propertyTypeSlug) {
@@ -57,14 +60,15 @@ export function buildListingsUrl(filters: ListingsUrlFilters = {}): string {
   }
 
   const query = params.toString();
-  return query ? `/listings?${query}` : '/listings';
+  return query ? `${basePath}?${query}` : basePath;
 }
 
 export function buildListingsHref(
   current: URLSearchParams,
   updates: Record<string, string | null>,
-  options?: { clearSpec?: boolean },
+  options?: { clearSpec?: boolean; basePath?: string },
 ): string {
+  const basePath = options?.basePath ?? '/listings';
   const params = new URLSearchParams(current.toString());
 
   for (const [key, value] of Object.entries(updates)) {
@@ -79,7 +83,7 @@ export function buildListingsHref(
   params.delete(LISTING_URL_PARAMS.cursor);
 
   const query = params.toString();
-  return query ? `/listings?${query}` : '/listings';
+  return query ? `${basePath}?${query}` : basePath;
 }
 
 export function stripSpecParams(params: URLSearchParams): URLSearchParams {

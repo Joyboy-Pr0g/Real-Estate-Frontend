@@ -31,6 +31,7 @@ interface ListingRowActions {
 interface ListingTableProps extends ListingRowActions {
   listings: AdminListingSummary[];
   latestActions?: Record<string, AdminLatestAction>;
+  selectable?: boolean;
   selectedIds?: Set<string>;
   onToggleSelect?: (listingId: string) => void;
   onToggleSelectAll?: () => void;
@@ -39,6 +40,7 @@ interface ListingTableProps extends ListingRowActions {
 export function ListingTable({
   listings,
   latestActions = {},
+  selectable = false,
   selectedIds,
   onToggleSelect,
   onToggleSelectAll,
@@ -49,7 +51,6 @@ export function ListingTable({
   onHardDelete,
 }: ListingTableProps) {
   const { t } = useLocale();
-  const selectable = Boolean(selectedIds && onToggleSelect && onToggleSelectAll);
 
   return (
     <div className="hidden overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-[var(--shadow-soft)] lg:block">

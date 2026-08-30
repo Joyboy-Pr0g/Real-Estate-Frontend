@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { FormEvent, useState } from 'react';
+import { ChangeEvent, FormEvent, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { ClipboardList, Plus, UserRound } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -12,6 +12,7 @@ import { OfficeUserMember } from '@/features/office/types/office';
 import { getErrorMessage } from '@/lib/errors/api-error';
 import { useLocale } from '@/lib/i18n/locale-provider';
 import { cn } from '@/lib/utils/cn';
+import { formatPhoneNumber } from '@/lib/utils/format';
 import type { TranslationKey } from '@/lib/i18n/ar';
 
 interface OfficeUsersPanelProps {
@@ -47,6 +48,10 @@ export function OfficeUsersPanel({ officeId, members, currentUserId }: OfficeUse
 
   const toggleSelected = (userId: string) => {
     setSelected((prev) => (prev.includes(userId) ? prev.filter((id) => id !== userId) : [...prev, userId]));
+  };
+
+  const handlePhoneNumberChange = (e: ChangeEvent<HTMLInputElement>) => {
+    setPhoneNumber(formatPhoneNumber(e.target.value));
   };
 
   const handleAddSubmit = async (event: FormEvent) => {
@@ -133,8 +138,9 @@ export function OfficeUsersPanel({ officeId, members, currentUserId }: OfficeUse
             <input
               required
               type="tel"
+              dir="ltr"
               value={phoneNumber}
-              onChange={(e) => setPhoneNumber(e.target.value)}
+              onChange={handlePhoneNumberChange}
               className={fieldClass}
             />
           </label>

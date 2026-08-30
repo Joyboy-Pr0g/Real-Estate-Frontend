@@ -9,7 +9,7 @@ export interface PublicListing {
   slug: string;
   price: string;
   property_type: PublicListingCatalogItem;
-  transaction_type: PublicListingCatalogItem;
+  transaction_type: PublicListingCatalogItem & { display_name_ar: string };
   property_subtype: PublicListingCatalogItem;
   city_name: string;
   neighborhood_name: string;

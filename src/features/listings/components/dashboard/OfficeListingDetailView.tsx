@@ -5,6 +5,8 @@ import Link from 'next/link';
 import { Building2, ExternalLink, Play, User } from 'lucide-react';
 import { ButtonLink } from '@/components/ui/button';
 import { PublicListingDetail } from '@/features/listings/types/listing-detail';
+import { ListingActionLogsPanel } from '@/features/listings/components/dashboard/ListingActionLogsPanel';
+import { CursorPage, OfficeActionLogEntry } from '@/features/admin/types/action-logs';
 import {
   formatSpecDisplayValue,
   getOrderedSpecEntries,
@@ -26,9 +28,10 @@ const STATUS_STYLES: Record<string, string> = {
 interface OfficeListingDetailViewProps {
   listing: PublicListingDetail;
   editHref: string;
+  initialOfficeLogs: CursorPage<OfficeActionLogEntry>;
 }
 
-export function OfficeListingDetailView({ listing, editHref }: OfficeListingDetailViewProps) {
+export function OfficeListingDetailView({ listing, editHref, initialOfficeLogs }: OfficeListingDetailViewProps) {
   const { t } = useLocale();
   const specSchema = listing.property_subtype.spec_schema;
   const specEntries = getOrderedSpecEntries(listing.property_specs, specSchema);
@@ -192,6 +195,12 @@ export function OfficeListingDetailView({ listing, editHref }: OfficeListingDeta
           </section>
         </div>
       </div>
+
+      <ListingActionLogsPanel
+        listingId={listing.id}
+        mode="office"
+        initialOfficeLogs={initialOfficeLogs}
+      />
     </div>
   );
 }

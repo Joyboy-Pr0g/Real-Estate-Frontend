@@ -5,7 +5,6 @@ import { Container } from '@/components/ui/container';
 import { catalogService } from '@/features/catalog/services/catalog-service';
 import { listingService } from '@/features/listings/services/listing-service';
 import { EditListingForm } from '@/features/listings/components/dashboard/EditListingForm';
-import { ListingActionLogsPanel } from '@/features/listings/components/dashboard/ListingActionLogsPanel';
 
 interface EditOfficeListingPageProps {
   params: Promise<{ id: string }>;
@@ -21,28 +20,21 @@ export default async function EditOfficeListingPage({ params }: EditOfficeListin
   const listing = await listingService.getMyListingById(id);
   if (!listing) notFound();
 
-  const [cities, initialNeighborhoods, officeLogs] = await Promise.all([
+  const [cities, initialNeighborhoods] = await Promise.all([
     catalogService.getCities(),
     catalogService.getNeighborhoodsByCity(listing.city.id),
-    listingService.getListingOfficeActionLogs(id),
   ]);
 
   return (
     <Container className="py-8">
       <h1 className="text-2xl font-bold text-primary-dark">{t('dashboard.listings.editTitle')}</h1>
 
-      <div className="mt-6 space-y-8">
+      <div className="mt-6">
         <EditListingForm
           listing={listing}
           cities={cities}
           initialNeighborhoods={initialNeighborhoods}
           redirectPath="/dashboard/office/listings"
-        />
-
-        <ListingActionLogsPanel
-          listingId={listing.id}
-          mode="office"
-          initialOfficeLogs={officeLogs}
         />
       </div>
     </Container>

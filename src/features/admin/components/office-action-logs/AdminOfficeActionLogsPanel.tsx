@@ -2,9 +2,8 @@
 
 import { useCallback, useState, useTransition } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { Loader2, Trash2 } from 'lucide-react';
+import { Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { ConfirmModal } from '@/components/ui/confirm-modal';
 import { SearchableSelect } from '@/components/ui/searchable-select';
 import { toast } from '@/components/ui/toaster';
 import { ActionLogTimeline } from '@/features/admin/components/audit/ActionLogTimeline';
@@ -40,7 +39,7 @@ export function AdminOfficeActionLogsPanel({
   const [hasMore, setHasMore] = useState(initial.has_more);
   const [loading, setLoading] = useState(false);
   const [selected, setSelected] = useState<Set<string>>(new Set());
-  const [confirmOpen, setConfirmOpen] = useState(false);
+  const [canSelect, setCanSelect] = useState(false);
   const [deleting, setDeleting] = useState(false);
 
   const [prevInitial, setPrevInitial] = useState(initial);
@@ -101,7 +100,6 @@ export function AdminOfficeActionLogsPanel({
       const deleted = await bulkDeleteOfficeActionLogs([...selected]);
       toast.success(t('admin.officeActionLogsDeleted').replace('{count}', String(deleted)));
       setSelected(new Set());
-      setConfirmOpen(false);
       startTransition(() => router.refresh());
     } catch (err) {
       toast.error(getErrorMessage(err));
@@ -129,13 +127,22 @@ export function AdminOfficeActionLogsPanel({
           />
         </div>
 
-        {selected.size > 0 ? (
-          <Button type="button" variant="dangerOutline" onClick={() => setConfirmOpen(true)}>
-            <Trash2 className="h-4 w-4" />
-            {t('admin.deleteSelected').replace('{count}', String(selected.size))}
+        {!canSelect ? (
+          <Button type="button" variant="outline" onClick={() => setCanSelect(true)} className="hidden sm:block rounded-xl">
+            {t('admin.select')}
           </Button>
-        ) : null}
+        ) : (
+          <Button type="button" variant="outline" onClick={() => setCanSelect(false)} className="hidden sm:block rounded-xl">
+            {t('admin.unSelect')}
+          </Button>
+        )}
       </div>
+
+      {selected.size > 0 && (
+        <Button variant="dangerOutline" onClick={() => void handleBulkDelete()} className="rounded-xl">
+          {t('admin.deleteSelected').replace('{count}', String(selected.size))}
+        </Button>
+      )}
 
       {items.length === 0 ? (
         <div className="rounded-2xl border border-dashed border-gray-200 bg-white px-6 py-16 text-center">
@@ -143,16 +150,18 @@ export function AdminOfficeActionLogsPanel({
         </div>
       ) : (
         <div className="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-[var(--shadow-soft)]">
-          <div className="flex items-center gap-3 border-b border-gray-100 px-4 py-3">
-            <input
-              type="checkbox"
-              checked={items.length > 0 && selected.size === items.length}
-              onChange={toggleSelectAll}
-              className="h-4 w-4 rounded border-gray-300"
-              aria-label={t('admin.selectAll')}
-            />
-            <span className="text-xs text-gray-400">{t('admin.selectAll')}</span>
-          </div>
+          {canSelect ? (
+            <div className="flex items-center gap-3 border-b border-gray-100 px-4 py-3">
+              <input
+                type="checkbox"
+                checked={items.length > 0 && selected.size === items.length}
+                onChange={toggleSelectAll}
+                className="h-4 w-4 rounded border-gray-300"
+                aria-label={t('admin.selectAll')}
+              />
+              <span className="text-xs text-gray-400">{t('admin.selectAll')}</span>
+            </div>
+          ) : null}
 
           <div className="divide-y divide-gray-50">
             {items.map((entry) => {
@@ -162,13 +171,15 @@ export function AdminOfficeActionLogsPanel({
 
               return (
                 <div key={entry.id} className="flex gap-3 px-4 py-4">
-                  <input
-                    type="checkbox"
-                    checked={selected.has(entry.id)}
-                    onChange={() => toggleSelect(entry.id)}
-                    className="mt-1 h-4 w-4 shrink-0 rounded border-gray-300"
-                    aria-label={actionLabel}
-                  />
+                  {canSelect ? (
+                    <input
+                      type="checkbox"
+                      checked={selected.has(entry.id)}
+                      onChange={() => toggleSelect(entry.id)}
+                      className="mt-1 h-4 w-4 shrink-0 rounded border-gray-300"
+                      aria-label={actionLabel}
+                    />
+                  ) : null}
                   <div className="min-w-0 flex-1">
                     <div className="flex flex-wrap items-start justify-between gap-2">
                       <div>
@@ -199,17 +210,6 @@ export function AdminOfficeActionLogsPanel({
         </div>
       )}
 
-      <ConfirmModal
-        open={confirmOpen}
-        title={t('admin.confirmBulkDeleteLogsTitle')}
-        description={t('admin.confirmBulkDeleteLogsDescription').replace('{count}', String(selected.size))}
-        confirmText={t('admin.deleteSelectedAction')}
-        cancelText={t('admin.cancel')}
-        danger
-        loading={deleting}
-        onCancel={() => setConfirmOpen(false)}
-        onConfirm={() => void handleBulkDelete()}
-      />
     </div>
   );
 }

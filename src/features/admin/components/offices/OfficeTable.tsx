@@ -28,6 +28,7 @@ interface OfficeRowActions {
 
 interface OfficeTableProps extends OfficeRowActions {
   offices: OfficeDetail[];
+  selectable?: boolean;
   selectedIds?: Set<string>;
   onToggleSelect?: (officeId: string) => void;
   onToggleSelectAll?: () => void;
@@ -51,6 +52,7 @@ function StatusBadge({ office }: { office: OfficeDetail }) {
 
 export function OfficeTable({
   offices,
+  selectable = false,
   selectedIds,
   onToggleSelect,
   onToggleSelectAll,
@@ -64,7 +66,6 @@ export function OfficeTable({
   onHardDelete,
 }: OfficeTableProps) {
   const { t } = useLocale();
-  const selectable = Boolean(selectedIds && onToggleSelect && onToggleSelectAll);
 
   return (
     <div className="hidden overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-[var(--shadow-soft)] lg:block">

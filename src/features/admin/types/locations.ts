@@ -9,6 +9,8 @@ export interface AdminCity {
   governorate: string;
   pcode: string;
   city_photo: AdminCityPhoto;
+  latitude: number | null;
+  longitude: number | null;
   created_at: string;
   updated_at: string;
 }
@@ -40,6 +42,8 @@ export interface CityFormFields {
   name: string;
   governorate: string;
   pcode: string;
+  latitude: number | null;
+  longitude: number | null;
 }
 
 export interface NeighborhoodPayload {
@@ -82,4 +86,6 @@ export interface PublicCityOption {
   governorate: string;
   pcode: string;
   city_photo_url: string;
+  latitude: number | null;
+  longitude: number | null;
 }

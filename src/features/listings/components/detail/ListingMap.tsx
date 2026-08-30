@@ -21,6 +21,7 @@ import { bffPaths } from '@/lib/api/endpoints';
 import { clientFetch } from '@/lib/api/client';
 import { NEAR_BY_POINT_CATEGORIES, NearByPointCategory, NearByPointsResult } from '@/features/listings/types/near-by-points';
 import { useLocale } from '@/lib/i18n/locale-provider';
+import { GOOGLE_MAPS_LIBRARIES, GOOGLE_MAPS_LOADER_ID } from '@/lib/google-maps/loader-config';
 import { cn } from '@/lib/utils/cn';
 
 interface ListingMapProps {
@@ -88,8 +89,9 @@ export function ListingMap({ listingId, latitude, longitude, address }: ListingM
   const isInitialZoomRef = useRef(true);
 
   const { isLoaded } = useJsApiLoader({
-    id: 'listing-detail-map',
+    id: GOOGLE_MAPS_LOADER_ID,
     googleMapsApiKey: apiKey ?? '',
+    libraries: GOOGLE_MAPS_LIBRARIES,
   });
 
   useEffect(() => {

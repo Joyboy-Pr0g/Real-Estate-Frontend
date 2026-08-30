@@ -42,7 +42,11 @@ export async function OfficeDetailContent({ officeId, userId }: OfficeDetailCont
       </Link>
 
       {office.verification_status !== 'verified' ? (
-        <VerificationStatusBanner status={office.verification_status} reason={office.rejected_reason} />
+        <VerificationStatusBanner
+          office_name={office.name}
+          status={office.verification_status}
+          reason={office.rejected_reason}
+        />
       ) : null}
 
       <OfficeProfilePanel

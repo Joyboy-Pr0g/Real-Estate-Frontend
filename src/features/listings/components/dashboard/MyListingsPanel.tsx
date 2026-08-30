@@ -4,8 +4,8 @@ import Link from 'next/link';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import Image from 'next/image';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { Building2, Eye, Bookmark, Plus, Search } from 'lucide-react';
-import { ButtonLink } from '@/components/ui/button';
+import { Building2, Eye, Bookmark, Plus, Search, Archive, Loader2, RotateCcw, Trash2, X } from 'lucide-react';
+import { Button, ButtonLink } from '@/components/ui/button';
 import { ConfirmModal } from '@/components/ui/confirm-modal';
 import { SearchableSelect } from '@/components/ui/searchable-select';
 import { toast } from '@/components/ui/toaster';
@@ -18,9 +18,12 @@ import { createSearchMyOfficesForSelect } from '@/features/office/services/offic
 import { MyOffice } from '@/features/office/types/office';
 import {
   draftListing,
+  fetchMyDeletedListings,
+  hardDeleteListing,
   markListingRented,
   markListingSold,
   publishListing,
+  restoreListing,
   softDeleteListing,
 } from '@/features/listings/services/listing-client';
 import { clientFetch } from '@/lib/api/client';
@@ -65,6 +68,190 @@ const STATUS_STYLES: Record<PublicListing['status'], string> = {
 };
 
 const fieldClass = 'h-10 rounded-xl border border-gray-200 bg-white px-3 text-sm outline-none focus:border-brand/40';
+
+interface DeletedListingsModalProps {
+  open: boolean;
+  onClose: () => void;
+  onChanged: () => void;
+}
+
+function DeletedListingsModal({ open, onClose, onChanged }: DeletedListingsModalProps) {
+  const { t } = useLocale();
+  const [items, setItems] = useState<MyListingSummary[]>([]);
+  const [cursor, setCursor] = useState<string | null>(null);
+  const [hasMore, setHasMore] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [searchInput, setSearchInput] = useState('');
+  const debouncedSearch = useDebounce(searchInput, 400);
+  const [actionId, setActionId] = useState<string | null>(null);
+  const [confirm, setConfirm] = useState<{ listing: MyListingSummary; action: 'restore' | 'hard_delete' } | null>(
+    null,
+  );
+
+  const load = useCallback(
+    async (reset: boolean) => {
+      setLoading(true);
+      try {
+        const params: Record<string, string> = {};
+        if (!reset && cursor) params.cursor = cursor;
+        if (debouncedSearch.trim()) params.search = debouncedSearch.trim();
+
+        const page = await fetchMyDeletedListings(params);
+        setItems((prev) => (reset ? page.items : [...prev, ...page.items]));
+        setCursor(page.next_cursor);
+        setHasMore(page.has_more);
+      } catch (err) {
+        toast.error(getErrorMessage(err));
+      } finally {
+        setLoading(false);
+      }
+    },
+    [cursor, debouncedSearch],
+  );
+
+  useEffect(() => {
+    if (!open) return;
+    setItems([]);
+    setCursor(null);
+    void load(true);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open, debouncedSearch]);
+
+  const runConfirm = async () => {
+    if (!confirm) return;
+    setActionId(confirm.listing.id);
+    try {
+      if (confirm.action === 'restore') {
+        await restoreListing(confirm.listing.id);
+        toast.success(t('dashboard.listings.restored'));
+      } else {
+        await hardDeleteListing(confirm.listing.id);
+        toast.success(t('dashboard.listings.hardDeleted'));
+      }
+      setConfirm(null);
+      setItems([]);
+      setCursor(null);
+      onChanged();
+      await load(true);
+    } catch (err) {
+      toast.error(getErrorMessage(err));
+    } finally {
+      setActionId(null);
+    }
+  };
+
+  if (!open) return null;
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
+      <div
+        role="dialog"
+        aria-modal="true"
+        className="flex max-h-[min(90vh,720px)] w-full max-w-3xl flex-col overflow-hidden rounded-2xl bg-white shadow-[var(--shadow-float)]"
+      >
+        <div className="relative shrink-0 border-b border-gray-100 px-6 py-4">
+          <button
+            type="button"
+            onClick={onClose}
+            aria-label={t('admin.close')}
+            className="absolute start-0 top-1/2 flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-lg text-gray-400 hover:bg-gray-100 hover:text-gray-600"
+          >
+            <X className="h-4 w-4" />
+          </button>
+          <h2 className="ps-10 text-lg font-bold text-primary-dark">{t('dashboard.listings.deletedListingsTitle')}</h2>
+        </div>
+
+        <div className="shrink-0 border-b border-gray-100 px-6 py-3">
+          <div className="relative">
+            <Search className="pointer-events-none absolute start-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
+            <input
+              type="search"
+              value={searchInput}
+              onChange={(e) => setSearchInput(e.target.value)}
+              placeholder={t('admin.searchListings')}
+              className={cn(fieldClass, 'w-full ps-9')}
+            />
+          </div>
+        </div>
+
+        <div className="flex-1 overflow-y-auto px-6 py-4">
+          {items.length === 0 && !loading ? (
+            <p className="py-8 text-center text-sm text-gray-500">{t('dashboard.listings.deletedListingsEmpty')}</p>
+          ) : (
+            <div className="space-y-3">
+              {items.map((listing) => (
+                <div
+                  key={listing.id}
+                  className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-gray-200 px-4 py-3"
+                >
+                  <div className="min-w-0">
+                    <p className="truncate font-semibold text-primary-dark">{listing.title}</p>
+                    <p className="text-xs text-gray-500">
+                      {listing.neighborhood_name}, {listing.city_name} · {formatPriceYER(listing.price)}
+                    </p>
+                  </div>
+                  <div className="flex shrink-0 gap-2">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      disabled={actionId === listing.id}
+                      onClick={() => setConfirm({ listing, action: 'restore' })}
+                    >
+                      <RotateCcw className="h-4 w-4" />
+                      {t('admin.restore')}
+                    </Button>
+                    <Button
+                      type="button"
+                      variant="dangerOutline"
+                      size="sm"
+                      disabled={actionId === listing.id}
+                      onClick={() => setConfirm({ listing, action: 'hard_delete' })}
+                    >
+                      <Trash2 className="h-4 w-4" />
+                      {t('admin.hardDelete')}
+                    </Button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+
+        {hasMore ? (
+          <div className="flex shrink-0 justify-center border-t border-gray-100 p-4">
+            <Button type="button" variant="outline" disabled={loading} onClick={() => void load(false)}>
+              {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
+              {t('admin.loadMore')}
+            </Button>
+          </div>
+        ) : null}
+
+        {confirm ? (
+          <ConfirmModal
+            open
+            title={t(
+              confirm.action === 'restore'
+                ? 'dashboard.listings.confirmRestoreTitle'
+                : 'dashboard.listings.confirmHardDeleteTitle',
+            )}
+            description={t(
+              confirm.action === 'restore'
+                ? 'dashboard.listings.confirmRestoreDescription'
+                : 'dashboard.listings.confirmHardDeleteDescription',
+            )}
+            confirmText={confirm.action === 'restore' ? t('admin.restore') : t('admin.hardDelete')}
+            cancelText={t('admin.cancel')}
+            danger={confirm.action === 'hard_delete'}
+            loading={actionId === confirm.listing.id}
+            onConfirm={() => void runConfirm()}
+            onCancel={() => setConfirm(null)}
+          />
+        ) : null}
+      </div>
+    </div>
+  );
+}
 
 interface MyListingCardProps {
   listing: MyListingSummary;
@@ -206,6 +393,7 @@ export function MyListingsPanel({
   const [error, setError] = useState(false);
   const [actionId, setActionId] = useState<string | null>(null);
   const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
+  const [deletedModalOpen, setDeletedModalOpen] = useState(false);
 
   const status = searchParams.get('status') ?? '';
   const propertyTypeId = searchParams.get('property_type_id') ?? '';
@@ -372,10 +560,17 @@ export function MyListingsPanel({
             />
           </label>
 
-          <ButtonLink href={`${basePath}/new`} className="shrink-0 gap-1.5 self-end sm:self-auto">
-            <Plus className="h-4 w-4" />
-            {t('dashboard.listings.createButton')}
-          </ButtonLink>
+          <div className="flex shrink-0 flex-wrap items-center gap-2 self-end sm:self-auto">
+            <Button type="button" variant="outline" onClick={() => setDeletedModalOpen(true)}>
+              <Archive className="h-4 w-4" />
+              {t('dashboard.listings.deletedListings')}
+            </Button>
+
+            <ButtonLink href={`${basePath}/new`} className="gap-1.5">
+              <Plus className="h-4 w-4" />
+              {t('dashboard.listings.createButton')}
+            </ButtonLink>
+          </div>
         </div>
 
         <div
@@ -533,6 +728,12 @@ export function MyListingsPanel({
           && runAction(confirmDeleteId, () => softDeleteListing(confirmDeleteId), 'dashboard.listings.softDeleted')
         }
         onCancel={() => setConfirmDeleteId(null)}
+      />
+
+      <DeletedListingsModal
+        open={deletedModalOpen}
+        onClose={() => setDeletedModalOpen(false)}
+        onChanged={() => router.refresh()}
       />
     </div>
   );

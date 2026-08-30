@@ -11,6 +11,7 @@ import { cn } from '@/lib/utils/cn';
 
 interface ListingCardProps {
   listing: PublicListing;
+  priority?: boolean;
 }
 
 function isRentListing(listing: PublicListing): boolean {
@@ -24,7 +25,7 @@ function isRecentListing(createdAt: string): boolean {
   return Date.now() - created < week;
 }
 
-export function ListingCard({ listing }: ListingCardProps) {
+export function ListingCard({ listing, priority = false }: ListingCardProps) {
   const { t } = useLocale();
   const forRent = isRentListing(listing);
   const isNew = isRecentListing(listing.created_at);
@@ -47,11 +48,12 @@ export function ListingCard({ listing }: ListingCardProps) {
               src={listing.main_photo}
               alt={listing.title}
               fill
+              priority={priority}
               className={cn(
                 'object-cover transition-transform duration-500 ease-out group-hover:scale-105',
                 imgLoaded ? 'opacity-100' : 'opacity-0',
               )}
-              sizes="300px"
+              sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
               onLoad={() => setImgLoaded(true)}
             />
           ) : (

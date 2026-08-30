@@ -6,6 +6,8 @@ export const backendPaths = {
     getById: (id: string) => `/listings/${id}`,
     nearByPoints: (id: string) => `/listings/${id}/near-by-points`,
     saved: '/listings/saved',
+    favoriteFilters: '/listings/favorite-filters',
+    favoriteFilterById: (id: string) => `/listings/favorite-filters/${id}`,
     checkSaved: '/listings/saved/check',
     save: (id: string) => `/listings/${id}/save`,
     view: (id: string) => `/listings/${id}/view`,
@@ -74,6 +76,7 @@ export const backendPaths = {
   },
   offices: {
     my: '/offices/my',
+    myDeleted: '/offices/my/deleted',
     create: '/offices',
     list: '/offices',
     byId: (id: string) => `/offices/${id}`,
@@ -127,15 +130,20 @@ export const backendPaths = {
     actionLogsByEntity: (entityId: string) => `/admin/action-logs/entity/${entityId}`,
     officeActionLogs: '/admin/office-action-logs',
     officeActionLogsBulk: '/admin/office-action-logs/bulk',
+    navBadges: '/admin/nav-badges',
+    dashboard: '/admin/dashboard',
   },
 } as const;
 
 export const bffPaths = {
   offices: {
     create: '/api/offices',
+    myDeleted: '/api/offices/my/deleted',
     update: (id: string) => `/api/offices/${id}`,
     resubmit: (id: string) => `/api/offices/${id}/resubmit`,
     softDelete: (id: string) => `/api/offices/${id}/soft-delete`,
+    restore: (id: string) => `/api/offices/${id}/restore`,
+    delete: (id: string) => `/api/offices/${id}`,
     users: (id: string) => `/api/offices/${id}/users`,
   },
   individualListers: {
@@ -147,6 +155,8 @@ export const bffPaths = {
     save: (id: string) => `/api/listings/${id}/save`,
     view: (id: string) => `/api/listings/${id}/view`,
     saved: '/api/listings/saved',
+    favoriteFilters: '/api/listings/favorite-filters',
+    favoriteFilterById: (id: string) => `/api/listings/favorite-filters/${id}`,
     checkSaved: '/api/listings/saved/check',
     myReports: '/api/listings/my-reports',
     myViewHistory: '/api/listings/my-view-history',
@@ -245,5 +255,6 @@ export const bffPaths = {
     individualListerById: (id: string) => `/api/admin/individual-listers/${id}`,
     listings: '/api/admin/listings',
     listingsBulk: '/api/admin/listings/bulk',
+    navBadges: '/api/admin/nav-badges',
   },
 } as const;

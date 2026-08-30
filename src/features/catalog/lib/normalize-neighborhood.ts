@@ -14,7 +14,10 @@ export function normalizePublicNeighborhood(
 
   if (!id || !name || !city_id || !neighb_pcode) return null;
 
-  return { id, name, city_id, neighb_pcode };
+  const latitude = typeof row.latitude === 'number' ? row.latitude : null;
+  const longitude = typeof row.longitude === 'number' ? row.longitude : null;
+
+  return { id, name, city_id, neighb_pcode, latitude, longitude };
 }
 
 export function normalizePublicNeighborhoods(

@@ -2,6 +2,7 @@
 
 import { clientFetch } from '@/lib/api/client';
 import { bffPaths } from '@/lib/api/endpoints';
+import { MyListingSummary } from '@/features/listings/types/listing';
 
 export async function createListing(formData: FormData): Promise<{ id: string }> {
   const res = await clientFetch<{ id: string }>(bffPaths.listings.create, {
@@ -41,6 +42,23 @@ export async function restoreListing(id: string): Promise<void> {
 
 export async function hardDeleteListing(id: string): Promise<void> {
   await clientFetch(bffPaths.listings.delete(id), { method: 'DELETE' });
+}
+
+export interface MyDeletedListingsPage {
+  items: MyListingSummary[];
+  next_cursor: string | null;
+  has_more: boolean;
+}
+
+export async function fetchMyDeletedListings(params: Record<string, string> = {}): Promise<MyDeletedListingsPage> {
+  const response = await clientFetch<MyListingSummary[]>(bffPaths.listings.myListings, {
+    searchParams: { ...params, deleted_only: 'true' },
+  });
+  return {
+    items: response.data ?? [],
+    next_cursor: response.next_cursor ?? null,
+    has_more: Boolean(response.has_more),
+  };
 }
 
 export async function bulkDeleteListings(ids: string[]): Promise<number> {

@@ -4,6 +4,8 @@ export interface PublicCity {
   governorate: string;
   pcode: string;
   city_photo_url: string;
+  latitude: number | null;
+  longitude: number | null;
 }
 
 export interface PublicPropertyType {

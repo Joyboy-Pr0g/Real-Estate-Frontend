@@ -2,7 +2,7 @@ import { z } from 'zod';
 import { ListingSpecFilters } from '@/features/listings/types/spec-filters';
 
 export const listingSearchQuerySchema = z.object({
-  limit: z.coerce.number().int().min(1).max(50).optional(),
+  limit: z.coerce.number().int().min(1).max(100).optional(),
   sort: z
     .enum(['created_at', 'most_saved', 'most_viewed', 'description_length'])
     .optional(),

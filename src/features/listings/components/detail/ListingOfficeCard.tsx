@@ -11,6 +11,7 @@ export async function ListingOfficeCard({ seller }: ListingOfficeCardProps) {
   const { t } = await getServerTranslations();
   const isOffice = seller.type === 'office';
   const isVerified = seller.verification_status === 'verified';
+  const agent = isOffice ? seller.created_by : null;
 
   return (
     <div className="relative space-y-4 rounded-2xl bg-white p-4 shadow-[var(--shadow-soft)] ring-1 ring-gray-100 sm:gap-6 sm:p-5">
@@ -44,24 +45,49 @@ export async function ListingOfficeCard({ seller }: ListingOfficeCardProps) {
         </div>
       </div>
 
-      <div className="flex shrink-0 flex-wrap items-center gap-2 sm:gap-3">
-        <a
-          href={`tel:${seller.phone_number}`}
-          className="flex items-center gap-2 rounded-xl border border-gray-200 bg-white px-3.5 py-2.5 text-sm font-semibold text-primary-dark transition-colors hover:border-brand/30 hover:bg-brand-muted"
-        >
-          <Phone className="h-4 w-4 text-brand" />
-          <span dir="ltr">{seller.phone_number}</span>
-        </a>
-        {/* {isOffice ? (
+      {agent ? (
+        <div className="space-y-3 rounded-xl border border-gray-100 bg-gray-50 p-3.5">
+          <p className="text-[11px] font-semibold uppercase tracking-wide text-gray-400">
+            {t('detail.office.listedBy')}
+          </p>
+          <p className="text-sm font-bold text-primary-dark">{agent.name}</p>
+          <div className="flex flex-wrap gap-2">
+            <a
+              href={`tel:${agent.phone_number}`}
+              className="inline-flex items-center gap-2 rounded-xl border border-gray-200 bg-white px-3 py-2 text-sm font-semibold text-primary-dark transition-colors hover:border-brand/30 hover:bg-brand-muted"
+            >
+              <Phone className="h-4 w-4 text-brand" />
+              <span dir="ltr">{agent.phone_number}</span>
+            </a>
+            <a
+              href={`mailto:${agent.email}`}
+              className="inline-flex items-center gap-2 rounded-xl border border-gray-200 bg-white px-3 py-2 text-sm font-semibold text-primary-dark transition-colors hover:border-brand/30 hover:bg-brand-muted"
+            >
+              <Mail className="h-4 w-4 text-brand" />
+              <span className="truncate">{agent.email}</span>
+            </a>
+          </div>
+        </div>
+      ) : (
+        <div className="flex shrink-0 flex-wrap items-center gap-2 sm:gap-3">
           <a
-            href={`mailto:${seller.email}`}
-            className="inline-flex items-center justify-center gap-2 rounded-xl bg-brand px-4 py-2.5 text-sm font-medium text-white shadow-sm transition-colors hover:bg-brand-dark"
+            href={`tel:${seller.phone_number}`}
+            className="flex items-center gap-2 rounded-xl border border-gray-200 bg-white px-3.5 py-2.5 text-sm font-semibold text-primary-dark transition-colors hover:border-brand/30 hover:bg-brand-muted"
           >
-            <Mail className="h-4 w-4" />
-            {t('detail.office.sendMessage')}
+            <Phone className="h-4 w-4 text-brand" />
+            <span dir="ltr">{seller.phone_number}</span>
           </a>
-        ) : null} */}
-      </div>
+          {isOffice ? (
+            <a
+              href={`mailto:${seller.email}`}
+              className="inline-flex items-center gap-2 rounded-xl border border-gray-200 bg-white px-3.5 py-2.5 text-sm font-semibold text-primary-dark transition-colors hover:border-brand/30 hover:bg-brand-muted"
+            >
+              <Mail className="h-4 w-4 text-brand" />
+              <span className="truncate">{seller.email}</span>
+            </a>
+          ) : null}
+        </div>
+      )}
     </div>
   );
 }

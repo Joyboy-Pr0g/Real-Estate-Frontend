@@ -24,6 +24,7 @@ import {
 } from 'lucide-react';
 import { AuthUser } from '@/features/auth/types/user';
 import { logout } from '@/features/auth/services/auth-service';
+import { useAdminNavBadges } from '@/features/admin/hooks/use-admin-nav-badges';
 import { useLocale } from '@/lib/i18n/locale-provider';
 import { cn } from '@/lib/utils/cn';
 import { Button, ButtonLink } from '@/components/ui/button';
@@ -38,13 +39,20 @@ const navItems = [
   { href: '/admin', labelKey: 'admin.dashboard' as const, icon: LayoutDashboard, exact: true },
   { href: '/admin/users', labelKey: 'admin.users' as const, icon: Users, exact: false },
   { href: '/admin/offices', labelKey: 'admin.offices' as const, icon: Building2, exact: true },
-  { href: '/admin/offices/pending', labelKey: 'admin.pendingOffices' as const, icon: Clock, exact: false },
+  {
+    href: '/admin/offices/pending',
+    labelKey: 'admin.pendingOffices' as const,
+    icon: Clock,
+    exact: false,
+    badgeKey: 'pending_offices' as const,
+  },
   { href: '/admin/individual-listers', labelKey: 'admin.individualListers' as const, icon: Sparkles, exact: true },
   {
     href: '/admin/individual-listers/pending',
     labelKey: 'admin.pendingIndividualListers' as const,
     icon: Clock,
     exact: false,
+    badgeKey: 'pending_individual_listers' as const,
   },
   { href: '/admin/listings', labelKey: 'admin.listings' as const, icon: Home, exact: false },
   { href: '/admin/office-action-logs', labelKey: 'admin.officeActionLogs' as const, icon: ClipboardList, exact: false },
@@ -61,6 +69,7 @@ export function AdminSidebar({ user }: AdminSidebarProps) {
   const pathname = usePathname();
   const router = useRouter();
   const { t } = useLocale();
+  const adminBadges = useAdminNavBadges();
   const [open, setOpen] = useState(false);
   const [compact, setCompact] = useState(() => {
     if (typeof window === 'undefined') return false;
@@ -141,9 +150,10 @@ export function AdminSidebar({ user }: AdminSidebarProps) {
 
   const nav = (
     <nav className={cn('min-h-0 flex-1 space-y-1 overflow-y-auto py-3', compact ? 'px-2 lg:px-1.5' : 'px-3')}>
-      {navItems.map(({ href, labelKey, icon: Icon, exact }) => {
+      {navItems.map(({ href, labelKey, icon: Icon, exact, badgeKey }) => {
         const active = exact ? pathname === href : pathname.startsWith(href);
         const label = t(labelKey);
+        const badgeCount = badgeKey ? adminBadges[badgeKey] : 0;
         return (
           <Link
             key={href}
@@ -153,7 +163,7 @@ export function AdminSidebar({ user }: AdminSidebarProps) {
             title={compact ? label : undefined}
             aria-label={compact ? label : undefined}
             className={cn(
-              'inline-flex w-full shrink-0 items-center gap-2 rounded-xl px-3 py-2.5 text-sm font-medium transition-colors',
+              'relative inline-flex w-full shrink-0 items-center gap-2 rounded-xl px-3 py-2.5 text-sm font-medium transition-colors',
               compact && 'lg:justify-center lg:gap-0 lg:px-2',
               active
                 ? 'bg-brand-muted text-brand-dark'
@@ -162,6 +172,16 @@ export function AdminSidebar({ user }: AdminSidebarProps) {
           >
             <Icon className="h-4 w-4 shrink-0" />
             <span className={cn('truncate', compact && 'lg:hidden')}>{label}</span>
+            {badgeCount > 0 ? (
+              <span
+                className={cn(
+                  'ms-auto flex h-5 min-w-5 items-center justify-center rounded-full bg-red-500 px-1.5 text-[10px] font-bold text-white',
+                  compact && 'lg:absolute lg:top-1.5 lg:end-1.5 lg:ms-0 lg:h-2 lg:min-w-2 lg:px-0 lg:text-[0]',
+                )}
+              >
+                {badgeCount > 99 ? '99+' : badgeCount}
+              </span>
+            ) : null}
           </Link>
         );
       })}

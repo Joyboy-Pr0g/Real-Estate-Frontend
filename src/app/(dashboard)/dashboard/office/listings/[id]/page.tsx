@@ -13,12 +13,19 @@ export default async function OfficeListingDetailPage({ params }: OfficeListingD
   if (!user) redirect('/login');
 
   const { id } = await params;
-  const listing = await listingService.getMyListingById(id);
+  const [listing, officeLogs] = await Promise.all([
+    listingService.getMyListingById(id),
+    listingService.getListingOfficeActionLogs(id),
+  ]);
   if (!listing) notFound();
 
   return (
     <Container className="py-8">
-      <OfficeListingDetailView listing={listing} editHref={`/dashboard/office/listings/${listing.id}/edit`} />
+      <OfficeListingDetailView
+        listing={listing}
+        editHref={`/dashboard/office/listings/${listing.id}/edit`}
+        initialOfficeLogs={officeLogs}
+      />
     </Container>
   );
 }

@@ -17,6 +17,29 @@ export async function softDeleteOffice(id: string): Promise<void> {
   await clientFetch(bffPaths.offices.softDelete(id), { method: 'PATCH' });
 }
 
+export async function restoreOffice(id: string): Promise<void> {
+  await clientFetch(bffPaths.offices.restore(id), { method: 'PATCH' });
+}
+
+export async function hardDeleteOffice(id: string): Promise<void> {
+  await clientFetch(bffPaths.offices.delete(id), { method: 'DELETE' });
+}
+
+export interface MyDeletedOfficesPage {
+  items: MyOffice[];
+  next_cursor: string | null;
+  has_more: boolean;
+}
+
+export async function fetchMyDeletedOffices(params: Record<string, string> = {}): Promise<MyDeletedOfficesPage> {
+  const response = await clientFetch<MyOffice[]>(bffPaths.offices.myDeleted, { searchParams: params });
+  return {
+    items: response.data ?? [],
+    next_cursor: response.next_cursor ?? null,
+    has_more: Boolean(response.has_more),
+  };
+}
+
 export async function updateOffice(id: string, formData: FormData): Promise<void> {
   await clientFetch(bffPaths.offices.update(id), { method: 'PUT', body: formData });
 }

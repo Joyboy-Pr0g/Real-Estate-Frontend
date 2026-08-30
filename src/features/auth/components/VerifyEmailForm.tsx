@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useForm } from 'react-hook-form';
@@ -23,6 +23,8 @@ export function VerifyEmailForm() {
   const [resendMessage, setResendMessage] = useState('');
   const [resending, setResending] = useState(false);
   const verifySchema = useMemo(() => createVerifyEmailSchema(t), [t]);
+  const fromLogin = searchParams.get('sent') === '1';
+  const redirectAfterLogin = searchParams.get('redirect');
 
   const {
     register,
@@ -37,13 +39,28 @@ export function VerifyEmailForm() {
     },
   });
 
+  useEffect(() => {
+    if (fromLogin) {
+      setResendMessage(t('auth.verificationCodeSent'));
+    }
+  }, [fromLogin, t]);
+
   const onSubmit = async (values: VerifyEmailInput) => {
     setError('');
     setResendMessage('');
 
     try {
       await verifyEmail(values);
-      router.push('/');
+
+      if (fromLogin) {
+        const loginUrl = redirectAfterLogin
+          ? `/login?redirect=${encodeURIComponent(redirectAfterLogin)}`
+          : '/login';
+        router.push(loginUrl);
+      } else {
+        router.push('/');
+      }
+
       router.refresh();
     } catch (err) {
       setError(getErrorMessage(err));

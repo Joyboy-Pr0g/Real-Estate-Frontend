@@ -15,7 +15,7 @@ import { LISTING_URL_PARAMS } from '@/features/listings/constants/search-url-par
 import { useLocale } from '@/lib/i18n/locale-provider';
 import { cn } from '@/lib/utils/cn';
 import type { TranslationKey } from '@/lib/i18n/ar';
-import type { LucideIcon } from 'lucide-react';
+import { Map, type LucideIcon } from 'lucide-react';
 
 export function CategoryNavSkeleton({ centered }: { centered?: boolean }) {
   return (
@@ -80,6 +80,13 @@ export function CategoryNav({ catalog }: CategoryNavProps) {
       icon: getPropertyTypeIcon(pt.icon),
       active: propertyTypeSlug === pt.slug,
     })),
+    {
+      key: 'map',
+      href: '/listings/map',
+      label: t('nav.map'),
+      icon: Map,
+      active: pathname === '/listings/map',
+    },
   ];
 
   return (

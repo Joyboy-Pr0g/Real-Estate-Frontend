@@ -41,6 +41,12 @@ export async function GET() {
 
 export async function PATCH(request: NextRequest) {
   try {
+    const contentType = request.headers.get('content-type') ?? '';
+
+    if (contentType.includes('multipart/form-data')) {
+      return proxyToBackend(request, { path: backendPaths.auth.me, method: 'PATCH' });
+    }
+
     const body = await request.json();
     const parsed = updateProfileBodySchema.safeParse(body);
     if (!parsed.success) {
