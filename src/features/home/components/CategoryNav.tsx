@@ -28,7 +28,7 @@ export function CategoryNavSkeleton({ centered }: { centered?: boolean }) {
       aria-busy="true"
     >
       {Array.from({ length: 6 }).map((_, i) => (
-        <div key={i} className="h-[72px] w-[72px] rounded-xl bg-gray-100 animate-pulse shrink-0" />
+        <div key={i} className="h-20 w-20 rounded-xl bg-gray-100 animate-pulse shrink-0" />
       ))}
     </nav>
   );
@@ -102,7 +102,7 @@ export function CategoryNav({ catalog }: CategoryNavProps) {
           key={key}
           href={href}
           className={cn(
-            'relative flex flex-col items-center gap-1.5 min-w-[60px] max-w-[70px] px-2 py-2 rounded-xl transition-colors shrink-0',
+            'relative flex flex-col items-center gap-1.5 min-w-15 max-w-18 px-2 py-2 rounded-xl transition-colors shrink-0',
             active ? 'text-primary-dark' : 'text-gray-500 hover:text-brand hover:bg-brand-muted/60',
           )}
         >

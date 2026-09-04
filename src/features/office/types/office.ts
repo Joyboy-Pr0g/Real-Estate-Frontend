@@ -67,6 +67,12 @@ export interface OfficeAnalyticsMonthlyPoint {
   month: string;
   sold: number;
   rented: number;
+  sold_price: number;
+  rented_price: number;
+  sold_percentage: number;
+  rented_percentage: number;
+  sold_price_percentage: number;
+  rented_price_percentage: number;
 }
 
 export interface OfficeAnalyticsTopListing {
@@ -78,11 +84,39 @@ export interface OfficeAnalyticsTopListing {
   started_at: string;
 }
 
+export type OfficeAnalyticsPeriod =
+  | 'this_month'
+  | 'last_three_months'
+  | 'last_six_months'
+  | 'last_year'
+  | 'last_two_years';
+
 export interface OfficeListingAnalytics {
   sold: OfficeAnalyticsActionSummary;
   rented: OfficeAnalyticsActionSummary;
+  sold_percentage: number;
+  rented_percentage: number;
+  sold_price_percentage: number;
+  rented_price_percentage: number;
   monthly: OfficeAnalyticsMonthlyPoint[];
   top_listings: OfficeAnalyticsTopListing[];
+  period: OfficeAnalyticsPeriod;
+  city_id: string | null;
+}
+
+export interface OfficeUserAnalyticsEntry {
+  user_id: string;
+  f_name: string;
+  l_name: string;
+  email: string;
+  sold_count: number;
+  rented_count: number;
+  total_count: number;
+}
+
+export interface OfficeUserAnalytics {
+  users: OfficeUserAnalyticsEntry[];
+  period: OfficeAnalyticsPeriod;
 }
 
 export interface AdminOfficesFilters {

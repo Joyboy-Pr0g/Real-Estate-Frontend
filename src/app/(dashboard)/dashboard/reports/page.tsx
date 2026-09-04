@@ -15,6 +15,7 @@ export default async function DashboardReportsPage() {
   return (
     <Container className="py-8">
       <h1 className="text-2xl font-bold text-primary-dark">{t('dashboard.reports')}</h1>
+      <p className="mt-1 text-sm text-gray-500">{t('dashboard.reports.hint')}</p>
 
       <div className="mt-6">
         <MyReportsList initialItems={items} initialCursor={next_cursor} initialHasMore={has_more} />

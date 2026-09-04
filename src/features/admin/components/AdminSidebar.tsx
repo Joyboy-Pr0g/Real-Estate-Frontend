@@ -10,7 +10,9 @@ import {
   ChevronsRight,
   ClipboardList,
   Clock,
+  Flag,
   Home,
+  KeyRound,
   Landmark,
   Layers,
   LayoutDashboard,
@@ -25,6 +27,7 @@ import {
 import { AuthUser } from '@/features/auth/types/user';
 import { logout } from '@/features/auth/services/auth-service';
 import { useAdminNavBadges } from '@/features/admin/hooks/use-admin-nav-badges';
+import { usePermissions } from '@/features/admin/providers/permissions-provider';
 import { useLocale } from '@/lib/i18n/locale-provider';
 import { cn } from '@/lib/utils/cn';
 import { Button, ButtonLink } from '@/components/ui/button';
@@ -55,6 +58,14 @@ const navItems = [
     badgeKey: 'pending_individual_listers' as const,
   },
   { href: '/admin/listings', labelKey: 'admin.listings' as const, icon: Home, exact: false },
+  {
+    href: '/admin/reports',
+    labelKey: 'admin.listingReports.nav' as const,
+    icon: Flag,
+    exact: false,
+    badgeKey: 'pending_listing_reports' as const,
+    totalBadgeKey: 'total_listing_reports' as const,
+  },
   { href: '/admin/office-action-logs', labelKey: 'admin.officeActionLogs' as const, icon: ClipboardList, exact: false },
   { href: '/admin/property-types', labelKey: 'admin.propertyTypes' as const, icon: Home, exact: false },
   { href: '/admin/property-subtypes', labelKey: 'admin.propertySubtypes' as const, icon: Layers, exact: false },
@@ -69,6 +80,7 @@ export function AdminSidebar({ user }: AdminSidebarProps) {
   const pathname = usePathname();
   const router = useRouter();
   const { t } = useLocale();
+  const { isPlatformAdmin, allowedPaths } = usePermissions();
   const adminBadges = useAdminNavBadges();
   const [open, setOpen] = useState(false);
   const [compact, setCompact] = useState(() => {
@@ -148,12 +160,23 @@ export function AdminSidebar({ user }: AdminSidebarProps) {
     </div>
   );
 
+  const visibleNavItems = [
+    ...navItems.filter((item) => allowedPaths.has(item.href.replace(/\/+$/, '') || '/admin')),
+    ...(isPlatformAdmin
+      ? [{ href: '/admin/permissions', labelKey: 'admin.permissions.nav' as const, icon: KeyRound, exact: true }]
+      : []),
+  ];
+
   const nav = (
     <nav className={cn('min-h-0 flex-1 space-y-1 overflow-y-auto py-3', compact ? 'px-2 lg:px-1.5' : 'px-3')}>
-      {navItems.map(({ href, labelKey, icon: Icon, exact, badgeKey }) => {
+      {visibleNavItems.map((item) => {
+        const { href, labelKey, icon: Icon, exact } = item;
+        const badgeKey = 'badgeKey' in item ? item.badgeKey : undefined;
+        const totalBadgeKey = 'totalBadgeKey' in item ? item.totalBadgeKey : undefined;
         const active = exact ? pathname === href : pathname.startsWith(href);
         const label = t(labelKey);
         const badgeCount = badgeKey ? adminBadges[badgeKey] : 0;
+        const totalCount = totalBadgeKey ? adminBadges[totalBadgeKey] : 0;
         return (
           <Link
             key={href}
@@ -171,12 +194,17 @@ export function AdminSidebar({ user }: AdminSidebarProps) {
             )}
           >
             <Icon className="h-4 w-4 shrink-0" />
-            <span className={cn('truncate', compact && 'lg:hidden')}>{label}</span>
+            <span className={cn('truncate', compact && 'lg:hidden')}>
+              {label}
+              {!compact && totalCount > 0 ? (
+                <span className="ms-1 text-xs font-normal text-gray-400">({totalCount})</span>
+              ) : null}
+            </span>
             {badgeCount > 0 ? (
               <span
                 className={cn(
                   'ms-auto flex h-5 min-w-5 items-center justify-center rounded-full bg-red-500 px-1.5 text-[10px] font-bold text-white',
-                  compact && 'lg:absolute lg:top-1.5 lg:end-1.5 lg:ms-0 lg:h-2 lg:min-w-2 lg:px-0 lg:text-[0]',
+                  compact && 'lg:absolute lg:top-1.5 lg:inset-e-1.5 lg:ms-0 lg:h-2 lg:min-w-2 lg:px-0 lg:text-[0]',
                 )}
               >
                 {badgeCount > 99 ? '99+' : badgeCount}
@@ -252,9 +280,9 @@ export function AdminSidebar({ user }: AdminSidebarProps) {
       <aside
         className={cn(
           'z-50 flex min-h-0 flex-col border-gray-200 bg-white',
-          'fixed inset-y-0 start-0 w-72 max-w-[85vw] border-e transition-[transform,width] duration-200 ease-out',
+          'fixed inset-y-0 inset-s-0 w-72 max-w-[85vw] border-e transition-[transform,width] duration-200 ease-out',
           'lg:sticky lg:top-0 lg:z-auto lg:h-screen lg:max-w-none lg:shrink-0 lg:translate-x-0 lg:transition-[width]',
-          compact ? 'lg:w-[4.5rem]' : 'lg:w-64',
+          compact ? 'lg:w-18' : 'lg:w-64',
           open ? 'translate-x-0' : '-translate-x-full rtl:translate-x-full lg:rtl:translate-x-0',
         )}
       >
@@ -263,7 +291,7 @@ export function AdminSidebar({ user }: AdminSidebarProps) {
           <button
             type="button"
             onClick={() => setOpen(false)}
-            className="absolute top-3 end-2 rounded-lg p-2 text-gray-400 transition-colors hover:bg-gray-100 hover:text-primary-dark lg:hidden"
+            className="absolute top-3 inset-e-2 rounded-lg p-2 text-gray-400 transition-colors hover:bg-gray-100 hover:text-primary-dark lg:hidden"
             aria-label={t('admin.close')}
           >
             <X className="h-5 w-5" />

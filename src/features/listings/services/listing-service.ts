@@ -5,6 +5,7 @@ import { backendPaths } from '@/lib/api/endpoints';
 import { ApiError } from '@/lib/errors/api-error';
 import { getAuthToken } from '@/lib/auth/session';
 import { MyListingReport, MyListingSummary, PublicListing, SavedListingItem, ViewedListingItem } from '../types/listing';
+import { hasListingSeller } from '../lib/listing-detail-guards';
 import { PublicListingDetail } from '../types/listing-detail';
 import { NearByPointCategory, NearByPointsResult } from '../types/near-by-points';
 import { ListingSearchQuery } from '../schemas/search-schema';
@@ -81,9 +82,19 @@ export const listingService = {
   async getBySlug(slug: string): Promise<PublicListingDetail | null> {
     try {
       const response = await serverFetch<PublicListingDetail>(backendPaths.listings.getBySlug(slug), {
-        cacheProfile: 'short',
+        cacheProfile: 'none',
       });
-      return response.data ?? null;
+      const listing = response.data ?? null;
+      if (!listing) return null;
+
+      if (hasListingSeller(listing)) return listing;
+
+      const retry = await serverFetch<PublicListingDetail>(backendPaths.listings.getBySlug(slug), {
+        cacheProfile: 'none',
+        headers: { 'Cache-Control': 'no-cache' },
+      });
+      const retried = retry.data ?? null;
+      return hasListingSeller(retried) ? retried : null;
     } catch (error) {
       if (error instanceof ApiError && error.status === 404) return null;
       throw error;

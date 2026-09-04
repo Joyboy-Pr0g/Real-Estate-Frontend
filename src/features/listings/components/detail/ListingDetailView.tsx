@@ -67,22 +67,24 @@ export function ListingDetailView({
               />
             </div>
             <div className="w-full">
-              <ListingOfficeCard seller={listing.seller} />
+              {listing.seller ? <ListingOfficeCard seller={listing.seller} /> : null}
             </div>
           </div>
 
-          <StickyListingHeader
-            listingId={listing.id}
-            title={listing.title}
-            price={listing.price}
-            cityName={listing.city.name}
-            neighborhoodName={listing.neighborhood.name}
-            specs={listing.property_specs}
-            specSchema={listing.property_subtype.spec_schema}
-            seller={listing.seller}
-            isAuthenticated={isAuthenticated}
-            initialSaved={isSaved}
-          />
+          {listing.seller ? (
+            <StickyListingHeader
+              listingId={listing.id}
+              title={listing.title}
+              price={listing.price}
+              cityName={listing.city.name}
+              neighborhoodName={listing.neighborhood.name}
+              specs={listing.property_specs}
+              specSchema={listing.property_subtype.spec_schema}
+              seller={listing.seller}
+              isAuthenticated={isAuthenticated}
+              initialSaved={isSaved}
+            />
+          ) : null}
 
           <ListingContentTabs
             details={
@@ -103,7 +105,7 @@ export function ListingDetailView({
             }
           />
 
-          {listing.seller.type === 'office' ? (
+          {listing.seller?.type === 'office' ? (
             <SimilarOfficeListings
               officeName={listing.seller.name}
               listings={similarListings}

@@ -11,6 +11,7 @@ const roleKeys: Record<UserRole, TranslationKey> = {
   buyer: 'admin.role.buyer',
   office: 'admin.role.office',
   platform_admin: 'admin.role.platform_admin',
+  sub_admin: 'admin.role.sub_admin',
 };
 
 interface UserTableProps {
@@ -52,7 +53,7 @@ export function UserTable({
   };
 
   return (
-    <div className="hidden overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-[var(--shadow-soft)] lg:block">
+    <div className="hidden overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-var(--shadow-soft) lg:block">
       <div className="overflow-x-auto">
         <table className="w-full text-sm">
           <thead>

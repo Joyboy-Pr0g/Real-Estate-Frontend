@@ -117,17 +117,12 @@ export function ListingMap({ listingId, latitude, longitude, address }: ListingM
     };
   }, [listingId, category]);
 
-  // Fixed center/zoom set once on load — never re-centered or re-zoomed
-  // afterwards (switching category must not move the map), so users can
-  // freely pan/zoom without the map fighting them.
   const onLoad = useCallback((map: google.maps.Map) => {
     map.setCenter(center);
     map.setZoom(DEFAULT_ZOOM);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- only run once on load
   }, []);
 
-  // zoom_changed also fires once during the map's own initial setup —
-  // skip that first firing so the sidebar doesn't hide itself on mount.
   const handleZoomChanged = useCallback(() => {
     if (isInitialZoomRef.current) {
       isInitialZoomRef.current = false;
@@ -188,7 +183,7 @@ export function ListingMap({ listingId, latitude, longitude, address }: ListingM
       </GoogleMap>
 
       {/* Category sidebar overlay — same single-select model as NearByPointsPanel */}
-      <div className="absolute start-3 top-3 w-56 max-w-[calc(100%-24px)] rounded-2xl bg-white/95 shadow-[var(--shadow-float)] ring-1 ring-gray-100 backdrop-blur-sm">
+      <div className="absolute inset-s-3 top-3 w-56 max-w-[calc(100%-24px)] rounded-2xl bg-white/95 shadow-var(--shadow-float) ring-1 ring-gray-100 backdrop-blur-sm">
         <button
           type="button"
           onClick={() => setSidebarOpen((v) => !v)}
@@ -236,7 +231,7 @@ export function ListingMap({ listingId, latitude, longitude, address }: ListingM
         href={directionsUrl}
         target="_blank"
         rel="noopener noreferrer"
-        className="absolute end-3 top-3 inline-flex items-center gap-1.5 rounded-full bg-white/95 px-3.5 py-2 text-xs font-semibold text-brand-dark shadow-[var(--shadow-soft)] ring-1 ring-gray-100 backdrop-blur-sm hover:bg-white"
+        className="absolute inset-e-3 top-3 inline-flex items-center gap-1.5 rounded-full bg-white/95 px-3.5 py-2 text-xs font-semibold text-brand-dark shadow-var(--shadow-soft) ring-1 ring-gray-100 backdrop-blur-sm hover:bg-white"
       >
         <Navigation className="h-3.5 w-3.5" />
         {t('detail.location.getDirections')}

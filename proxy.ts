@@ -1,5 +1,16 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { AUTH_COOKIE_NAME, decodeTokenRole, isPlatformAdminRole } from '@/lib/auth/constants';
+import {
+  AUTH_COOKIE_NAME,
+  decodeTokenRole,
+  isAdminPanelRole,
+  isPlatformAdminRole,
+  isSubAdminRole,
+} from '@/lib/auth/constants';
+import {
+  ADMIN_PERMISSIONS_COOKIE,
+  canAccessAdminPath,
+  decodePermissionsCookie,
+} from '@/lib/auth/admin-route-permissions';
 
 export function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
@@ -16,15 +27,16 @@ export function proxy(request: NextRequest) {
   if (isAuthRoute && token) {
     const role = decodeTokenRole(token);
     if (role) {
-      if (isPlatformAdminRole(role) && pathname !== '/verify-email') {
+      if (isAdminPanelRole(role) && pathname !== '/verify-email') {
         return NextResponse.redirect(new URL('/admin', request.url));
       }
-      if ((pathname === '/register' || pathname === '/login') && role !== 'platform_admin') {
+      if ((pathname === '/register' || pathname === '/login') && !isAdminPanelRole(role)) {
         return NextResponse.redirect(new URL('/', request.url));
       }
     } else {
       const response = NextResponse.next();
       response.cookies.delete(AUTH_COOKIE_NAME);
+      response.cookies.delete(ADMIN_PERMISSIONS_COOKIE);
       return response;
     }
   }
@@ -49,14 +61,42 @@ export function proxy(request: NextRequest) {
     url.searchParams.set('redirect', pathname);
     const response = NextResponse.redirect(url);
     response.cookies.delete(AUTH_COOKIE_NAME);
+    response.cookies.delete(ADMIN_PERMISSIONS_COOKIE);
     return response;
   }
 
-  if (isAdminRoute && !isPlatformAdminRole(role)) {
+  if (isAdminRoute && !isAdminPanelRole(role)) {
     return NextResponse.redirect(new URL('/', request.url));
   }
 
-  if (isDashboardRoute && isPlatformAdminRole(role)) {
+  if (isAdminRoute && isSubAdminRole(role)) {
+    if (pathname.startsWith('/admin/permissions')) {
+      const url = new URL('/admin', request.url);
+      url.searchParams.set('access_denied', '1');
+      return NextResponse.redirect(url);
+    }
+
+    const permissions = decodePermissionsCookie(
+      request.cookies.get(ADMIN_PERMISSIONS_COOKIE)?.value,
+    );
+
+    if (!permissions || permissions.length === 0) {
+      if (pathname === '/admin') {
+        return NextResponse.next();
+      }
+      const url = new URL('/admin', request.url);
+      url.searchParams.set('access_denied', '1');
+      return NextResponse.redirect(url);
+    }
+
+    if (!canAccessAdminPath(pathname, permissions)) {
+      const url = new URL('/admin', request.url);
+      url.searchParams.set('access_denied', '1');
+      return NextResponse.redirect(url);
+    }
+  }
+
+  if (isDashboardRoute && isAdminPanelRole(role)) {
     return NextResponse.redirect(new URL('/admin', request.url));
   }
 

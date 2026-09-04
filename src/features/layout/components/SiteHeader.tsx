@@ -3,11 +3,12 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { motion, useScroll, useTransform } from 'framer-motion';
-import { Building2, Globe, Map, Menu, X } from 'lucide-react';
+import { Building2, Globe, Menu, X } from 'lucide-react';
 import { useState, type ReactNode } from 'react';
 import { ButtonLink } from '@/components/ui/button';
 import { Container } from '@/components/ui/container';
 import { AuthUser } from '@/features/auth/types/user';
+import { getRoleHomePath } from '@/lib/auth/constants';
 import { UserMenu } from '@/features/layout/components/UserMenu';
 import { useSiteHeaderOverride } from '@/features/layout/context/site-header-override';
 import { useLocale } from '@/lib/i18n/locale-provider';
@@ -38,8 +39,8 @@ export function SiteHeader({ categoryNav, user = null }: SiteHeaderProps) {
         transition={{ duration: 0.25, ease: 'easeInOut' }}
         className="sticky top-0 z-50 glass-panel border-b border-gray-200/60"
       >
-        <Container >
-          <div className="flex h-[68px] items-center gap-4 justify-between">
+        <Container className='max-w-8xl' >
+          <div className="flex h-18 items-center gap-4 justify-between">
             <Link href="/" className="flex items-center gap-2.5 shrink-0 group">
               <motion.span
                 whileHover={{ scale: 1.05 }}
@@ -75,7 +76,7 @@ export function SiteHeader({ categoryNav, user = null }: SiteHeaderProps) {
                   className="flex h-10 w-10 items-center justify-center rounded-full hover:bg-gray-100 text-gray-600 transition-colors"
                   aria-label={t('nav.toggleLanguage')}
                 >
-                  <Globe className="h-[18px] w-[18px]" />
+                  <Globe className="h-5 w-5" />
                 </button>
               ) : null}
 
@@ -111,7 +112,7 @@ export function SiteHeader({ categoryNav, user = null }: SiteHeaderProps) {
                 { href: '/listings', label: t('nav.listings') },
                 { href: '/listings/map', label: t('nav.map') },
                 ...(user
-                  ? [{ href: user.role === 'platform_admin' ? '/admin' : '/dashboard', label: t('nav.dashboard') }]
+                  ? [{ href: getRoleHomePath(user.role), label: t('nav.dashboard') }]
                   : []),
               ].map(({ href, label }) => (
                 <Link

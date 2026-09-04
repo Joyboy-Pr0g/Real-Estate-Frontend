@@ -12,7 +12,7 @@ import { ListingTable } from '@/features/admin/components/listings/ListingTable'
 import { ListingCard } from '@/features/admin/components/listings/ListingCard';
 import { draftListing, softDeleteListing, restoreListing, hardDeleteListing, bulkDeleteListings } from '@/features/listings/services/listing-client';
 import { loadMoreAdminListings } from '@/features/listings/services/admin-listings-client';
-import { AdminAuditTrigger } from '@/features/admin/components/audit/AdminAuditTrigger';
+// import { AdminAuditTrigger } from '@/features/admin/components/audit/AdminAuditTrigger';
 import { useAdminLatestActions } from '@/features/admin/hooks/use-admin-latest-actions';
 import { AdminListingsPage, AdminListingSummary, PublicListing } from '@/features/listings/types/listing';
 import { PublicCity, PublicPropertyType, PublicTransactionType } from '@/features/catalog/types/catalog';
@@ -395,7 +395,7 @@ export function AdminListingsPanel({
               <label className="relative min-w-0 flex-1">
                 <Search
                   size={18}
-                  className="pointer-events-none absolute start-3.5 top-1/2 -translate-y-1/2 text-gray-400"
+                  className="pointer-events-none absolute inset-s-3.5 top-1/2 -translate-y-1/2 text-gray-400"
                   strokeWidth={1.75}
                 />
                 <input
@@ -411,7 +411,7 @@ export function AdminListingsPanel({
                 <select
                   value={statusFilter}
                   onChange={(e) => setStatusFilter(e.target.value)}
-                  className={cn(fieldClass, 'min-w-[140px] flex-1 sm:flex-none')}
+                  className={cn(fieldClass, 'min-w-35 flex-1 sm:flex-none')}
                   aria-label={t('admin.filterStatus')}
                 >
                   <option value="">{t('dashboard.listings.allStatuses')}</option>
@@ -572,7 +572,7 @@ export function AdminListingsPanel({
       )}
 
       {listings.length === 0 ? (
-        <div className="rounded-2xl border border-gray-200 bg-white p-12 text-center shadow-[var(--shadow-soft)]">
+        <div className="rounded-2xl border border-gray-200 bg-white p-12 text-center shadow-var(--shadow-soft)">
           <p className="text-gray-500">{t('dashboard.listings.empty')}</p>
         </div>
       ) : (

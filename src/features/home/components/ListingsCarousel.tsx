@@ -25,13 +25,9 @@ interface ListingsCarouselProps {
 function TypeListingsRow({
   section,
   viewAllLabel,
-  isAuthenticated,
-  savedSet,
 }: {
   section: HomePropertyTypeSection;
   viewAllLabel: string;
-  isAuthenticated: boolean;
-  savedSet: Set<string>;
 }) {
   const { t, dir } = useLocale();
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -126,8 +122,6 @@ function TypeListingsRow({
           >
             <ListingCard
               listing={listing}
-              isAuthenticated={isAuthenticated}
-              initialSaved={savedSet.has(listing.id)}
             />
           </motion.div>
         ))}
@@ -141,13 +135,10 @@ export function ListingsCarousel({
   title,
   subtitle,
   viewAllLabel,
-  isAuthenticated = false,
-  savedIds = [],
 }: ListingsCarouselProps) {
   const { t } = useLocale();
   const visibleSections = sections.filter((section) => section.listings.length > 0);
   const resolvedViewAllLabel = viewAllLabel ?? t('featured.viewAll');
-  const savedSet = new Set(savedIds);
 
   if (visibleSections.length === 0) {
     return null;
@@ -169,8 +160,6 @@ export function ListingsCarousel({
               key={section.id}
               section={section}
               viewAllLabel={resolvedViewAllLabel}
-              isAuthenticated={isAuthenticated}
-              savedSet={savedSet}
             />
           ))}
         </div>

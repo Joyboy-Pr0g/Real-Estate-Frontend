@@ -9,6 +9,7 @@ import { getErrorMessage } from '@/lib/errors/api-error';
 import { useLocale } from '@/lib/i18n/locale-provider';
 import { CreateUserPayload, UserRole } from '@/features/auth/types/user';
 import { formatPhoneNumber } from '@/lib/utils/format';
+import { usePermissions } from '@/features/admin/providers/permissions-provider';
 
 interface CreateUserDialogProps {
   open: boolean;
@@ -18,6 +19,7 @@ interface CreateUserDialogProps {
 
 export function CreateUserDialog({ open, onClose, onCreated }: CreateUserDialogProps) {
   const { t } = useLocale();
+  const { isPlatformAdmin } = usePermissions();
   const [pending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
   const [formData, setFormData] = useState<CreateUserPayload>({
@@ -102,7 +104,7 @@ export function CreateUserDialog({ open, onClose, onCreated }: CreateUserDialogP
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
-      <div className="w-full max-w-lg rounded-2xl bg-white p-6 shadow-[var(--shadow-float)]">
+      <div className="w-full max-w-lg rounded-2xl bg-white p-6 shadow-var(--shadow-float)">
         <div className="relative">
           <button
             type="button"
@@ -163,7 +165,12 @@ export function CreateUserDialog({ open, onClose, onCreated }: CreateUserDialogP
               <select name="role" value={formData.role} onChange={(e) => setFormData({ ...formData, role: e.target.value as UserRole })} required className="h-10 w-full rounded-lg border border-gray-200 px-3 text-sm">
                 <option value="buyer">{t('admin.role.buyer')}</option>
                 <option value="office">{t('admin.role.office')}</option>
-                <option value="platform_admin">{t('admin.role.platform_admin')}</option>
+                {isPlatformAdmin ? (
+                  <>
+                    <option value="sub_admin">{t('admin.role.sub_admin')}</option>
+                    <option value="platform_admin">{t('admin.role.platform_admin')}</option>
+                  </>
+                ) : null}
               </select>
             </label>
           </div>

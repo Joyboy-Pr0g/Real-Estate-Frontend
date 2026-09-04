@@ -60,7 +60,7 @@ export function MyListingsActionsMenu({
           </Link>
         </DropdownMenuItem>
 
-        {listing.status === 'draft' ? (
+        {listing.status === 'draft' || listing.status === 'sold' || listing.status === 'rented' ? (
           <DropdownMenuItem className="cursor-pointer" onClick={onPublish}>
             {t('dashboard.listings.actionPublish')}
           </DropdownMenuItem>

@@ -2,7 +2,7 @@
 
 import Image from 'next/image';
 import Link from 'next/link';
-import { Building2, ExternalLink, Play, User } from 'lucide-react';
+import { Building2, ExternalLink, FileText, Play, User } from 'lucide-react';
 import { ButtonLink } from '@/components/ui/button';
 import { PublicListingDetail } from '@/features/listings/types/listing-detail';
 import { ListingActionLogsPanel } from '@/features/listings/components/dashboard/ListingActionLogsPanel';
@@ -17,6 +17,7 @@ import { formatPriceYER } from '@/lib/utils/currency';
 import { useLocale } from '@/lib/i18n/locale-provider';
 import { cn } from '@/lib/utils/cn';
 import type { TranslationKey } from '@/lib/i18n/ar';
+import type { ListingHistoryEntry } from '@/features/listings/types/listing-detail';
 
 const STATUS_STYLES: Record<string, string> = {
   draft: 'bg-gray-100 text-gray-600 ring-1 ring-gray-200',
@@ -24,6 +25,94 @@ const STATUS_STYLES: Record<string, string> = {
   sold: 'bg-blue-50 text-blue-700 ring-1 ring-blue-200',
   rented: 'bg-amber-50 text-amber-700 ring-1 ring-amber-200',
 };
+
+function isPdfUrl(url: string) {
+  return /\.pdf($|\?)/i.test(url);
+}
+
+function ListingHistoryCard({ entry }: { entry: ListingHistoryEntry }) {
+  const { t } = useLocale();
+  const hasDetails =
+    entry.actor
+    || entry.new_house_holder_name
+    || entry.contract_number
+    || entry.notes
+    || entry.contract_photo;
+
+  return (
+    <div className="rounded-xl border border-gray-100 px-4 py-3 text-sm">
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <span className="font-medium text-primary-dark">
+          {t(`dashboard.listings.status.${entry.action}` as TranslationKey)}
+        </span>
+        <span className="font-semibold text-brand-dark">{formatPriceYER(entry.price)}</span>
+        <span className="text-xs text-gray-400">
+          {formatDateTime(entry.started_at)}
+          {entry.ended_at ? ` – ${formatDateTime(entry.ended_at)}` : ''}
+        </span>
+      </div>
+
+      {hasDetails ? (
+        <dl className="mt-3 grid gap-2 border-t border-gray-100 pt-3 sm:grid-cols-2">
+          {entry.actor ? (
+            <div>
+              <dt className="text-xs text-gray-400">{t('dashboard.listings.historyActor')}</dt>
+              <dd className="text-primary-dark">{entry.actor.name}</dd>
+            </div>
+          ) : null}
+          {entry.new_house_holder_name ? (
+            <div>
+              <dt className="text-xs text-gray-400">{t('dashboard.listings.holderName')}</dt>
+              <dd className="text-primary-dark">{entry.new_house_holder_name}</dd>
+            </div>
+          ) : null}
+          {entry.contract_number ? (
+            <div>
+              <dt className="text-xs text-gray-400">{t('dashboard.listings.contractNumber')}</dt>
+              <dd className="text-primary-dark">{entry.contract_number}</dd>
+            </div>
+          ) : null}
+          {entry.notes ? (
+            <div className="sm:col-span-2">
+              <dt className="text-xs text-gray-400">{t('dashboard.listings.notes')}</dt>
+              <dd className="whitespace-pre-line text-primary-dark">{entry.notes}</dd>
+            </div>
+          ) : null}
+          {entry.contract_photo ? (
+            <div className="sm:col-span-2">
+              <dt className="mb-2 text-xs text-gray-400">{t('dashboard.listings.contractPhoto')}</dt>
+              <dd>
+                {isPdfUrl(entry.contract_photo.url) ? (
+                  <a
+                    href={entry.contract_photo.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-2 rounded-lg border border-gray-200 px-3 py-2 text-sm font-medium text-brand hover:bg-brand-muted/40"
+                  >
+                    <FileText className="h-4 w-4" />
+                    {t('dashboard.listings.viewContract')}
+                  </a>
+                ) : (
+                  <a href={entry.contract_photo.url} target="_blank" rel="noopener noreferrer" className="inline-block">
+                    <div className="relative h-28 w-40 overflow-hidden rounded-lg border border-gray-200 bg-gray-50">
+                      <Image
+                        src={entry.contract_photo.url}
+                        alt=""
+                        fill
+                        className="object-cover"
+                        sizes="160px"
+                      />
+                    </div>
+                  </a>
+                )}
+              </dd>
+            </div>
+          ) : null}
+        </dl>
+      ) : null}
+    </div>
+  );
+}
 
 interface OfficeListingDetailViewProps {
   listing: PublicListingDetail;
@@ -118,18 +207,9 @@ export function OfficeListingDetailView({ listing, editHref, initialOfficeLogs }
           {listing.histories.length > 0 ? (
             <section className="rounded-2xl border border-gray-200 bg-white p-6 shadow-[var(--shadow-soft)]">
               <h2 className="text-sm font-bold text-primary-dark">{t('admin.listingHistory')}</h2>
-              <div className="mt-4 space-y-2">
+              <div className="mt-4 space-y-3">
                 {listing.histories.map((entry) => (
-                  <div key={entry.id} className="flex items-center justify-between rounded-xl border border-gray-100 px-3 py-2 text-sm">
-                    <span className="font-medium text-primary-dark">
-                      {t(`dashboard.listings.status.${entry.action}` as TranslationKey)}
-                    </span>
-                    <span className="text-brand-dark">{formatPriceYER(entry.price)}</span>
-                    <span className="text-xs text-gray-400">
-                      {formatDateTime(entry.started_at)}
-                      {entry.ended_at ? ` – ${formatDateTime(entry.ended_at)}` : ''}
-                    </span>
-                  </div>
+                  <ListingHistoryCard key={entry.id} entry={entry} />
                 ))}
               </div>
             </section>

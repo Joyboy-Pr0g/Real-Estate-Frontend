@@ -1,4 +1,4 @@
-import { setAuthCookie } from '@/lib/auth/session';
+import { setAuthCookie, syncAdminPermissionsCookie, clearAdminPermissionsCookie } from '@/lib/auth/session';
 import { AuthLoginResponse, AuthUser } from '@/features/auth/types/user';
 
 export function toAuthUser(data: AuthLoginResponse): AuthUser {
@@ -8,5 +8,13 @@ export function toAuthUser(data: AuthLoginResponse): AuthUser {
 
 export async function setSessionFromAuthResponse(data: AuthLoginResponse): Promise<AuthUser> {
   await setAuthCookie(data.token);
-  return toAuthUser(data);
+  const user = toAuthUser(data);
+
+  if (user.role === 'sub_admin') {
+    await syncAdminPermissionsCookie(data.token);
+  } else {
+    await clearAdminPermissionsCookie();
+  }
+
+  return user;
 }

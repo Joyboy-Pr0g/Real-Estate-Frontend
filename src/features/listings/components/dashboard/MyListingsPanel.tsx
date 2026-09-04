@@ -10,6 +10,7 @@ import { ConfirmModal } from '@/components/ui/confirm-modal';
 import { SearchableSelect } from '@/components/ui/searchable-select';
 import { toast } from '@/components/ui/toaster';
 import { MyListingsActionsMenu } from '@/features/listings/components/dashboard/MyListingsActionsMenu';
+import { ListingHistoryDetailsModal } from '@/features/listings/components/dashboard/ListingHistoryDetailsModal';
 import { MyListingSummary, PublicListing } from '@/features/listings/types/listing';
 import { PublicCity, PublicPropertyType, PublicTransactionType } from '@/features/catalog/types/catalog';
 import { PublicPropertySubtype } from '@/features/catalog/types/property-subtype';
@@ -394,6 +395,7 @@ export function MyListingsPanel({
   const [actionId, setActionId] = useState<string | null>(null);
   const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
   const [deletedModalOpen, setDeletedModalOpen] = useState(false);
+  const [historyModal, setHistoryModal] = useState<{ listingId: string; action: 'sold' | 'rented' } | null>(null);
 
   const status = searchParams.get('status') ?? '';
   const propertyTypeId = searchParams.get('property_type_id') ?? '';
@@ -545,6 +547,25 @@ export function MyListingsPanel({
     }
   };
 
+  const runStatusAction = async (listingId: string, action: 'sold' | 'rented') => {
+    setActionId(listingId);
+    try {
+      if (action === 'sold') {
+        await markListingSold(listingId);
+        toast.success(t('dashboard.listings.sold'));
+      } else {
+        await markListingRented(listingId);
+        toast.success(t('dashboard.listings.rented'));
+      }
+      setHistoryModal({ listingId, action });
+      router.refresh();
+    } catch (err) {
+      toast.error(getErrorMessage(err));
+    } finally {
+      setActionId(null);
+    }
+  };
+
   return (
     <div className="space-y-6">
       <div className="space-y-4 rounded-2xl border border-gray-200 bg-white p-4 shadow-var(--shadow-soft) sm:p-5">
@@ -689,10 +710,8 @@ export function MyListingsPanel({
                 runAction(listing.id, () => publishListing(listing.id), 'dashboard.listings.published')
               }
               onDraft={() => runAction(listing.id, () => draftListing(listing.id), 'dashboard.listings.drafted')}
-              onMarkSold={() => runAction(listing.id, () => markListingSold(listing.id), 'dashboard.listings.sold')}
-              onMarkRented={() =>
-                runAction(listing.id, () => markListingRented(listing.id), 'dashboard.listings.rented')
-              }
+              onMarkSold={() => void runStatusAction(listing.id, 'sold')}
+              onMarkRented={() => void runStatusAction(listing.id, 'rented')}
               onSoftDelete={() => setConfirmDeleteId(listing.id)}
             />
           ))}
@@ -735,6 +754,16 @@ export function MyListingsPanel({
         onClose={() => setDeletedModalOpen(false)}
         onChanged={() => router.refresh()}
       />
+
+      {historyModal ? (
+        <ListingHistoryDetailsModal
+          open={Boolean(historyModal)}
+          listingId={historyModal.listingId}
+          action={historyModal.action}
+          onClose={() => setHistoryModal(null)}
+          onComplete={() => router.refresh()}
+        />
+      ) : null}
     </div>
   );
 }

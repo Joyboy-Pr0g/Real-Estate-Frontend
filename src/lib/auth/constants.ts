@@ -1,6 +1,6 @@
 export const AUTH_COOKIE_NAME = 'auth_token';
 
-export type TokenRole = 'buyer' | 'office' | 'platform_admin';
+export type TokenRole = 'buyer' | 'office' | 'platform_admin' | 'sub_admin';
 
 export function decodeTokenRole(token: string): TokenRole | null {
   try {
@@ -12,7 +12,12 @@ export function decodeTokenRole(token: string): TokenRole | null {
       return null;
     }
     const role = payload.role;
-    if (role === 'buyer' || role === 'office' || role === 'platform_admin') {
+    if (
+      role === 'buyer' ||
+      role === 'office' ||
+      role === 'platform_admin' ||
+      role === 'sub_admin'
+    ) {
       return role;
     }
     return null;
@@ -23,4 +28,18 @@ export function decodeTokenRole(token: string): TokenRole | null {
 
 export function isPlatformAdminRole(role: TokenRole | null): role is 'platform_admin' {
   return role === 'platform_admin';
+}
+
+export function isSubAdminRole(role: TokenRole | null): role is 'sub_admin' {
+  return role === 'sub_admin';
+}
+
+export function isAdminPanelRole(role: TokenRole | null): role is 'platform_admin' | 'sub_admin' {
+  return role === 'platform_admin' || role === 'sub_admin';
+}
+
+export function getRoleHomePath(role: TokenRole | string): string {
+  if (role === 'platform_admin' || role === 'sub_admin') return '/admin';
+  if (role === 'office' || role === 'buyer') return '/dashboard';
+  return '/';
 }

@@ -45,6 +45,45 @@ export interface AdminDashboardAnalytics {
   top_saved_listings: AdminDashboardListingStat[];
 }
 
+export interface AdminNavBadges {
+  pending_offices: number;
+  pending_individual_listers: number;
+  total_listing_reports: number;
+  pending_listing_reports: number;
+}
+
+export async function getAdminNavBadges(): Promise<AdminNavBadges> {
+  const token = await getAuthToken();
+  if (!token) {
+    return {
+      pending_offices: 0,
+      pending_individual_listers: 0,
+      total_listing_reports: 0,
+      pending_listing_reports: 0,
+    };
+  }
+
+  try {
+    const response = await serverFetch<AdminNavBadges>(backendPaths.auth.navBadges, {
+      token,
+      cacheProfile: 'none',
+    });
+    return response.data ?? {
+      pending_offices: 0,
+      pending_individual_listers: 0,
+      total_listing_reports: 0,
+      pending_listing_reports: 0,
+    };
+  } catch {
+    return {
+      pending_offices: 0,
+      pending_individual_listers: 0,
+      total_listing_reports: 0,
+      pending_listing_reports: 0,
+    };
+  }
+}
+
 export async function getAdminDashboard(): Promise<AdminDashboardAnalytics | null> {
   const token = await getAuthToken();
   if (!token) return null;

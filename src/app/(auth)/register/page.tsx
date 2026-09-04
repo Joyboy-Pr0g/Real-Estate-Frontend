@@ -3,13 +3,14 @@ import { redirect } from 'next/navigation';
 import { UserPlus } from 'lucide-react';
 import { RegisterForm } from '@/features/auth/components/RegisterForm';
 import { getSession } from '@/lib/auth/session';
+import { isAdminPanelRole } from '@/lib/auth/constants';
 import { getServerTranslations } from '@/lib/i18n/server';
 import { Container } from '@/components/ui/container';
 
 export default async function RegisterPage() {
   const user = await getSession();
   if (user?.email_verified_at) {
-    redirect(user.role === 'platform_admin' ? '/admin' : '/');
+    redirect(isAdminPanelRole(user.role) ? '/admin' : '/');
   }
 
   const { t } = await getServerTranslations();
@@ -17,7 +18,7 @@ export default async function RegisterPage() {
   return (
     <div className="min-h-screen mesh-hero">
       <Container className="flex min-h-screen items-center justify-center py-12">
-        <div className="w-full max-w-md rounded-2xl border border-gray-200 bg-white p-8 shadow-[var(--shadow-float)]">
+        <div className="w-full max-w-md rounded-2xl border border-gray-200 bg-white p-8 shadow-var(--shadow-float)">
           <div className="mb-6 flex items-center gap-3">
             <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-brand text-white">
               <UserPlus className="h-5 w-5" />

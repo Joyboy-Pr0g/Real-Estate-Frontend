@@ -19,6 +19,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { AuthUser } from '@/features/auth/types/user';
+import { getRoleHomePath } from '@/lib/auth/constants';
 import { logout } from '@/features/auth/services/auth-service';
 import { useLocale } from '@/lib/i18n/locale-provider';
 
@@ -27,8 +28,7 @@ interface UserMenuProps {
 }
 
 function getDashboardHref(role: AuthUser['role']) {
-  if (role === 'platform_admin') return '/admin';
-  return '/dashboard';
+  return getRoleHomePath(role);
 }
 
 export function UserMenu({ user }: UserMenuProps) {
@@ -51,7 +51,7 @@ export function UserMenu({ user }: UserMenuProps) {
       <DropdownMenuTrigger asChild>
         <Button variant="outline" size="sm" className="gap-2 rounded-full">
           <User className="h-4 w-4" />
-          <span className="max-w-[7rem] truncate hidden sm:inline">{displayName}</span>
+          <span className="max-w-28 truncate hidden sm:inline">{displayName}</span>
           <ChevronDown className="h-3 w-3 opacity-50" />
         </Button>
       </DropdownMenuTrigger>

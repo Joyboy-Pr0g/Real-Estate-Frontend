@@ -10,7 +10,7 @@ export default async function VerifyEmailPage() {
   return (
     <div className="min-h-screen mesh-hero">
       <Container className="flex min-h-screen items-center justify-center py-12">
-        <div className="w-full max-w-md rounded-2xl border border-gray-200 bg-white p-8 shadow-[var(--shadow-float)]">
+        <div className="w-full max-w-md rounded-2xl border border-gray-200 bg-white p-8 shadow-var(--shadow-float)">
           <div className="mb-6 flex items-center gap-3">
             <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-brand text-white">
               <MailCheck className="h-5 w-5" />

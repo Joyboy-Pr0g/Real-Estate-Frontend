@@ -9,6 +9,34 @@ export async function applyAsOffice(formData: FormData): Promise<void> {
   await clientFetch(bffPaths.offices.create, { method: 'POST', body: formData });
 }
 
+export async function sendOfficeEmailVerification(
+  email: string,
+  excludeOfficeId?: string,
+): Promise<void> {
+  await clientFetch(bffPaths.offices.emailVerificationSend, {
+    method: 'POST',
+    body: {
+      email: email.trim().toLowerCase(),
+      ...(excludeOfficeId ? { exclude_office_id: excludeOfficeId } : {}),
+    },
+  });
+}
+
+export async function verifyOfficeEmail(
+  email: string,
+  code: string,
+  excludeOfficeId?: string,
+): Promise<void> {
+  await clientFetch(bffPaths.offices.emailVerificationVerify, {
+    method: 'POST',
+    body: {
+      email: email.trim().toLowerCase(),
+      code: code.trim(),
+      ...(excludeOfficeId ? { exclude_office_id: excludeOfficeId } : {}),
+    },
+  });
+}
+
 export async function resubmitOffice(id: string, formData: FormData): Promise<void> {
   await clientFetch(bffPaths.offices.resubmit(id), { method: 'PATCH', body: formData });
 }

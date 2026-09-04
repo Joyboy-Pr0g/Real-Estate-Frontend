@@ -1,6 +1,8 @@
+import { cache } from 'react';
 import { notFound } from 'next/navigation';
 import type { Metadata } from 'next';
 import { listingService } from '@/features/listings/services/listing-service';
+import { hasListingSeller } from '@/features/listings/lib/listing-detail-guards';
 import { featureService } from '@/features/catalog/services/feature-service';
 import { ListingDetailView } from '@/features/listings/components/detail/ListingDetailView';
 import { getSession } from '@/lib/auth/session';
@@ -9,9 +11,11 @@ interface ListingDetailPageProps {
   params: Promise<{ slug: string }>;
 }
 
+const getListingDetailBySlug = cache((slug: string) => listingService.getBySlug(slug));
+
 export async function generateMetadata({ params }: ListingDetailPageProps): Promise<Metadata> {
   const { slug } = await params;
-  const listing = await listingService.getBySlug(slug);
+  const listing = await getListingDetailBySlug(slug);
   if (!listing) return {};
 
   return {
@@ -22,12 +26,12 @@ export async function generateMetadata({ params }: ListingDetailPageProps): Prom
 
 export default async function ListingDetailPage({ params }: ListingDetailPageProps) {
   const { slug } = await params;
-  const listing = await listingService.getBySlug(slug);
-  if (!listing) notFound();
+  const listing = await getListingDetailBySlug(slug);
+  if (!hasListingSeller(listing)) notFound();
 
   const [mainFeatures, similar, user] = await Promise.all([
     featureService.getMainFeatures(),
-    listing.seller?.type === 'office'
+    listing.seller.type === 'office'
       ? listingService.search({ office_id: listing.seller.id, limit: 12 })
       : Promise.resolve(null),
     getSession(),

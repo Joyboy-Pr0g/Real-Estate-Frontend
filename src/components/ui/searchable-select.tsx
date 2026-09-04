@@ -106,7 +106,7 @@ export function SearchableSelect({
         </button>
       ) : (
         <div className="relative">
-          <Search size={16} className="pointer-events-none absolute start-3 top-1/2 -translate-y-1/2 text-gray-400" />
+          <Search size={16} className="pointer-events-none absolute inset-s-3.5 top-1/2 -translate-y-1/2 text-gray-400" />
           <input
             type="text"
             value={query}
@@ -119,7 +119,7 @@ export function SearchableSelect({
       )}
 
       {open && !showChip ? (
-        <div className="absolute start-0 top-full z-20 mt-1.5 max-h-64 w-full min-w-56 overflow-y-auto rounded-xl border border-gray-200 bg-white p-1.5 shadow-[var(--shadow-float)]">
+        <div className="absolute inset-s-0 top-full z-20 mt-1.5 max-h-64 w-full min-w-56 overflow-y-auto rounded-xl border border-gray-200 bg-white p-1.5 shadow-var(--shadow-float)">
           {loading ? (
             <div className="flex items-center justify-center gap-2 px-3 py-4 text-sm text-gray-400">
               <Loader2 className="h-4 w-4 animate-spin" />

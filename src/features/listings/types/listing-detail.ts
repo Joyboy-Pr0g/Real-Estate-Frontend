@@ -71,6 +71,17 @@ export interface ListingDetailPhoto {
 
 export type ListingPropertySpecs = Record<string, string | number | boolean>;
 
+export interface ListingHistoryActor {
+  id: string;
+  name: string;
+  phone_number: string;
+}
+
+export interface ListingHistoryContractPhoto {
+  url: string;
+  public_id: string;
+}
+
 export interface ListingHistoryEntry {
   id: string;
   action: 'sold' | 'rented';
@@ -78,6 +89,10 @@ export interface ListingHistoryEntry {
   notes: string | null;
   started_at: string;
   ended_at: string | null;
+  new_house_holder_name: string | null;
+  contract_number: string | null;
+  contract_photo: ListingHistoryContractPhoto | null;
+  actor: ListingHistoryActor | null;
 }
 
 export interface PublicListingDetail {

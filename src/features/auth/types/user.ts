@@ -1,4 +1,4 @@
-export type UserRole = 'buyer' | 'office' | 'platform_admin';
+export type UserRole = 'buyer' | 'office' | 'platform_admin' | 'sub_admin';
 export type UserStatus = 'active' | 'inactive' | 'blocked';
 
 export interface UserPhoto {

@@ -28,6 +28,42 @@ export function CarouselSkeleton({ count = 6 }: { count?: number }) {
   );
 }
 
+export function FeaturedListingsSkeleton({ sections = 3, cardsPerSection = 6 }: {
+  sections?: number;
+  cardsPerSection?: number;
+}) {
+  return (
+    <section className="py-10 md:py-14 bg-surface" aria-busy="true" aria-label="Loading featured listings">
+      <div className="mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8">
+        <div className="mb-8 md:mb-10">
+          <div className="h-7 md:h-8 w-56 md:w-64 rounded-lg bg-gray-200 animate-pulse" />
+          <div className="mt-2 h-4 w-72 max-w-full rounded bg-gray-100 animate-pulse" />
+        </div>
+
+        <div className="space-y-10 md:space-y-12">
+          {Array.from({ length: sections }).map((_, sectionIndex) => (
+            <div key={sectionIndex} className="space-y-4">
+              <div className="flex items-end justify-between gap-4">
+                <div className="h-6 w-40 rounded-lg bg-gray-200 animate-pulse" />
+                <div className="flex items-center gap-2">
+                  <div className="h-9 w-9 rounded-full bg-gray-100 animate-pulse" />
+                  <div className="h-9 w-9 rounded-full bg-gray-100 animate-pulse" />
+                  <div className="ms-1 h-4 w-16 rounded bg-gray-100 animate-pulse" />
+                </div>
+              </div>
+              <div className="flex gap-5 overflow-hidden pb-2">
+                {Array.from({ length: cardsPerSection }).map((__, cardIndex) => (
+                  <ListingCardSkeleton key={cardIndex} />
+                ))}
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
 export function CitiesCarouselSkeleton({ count = 6 }: { count?: number }) {
   return (
     <section className="py-12 md:py-16 bg-white">

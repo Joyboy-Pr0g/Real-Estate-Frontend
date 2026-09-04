@@ -1,5 +1,6 @@
 import { redirect } from 'next/navigation';
 import { getSession } from '@/lib/auth/session';
+import { isAdminPanelRole } from '@/lib/auth/constants';
 import { getServerTranslations } from '@/lib/i18n/server';
 import { Container } from '@/components/ui/container';
 import { ProfileSettingsPanel } from '@/features/dashboard/components/ProfileSettingsPanel';
@@ -7,7 +8,7 @@ import { ProfileSettingsPanel } from '@/features/dashboard/components/ProfileSet
 export default async function DashboardPage() {
   const user = await getSession();
   if (!user) redirect('/login');
-  if (user.role === 'platform_admin') redirect('/admin');
+  if (isAdminPanelRole(user.role)) redirect('/admin');
 
   const { t } = await getServerTranslations();
 

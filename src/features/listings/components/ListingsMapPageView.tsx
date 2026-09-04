@@ -118,7 +118,7 @@ export function ListingsMapPageView({
                 initialPropertySubtypes={initialPropertySubtypes}
                 isAuthenticated={isAuthenticated}
                 basePath={MAP_PATH}
-                className="!shadow-none !ring-0"
+                className="shadow-none ring-0"
               />
             </div>
 

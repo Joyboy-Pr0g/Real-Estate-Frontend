@@ -1,10 +1,12 @@
 'use client';
 
-import { ChangeEvent, FormEvent, useEffect, useState } from 'react';
+import { ChangeEvent, FormEvent, useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { CheckCircle2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { toast } from '@/components/ui/toaster';
-import { applyAsOffice, resubmitOffice } from '@/features/office/services/office-client';
+import { applyAsOffice, resubmitOffice, sendOfficeEmailVerification } from '@/features/office/services/office-client';
+import { OfficeEmailVerificationModal } from '@/features/office/components/OfficeEmailVerificationModal';
 import { MyOffice } from '@/features/office/types/office';
 import { PublicCity } from '@/features/catalog/types/catalog';
 import { PublicNeighborhood } from '@/features/catalog/types/neighborhood';
@@ -14,6 +16,8 @@ import { getErrorMessage } from '@/lib/errors/api-error';
 import { useLocale } from '@/lib/i18n/locale-provider';
 import { FileUploadField } from '@/components/ui/file-upload-field';
 import { formatPhoneNumber } from '@/lib/utils/format';
+import { z } from 'zod';
+import { cn } from '@/lib/utils/cn';
 
 interface OfficeApplicationFormProps {
   cities: PublicCity[];
@@ -50,6 +54,18 @@ export function OfficeApplicationForm({ cities, existingOffice, onCancel, onSucc
     office_license: null,
   });
   const [submitting, setSubmitting] = useState(false);
+  const [verifiedEmail, setVerifiedEmail] = useState<string | null>(
+    existingOffice?.email?.toLowerCase() ?? null,
+  );
+  const [verificationModalOpen, setVerificationModalOpen] = useState(false);
+  const [sendingVerification, setSendingVerification] = useState(false);
+
+  const normalizedEmail = email.trim().toLowerCase();
+  const emailIsValid = useMemo(
+    () => z.string().trim().email().safeParse(email).success,
+    [email],
+  );
+  const emailIsVerified = verifiedEmail === normalizedEmail && emailIsValid;
 
   useEffect(() => {
     if (!existingOffice) return;
@@ -93,10 +109,37 @@ export function OfficeApplicationForm({ cities, existingOffice, onCancel, onSucc
   const handlePhoneNumberChange = (e: ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
     setPhoneNumber(formatPhoneNumber(value));
-  }
+  };
+
+  const handleEmailChange = (value: string) => {
+    setEmail(value);
+    if (value.trim().toLowerCase() !== verifiedEmail) {
+      setVerifiedEmail(null);
+    }
+  };
+
+  const handleSendVerification = async () => {
+    if (!emailIsValid) return;
+
+    setSendingVerification(true);
+    try {
+      await sendOfficeEmailVerification(normalizedEmail, existingOffice?.id);
+      setVerifiedEmail(null);
+      setVerificationModalOpen(true);
+    } catch (err) {
+      toast.error(getErrorMessage(err));
+    } finally {
+      setSendingVerification(false);
+    }
+  };
 
   const handleSubmit = async (event: FormEvent) => {
     event.preventDefault();
+
+    if (!emailIsVerified) {
+      toast.error(t('dashboard.office.emailNotVerified'));
+      return;
+    }
 
     if (!files.id_image || !files.office_photo || !files.commercial_license || !files.office_license) {
       toast.error(t('dashboard.office.filesRequired'));
@@ -133,6 +176,7 @@ export function OfficeApplicationForm({ cities, existingOffice, onCancel, onSucc
   };
 
   return (
+    <>
     <form onSubmit={handleSubmit} className="mt-4 space-y-4">
       <label className="block space-y-1.5">
         <span className="text-sm font-medium text-primary-dark">{t('dashboard.office.name')}</span>
@@ -153,13 +197,37 @@ export function OfficeApplicationForm({ cities, existingOffice, onCancel, onSucc
         </label>
         <label className="block space-y-1.5">
           <span className="text-sm font-medium text-primary-dark">{t('dashboard.emailLabel')}</span>
-          <input
-            required
-            type="email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            className={fieldClass}
-          />
+          <div className="flex gap-2">
+            <input
+              required
+              type="email"
+              value={email}
+              onChange={(e) => handleEmailChange(e.target.value)}
+              className={cn(fieldClass, 'min-w-0 flex-1')}
+            />
+            {emailIsValid ? (
+              emailIsVerified ? (
+                <div className="flex h-11 shrink-0 items-center gap-1.5 rounded-xl border border-emerald-200 bg-emerald-50 px-3 text-emerald-700">
+                  <CheckCircle2 className="h-4 w-4" />
+                  <span className="hidden text-xs font-medium sm:inline">{t('dashboard.office.emailVerifiedBadge')}</span>
+                </div>
+              ) : (
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  className="h-11 shrink-0 whitespace-nowrap"
+                  disabled={sendingVerification}
+                  onClick={() => void handleSendVerification()}
+                >
+                  {sendingVerification ? t('dashboard.office.sendingCode') : t('dashboard.office.verifyEmail')}
+                </Button>
+              )
+            ) : null}
+          </div>
+          {emailIsValid && !emailIsVerified ? (
+            <p className="text-xs text-gray-500">{t('dashboard.office.verifyEmailHint')}</p>
+          ) : null}
         </label>
       </div>
 
@@ -239,10 +307,19 @@ export function OfficeApplicationForm({ cities, existingOffice, onCancel, onSucc
         <Button type="button" variant="outline" onClick={onCancel} disabled={submitting}>
           {t('admin.cancel')}
         </Button>
-        <Button type="submit" disabled={submitting}>
+        <Button type="submit" disabled={submitting || !emailIsVerified}>
           {submitting ? t('dashboard.submitting') : t('dashboard.submit')}
         </Button>
       </div>
     </form>
+
+      <OfficeEmailVerificationModal
+        open={verificationModalOpen}
+        onOpenChange={setVerificationModalOpen}
+        email={normalizedEmail}
+        excludeOfficeId={existingOffice?.id}
+        onVerified={(verified) => setVerifiedEmail(verified.toLowerCase())}
+      />
+    </>
   );
 }

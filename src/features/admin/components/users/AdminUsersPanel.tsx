@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState, useTransition } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
-import { Archive, Loader2, Plus, Search, Trash2, Users } from 'lucide-react';
+import { Archive, Loader2, Plus, Search, Users } from 'lucide-react';
 import { AdminPageHeader } from '@/components/ui/admin-page-header';
 import { ConfirmModal } from '@/components/ui/confirm-modal';
 import { TogglePill } from '@/components/ui/toggle-pill';
@@ -34,8 +34,9 @@ import { cn } from '@/lib/utils/cn';
 import type { TranslationKey } from '@/lib/i18n/ar';
 import { toast } from '@/components/ui/toaster';
 import { getErrorMessage } from '@/lib/errors/api-error';
+import { usePermissions } from '@/features/admin/providers/permissions-provider';
 
-const ROLES: UserRole[] = ['buyer', 'office', 'platform_admin'];
+const ROLES: UserRole[] = ['buyer', 'office', 'platform_admin', 'sub_admin'];
 const STATUSES: UserStatus[] = ['active', 'inactive', 'blocked'];
 const PAGE_SIZE = 20;
 
@@ -59,6 +60,7 @@ export function AdminUsersPanel({
   const router = useRouter();
   const pathname = usePathname();
   const { t } = useLocale();
+  const { hasPermission } = usePermissions();
   const [isPending, startTransition] = useTransition();
   const isInitialRender = useRef(true);
 
@@ -243,7 +245,7 @@ export function AdminUsersPanel({
             <div className="relative w-full max-w-md">
               <Search
                 size={16}
-                className="pointer-events-none absolute start-3 top-1/2 -translate-y-1/2 text-gray-400"
+                className="pointer-events-none absolute inset-s-3.5 top-1/2 -translate-y-1/2 text-gray-400"
               />
               <input
                 type="search"
@@ -290,7 +292,7 @@ export function AdminUsersPanel({
                 icon={<Archive size={15} />}
               />
 
-              <Button onClick={() => setCreateOpen(true)} className="rounded-xl">
+              <Button onClick={() => setCreateOpen(true)} className="rounded-xl" disabled={!hasPermission('users.create')}>
                 <Plus size={16} />
                 {t('admin.addUser')}
               </Button>
@@ -309,14 +311,14 @@ export function AdminUsersPanel({
         }
       />
 
-      {selected.size > 0 && (
+      {selected.size > 0 && hasPermission('users.bulk_delete') ? (
           <Button variant="dangerOutline" onClick={() => void handleBulkDelete()} className="rounded-xl">
             {t('admin.deleteSelected').replace('{count}', String(selected.size))}
           </Button>
-      )}
+      ) : null}
 
       {users.length === 0 ? (
-        <div className="rounded-2xl border border-gray-200 bg-white p-12 text-center shadow-[var(--shadow-soft)]">
+        <div className="rounded-2xl border border-gray-200 bg-white p-12 text-center shadow-var(--shadow-soft)">
           <p className="text-gray-500">{t('admin.noUsers')}</p>
         </div>
       ) : (
@@ -406,7 +408,7 @@ export function AdminUsersPanel({
       />
 
       <CreateUserDialog
-        open={createOpen}
+        open={createOpen && hasPermission('users.create')}
         onClose={() => setCreateOpen(false)}
         onCreated={refreshList}
       />

@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { Printer, Share2 } from 'lucide-react';
 import { SaveButton } from '@/features/listings/components/detail/SaveButton';
+import { ReportListingButton } from '@/features/listings/components/detail/ReportListingButton';
 import { useLocale } from '@/lib/i18n/locale-provider';
 
 interface ListingTitleBarProps {
@@ -40,6 +41,7 @@ export function ListingTitleBar({ listingId, title, isAuthenticated, initialSave
       <h1 className="text-xl font-bold text-primary-dark sm:text-2xl">{title}</h1>
 
       <div className="flex shrink-0 items-center gap-2">
+        <ReportListingButton listingId={listingId} listingTitle={title} isAuthenticated={isAuthenticated} />
         <SaveButton listingId={listingId} isAuthenticated={isAuthenticated} initialSaved={initialSaved} />
         <button
           type="button"

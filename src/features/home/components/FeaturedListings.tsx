@@ -1,29 +1,25 @@
 import { Container } from '@/components/ui/container';
 import { ListingsCarousel } from '@/features/home/components/ListingsCarousel';
+import { HOME_LISTINGS_PER_TYPE } from '@/features/home/constants/home-listings';
 import { homeListingsService } from '@/features/home/services/home-listings-service';
-import { listingService } from '@/features/listings/services/listing-service';
+import { HomePropertyTypeSection } from '@/features/home/types/home-listings';
 import { getServerTranslations } from '@/lib/i18n/server';
-import { getSession } from '@/lib/auth/session';
 import { ApiError } from '@/lib/errors/api-error';
 
 export async function FeaturedListings() {
-  const { t } = await getServerTranslations();
+  const [{ t }, listingsResult] = await Promise.all([
+    getServerTranslations(),
+    homeListingsService.getByPropertyType(HOME_LISTINGS_PER_TYPE).then(
+      (sections) => ({ sections, error: false }),
+      (e: unknown) => ({
+        sections: [] as HomePropertyTypeSection[],
+        error: !(e instanceof ApiError && e.status === 404),
+      }),
+    ),
+  ]);
 
-  let sections: Awaited<ReturnType<typeof homeListingsService.getByPropertyType>> = [];
-  let error = false;
-
-  try {
-    sections = await homeListingsService.getByPropertyType(10);
-  } catch (e) {
-    if (!(e instanceof ApiError && e.status === 404)) {
-      error = true;
-    }
-  }
-
+  const { sections, error } = listingsResult;
   const hasListings = sections.some((section) => section.listings.length > 0);
-  const user = await getSession();
-  const listingIds = sections.flatMap((section) => section.listings.map((listing) => listing.id));
-  const savedIds = user ? await listingService.getSavedListingIds(listingIds) : [];
 
   if (error) {
     return (
@@ -55,8 +51,6 @@ export async function FeaturedListings() {
       title={t('featured.title')}
       subtitle={t('featured.subtitle')}
       viewAllLabel={t('featured.viewAll')}
-      isAuthenticated={Boolean(user)}
-      savedIds={savedIds}
     />
   );
 }

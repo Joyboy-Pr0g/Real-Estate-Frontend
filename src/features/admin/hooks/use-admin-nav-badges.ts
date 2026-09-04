@@ -6,6 +6,8 @@ import { getAdminNavBadges, AdminNavBadges } from '@/features/admin/services/adm
 const EMPTY: AdminNavBadges = {
   pending_offices: 0,
   pending_individual_listers: 0,
+  total_listing_reports: 0,
+  pending_listing_reports: 0,
 };
 
 export function useAdminNavBadges(enabled = true) {

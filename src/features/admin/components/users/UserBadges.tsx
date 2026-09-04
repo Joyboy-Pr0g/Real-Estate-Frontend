@@ -5,6 +5,7 @@ const roleStyles: Record<UserRole, string> = {
   buyer: 'bg-sky-50 text-sky-700 ring-sky-200',
   office: 'bg-amber-50 text-amber-800 ring-amber-200',
   platform_admin: 'bg-brand-muted text-brand-dark ring-brand/20',
+  sub_admin: 'bg-violet-50 text-violet-700 ring-violet-200',
 };
 
 export function UserRoleBadge({ role, label }: { role: UserRole; label: string }) {

@@ -15,6 +15,7 @@ import {
   LogOut,
   Menu,
   Sparkles,
+  Users,
   X,
   Bookmark,
 } from 'lucide-react';
@@ -52,6 +53,8 @@ function buildNavItems(isOffice: boolean, hasIndividualListerProfile: boolean): 
     items.push(
       { href: '/dashboard/office', labelKey: 'dashboard.office', icon: Building2, exact: false },
       { href: '/dashboard/office/listings', labelKey: 'dashboard.officeListings', icon: Home, exact: false },
+      { href: '/dashboard/office/analytics', labelKey: 'dashboard.office.analyticsNav', icon: LayoutDashboard, exact: false },
+      { href: '/dashboard/office/users', labelKey: 'dashboard.office.userAnalyticsNav', icon: Users, exact: false },
     );
     return items;
   }

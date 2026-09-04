@@ -11,6 +11,7 @@ const roleKeys: Record<UserRole, TranslationKey> = {
   buyer: 'admin.role.buyer',
   office: 'admin.role.office',
   platform_admin: 'admin.role.platform_admin',
+  sub_admin: 'admin.role.sub_admin',
 };
 
 interface UserCardProps {
@@ -43,7 +44,7 @@ export function UserCard({
     : t(`admin.status.${user.status}` as TranslationKey);
 
   return (
-    <article className="rounded-2xl border border-gray-200 bg-white p-4 shadow-[var(--shadow-soft)]">
+    <article className="rounded-2xl border border-gray-200 bg-white p-4 shadow-var(--shadow-soft)">
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
           <h3 className="truncate font-semibold text-primary-dark">

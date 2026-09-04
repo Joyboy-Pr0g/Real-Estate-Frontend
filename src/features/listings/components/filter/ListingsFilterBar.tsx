@@ -69,8 +69,6 @@ export function ListingsFilterBar({
 }: ListingsFilterBarProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const searchParamsRef = useRef(searchParams);
-  searchParamsRef.current = searchParams;
   const barRef = useRef<HTMLDivElement>(null);
   const { t } = useLocale();
   const [pending, startTransition] = useTransition();
@@ -144,11 +142,11 @@ export function ListingsFilterBar({
   const pushParams = useCallback(
     (updates: Record<string, string | null>, options?: { clearSpec?: boolean }) => {
       startTransition(() => {
-        router.push(buildListingsHref(searchParamsRef.current, updates, { ...options, basePath }));
+        router.push(buildListingsHref(searchParams, updates, { ...options, basePath }));
         router.refresh();
       });
     },
-    [router, basePath],
+    [router, basePath, searchParams],
   );
 
   const applySearchParams = useCallback(
@@ -393,7 +391,7 @@ export function ListingsFilterBar({
             <FilterChip
               label={selectedSubtype.name}
               onRemove={() => {
-                const next = new URLSearchParams(searchParamsRef.current.toString());
+                const next = new URLSearchParams(searchParams.toString());
                 next.delete(LISTING_URL_PARAMS.propertySubtype);
                 clearSpecFromSearchParams(next);
                 next.delete(LISTING_URL_PARAMS.cursor);
@@ -553,7 +551,7 @@ export function ListingsFilterBar({
                 label={t('filters.allSubtypes')}
                 selected={!currentPropertySubtype}
                 onClick={() => {
-                  const next = new URLSearchParams(searchParamsRef.current.toString());
+                  const next = new URLSearchParams(searchParams.toString());
                   next.delete(LISTING_URL_PARAMS.propertySubtype);
                   clearSpecFromSearchParams(next);
                   next.delete(LISTING_URL_PARAMS.cursor);
@@ -566,7 +564,7 @@ export function ListingsFilterBar({
                   label={subtype.name}
                   selected={currentPropertySubtype === subtype.slug}
                   onClick={() => {
-                    const next = new URLSearchParams(searchParamsRef.current.toString());
+                    const next = new URLSearchParams(searchParams.toString());
                     next.set(LISTING_URL_PARAMS.propertySubtype, subtype.slug);
                     clearSpecFromSearchParams(next);
                     next.delete(LISTING_URL_PARAMS.cursor);
@@ -627,7 +625,7 @@ export function ListingsFilterBar({
     <div ref={barRef} className={className}>
       <div
         className={cn(
-          'hidden overflow-hidden rounded-2xl border border-gray-200/70 bg-white shadow-[var(--shadow-soft)] ring-1 ring-black/[0.03] lg:block',
+          'hidden overflow-hidden rounded-2xl border border-gray-200/70 bg-white shadow-var(--shadow-soft) ring-1 ring-black/3 lg:block',
           pending && 'opacity-90',
         )}
       >
@@ -638,7 +636,7 @@ export function ListingsFilterBar({
         <button
           type="button"
           onClick={() => setMobileOpen(true)}
-          className="flex w-full items-center justify-center gap-2 rounded-xl border border-gray-200 bg-white px-4 py-3 text-sm font-semibold text-primary-dark shadow-[var(--shadow-soft)]"
+          className="flex w-full items-center justify-center gap-2 rounded-xl border border-gray-200 bg-white px-4 py-3 text-sm font-semibold text-primary-dark shadow-var(--shadow-soft)"
         >
           <SlidersHorizontal className="h-4 w-4 text-brand" />
           {t('filters.openFilters')}
@@ -668,7 +666,7 @@ export function ListingsFilterBar({
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: 12 }}
                 transition={{ duration: 0.24, ease: [0.22, 1, 0.36, 1] }}
-                className="fixed inset-x-3 bottom-3 top-16 z-50 flex flex-col overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-[var(--shadow-float)]"
+                className="fixed inset-x-3 bottom-3 top-16 z-50 flex flex-col overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-var(--shadow-float)"
               >
                 <div className="flex items-center justify-between border-b border-gray-100 px-4 py-3">
                   <p className="text-sm font-bold text-primary-dark">{t('filters.openFilters')}</p>

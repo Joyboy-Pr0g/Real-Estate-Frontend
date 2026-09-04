@@ -108,6 +108,12 @@ export function MyReportsList({ initialItems, initialCursor, initialHasMore }: M
               {report.description ? (
                 <p className="mt-1 text-sm text-gray-600">{report.description}</p>
               ) : null}
+              {report.admin_notes ? (
+                <div className="mt-3 rounded-xl bg-brand-muted/40 px-3 py-2">
+                  <p className="text-xs font-medium text-brand-dark">{t('dashboard.report.adminResponse')}</p>
+                  <p className="mt-1 whitespace-pre-line text-sm text-primary-dark">{report.admin_notes}</p>
+                </div>
+              ) : null}
             </div>
             <span
               className={cn(

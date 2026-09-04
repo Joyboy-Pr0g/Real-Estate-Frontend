@@ -32,6 +32,24 @@ export async function markListingRented(id: string): Promise<void> {
   await clientFetch(bffPaths.listings.rented(id), { method: 'PATCH' });
 }
 
+export async function updateListingHistoryDetails(id: string, formData: FormData): Promise<void> {
+  await clientFetch(bffPaths.listings.historyLatest(id), { method: 'PATCH', body: formData });
+}
+
+export type ListingReportReason =
+  | 'misleading_info'
+  | 'fraud'
+  | 'duplicate'
+  | 'inappropriate_content'
+  | 'other';
+
+export async function reportListing(
+  id: string,
+  body: { reason: ListingReportReason; description?: string },
+): Promise<void> {
+  await clientFetch(bffPaths.listings.report(id), { method: 'POST', body });
+}
+
 export async function softDeleteListing(id: string): Promise<void> {
   await clientFetch(bffPaths.listings.softDelete(id), { method: 'PATCH' });
 }

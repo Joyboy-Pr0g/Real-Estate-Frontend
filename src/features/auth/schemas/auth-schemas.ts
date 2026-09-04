@@ -78,7 +78,7 @@ export const AdminCreateUserSchema = z.object({
   l_name: z.string().trim().min(2).max(20),
   email: z.string().trim().email(),
   phone_number: z.string().trim().regex(/^\+?[\d\s\-()]+$/).min(7).max(20),
-  role: z.enum(['buyer', 'office', 'platform_admin']),
+  role: z.enum(['buyer', 'office', 'platform_admin', 'sub_admin']),
 });
 
 export function createVerifyEmailSchema(t: SchemaTranslate) {
@@ -192,7 +192,7 @@ export const createUserSchema = registerBodySchema;
 export type CreateUserInput = z.infer<typeof createUserSchema>;
 
 export const adminUserSearchSchema = z.object({
-  role: z.enum(['buyer', 'office', 'platform_admin']).optional(),
+  role: z.enum(['buyer', 'office', 'platform_admin', 'sub_admin']).optional(),
   status: z.enum(['active', 'inactive', 'blocked']).optional(),
   search: z.string().trim().max(100).optional(),
   cursor: z.string().optional(),

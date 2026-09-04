@@ -6,11 +6,15 @@ import { clientFetch } from '@/lib/api/client';
 export interface AdminNavBadges {
   pending_offices: number;
   pending_individual_listers: number;
+  total_listing_reports: number;
+  pending_listing_reports: number;
 }
 
 const EMPTY: AdminNavBadges = {
   pending_offices: 0,
   pending_individual_listers: 0,
+  total_listing_reports: 0,
+  pending_listing_reports: 0,
 };
 
 export async function getAdminNavBadges(): Promise<AdminNavBadges> {
