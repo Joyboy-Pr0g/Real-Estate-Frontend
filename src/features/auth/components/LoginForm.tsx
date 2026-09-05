@@ -47,7 +47,7 @@ export function LoginForm() {
       } else if (isAdminPanelRole(user.role)) {
         router.push('/admin');
       } else {
-        router.push('/');
+        router.push('/dashboard');
       }
 
       router.refresh();

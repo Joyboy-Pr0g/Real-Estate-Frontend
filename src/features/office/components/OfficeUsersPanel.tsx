@@ -3,11 +3,12 @@
 import Link from 'next/link';
 import { ChangeEvent, FormEvent, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { ClipboardList, Plus, UserRound } from 'lucide-react';
+import { ClipboardList, Plus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { ConfirmModal } from '@/components/ui/confirm-modal';
 import { toast } from '@/components/ui/toaster';
 import { addOfficeUser, removeOfficeUsers } from '@/features/office/services/office-client';
+import { OfficeUserAvatar } from '@/features/office/components/OfficeUserAvatar';
 import { OfficeUserMember } from '@/features/office/types/office';
 import { getErrorMessage } from '@/lib/errors/api-error';
 import { useLocale } from '@/lib/i18n/locale-provider';
@@ -189,9 +190,11 @@ export function OfficeUsersPanel({ officeId, members, currentUserId }: OfficeUse
                 <span className="w-4 shrink-0" />
               )}
 
-              <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-brand-muted text-brand">
-                <UserRound className="h-4 w-4" />
-              </span>
+              <OfficeUserAvatar
+                photoUrl={member.user.user_photo?.url}
+                name={`${member.user.f_name} ${member.user.l_name}`}
+                className="h-10 w-10"
+              />
 
               <div className="min-w-0 flex-1">
                 <p className="truncate text-sm font-bold text-primary-dark">

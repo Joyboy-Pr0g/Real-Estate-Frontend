@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
-import { Building2, FileText, Loader2, UserRound } from 'lucide-react';
+import { Building2, FileText, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { ConfirmModal } from '@/components/ui/confirm-modal';
 import { toast } from '@/components/ui/toaster';
@@ -18,6 +18,7 @@ import {
   hardDeleteOffice,
   forceRemoveOfficeUsers,
 } from '@/features/office/services/admin-offices-client';
+import { OfficeUserAvatar } from '@/features/office/components/OfficeUserAvatar';
 import { OfficeDetail } from '@/features/office/types/office';
 import { formatDateTime } from '@/lib/utils/format';
 import { getErrorMessage } from '@/lib/errors/api-error';
@@ -226,9 +227,11 @@ export function AdminOfficeDetailView({ office }: AdminOfficeDetailViewProps) {
             <div className="mt-4 space-y-2">
               {office.office_users.map((member) => (
                 <div key={member.id} className="flex items-center gap-3 rounded-xl border border-gray-100 p-3">
-                  <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-brand-muted text-brand">
-                    <UserRound className="h-4 w-4" />
-                  </span>
+                  <OfficeUserAvatar
+                    photoUrl={member.user.user_photo?.url}
+                    name={`${member.user.f_name} ${member.user.l_name}`}
+                    className="h-9 w-9"
+                  />
                   <div className="min-w-0 flex-1">
                     <p className="truncate text-sm font-bold text-primary-dark">
                       {member.user.f_name} {member.user.l_name}

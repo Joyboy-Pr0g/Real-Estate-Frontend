@@ -12,6 +12,7 @@ interface ConfirmModalProps {
   cancelText: string;
   loading?: boolean;
   danger?: boolean;
+  showCannotUndo?: boolean;
   onConfirm: () => void;
   onCancel: () => void;
 }
@@ -24,6 +25,7 @@ export function ConfirmModal({
   cancelText,
   loading = false,
   danger = false,
+  showCannotUndo = true,
   onConfirm,
   onCancel,
 }: ConfirmModalProps) {
@@ -40,7 +42,9 @@ export function ConfirmModal({
       >
         <h2 className="text-lg font-bold text-primary-dark">{title}</h2>
         <p className="mt-2 text-sm text-gray-600">{description}</p>
-        <p className="mt-2 text-xs text-gray-400">{t('admin.confirmCannotUndo')}</p>
+        {showCannotUndo ? (
+          <p className="mt-2 text-xs text-gray-400">{t('admin.confirmCannotUndo')}</p>
+        ) : null}
 
         <div className="mt-6 flex justify-end gap-2">
           <Button type="button" variant="outline" onClick={onCancel} disabled={loading}>

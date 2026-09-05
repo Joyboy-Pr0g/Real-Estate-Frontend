@@ -81,11 +81,7 @@ export function SimilarOfficeListings({
       >
         {listings.map((listing) => (
           <div key={listing.id} className="snap-start shrink-0 w-[280px] sm:w-[300px]">
-            <ListingCard
-              listing={listing}
-              isAuthenticated={isAuthenticated}
-              initialSaved={savedSet.has(listing.id)}
-            />
+            <ListingCard listing={listing} />
           </div>
         ))}
       </div>

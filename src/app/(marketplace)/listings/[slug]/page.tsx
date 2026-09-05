@@ -6,6 +6,7 @@ import { hasListingSeller } from '@/features/listings/lib/listing-detail-guards'
 import { featureService } from '@/features/catalog/services/feature-service';
 import { ListingDetailView } from '@/features/listings/components/detail/ListingDetailView';
 import { getSession } from '@/lib/auth/session';
+import { getMyIndividualListerProfile } from '@/features/individual-lister/services/individual-lister-service';
 
 interface ListingDetailPageProps {
   params: Promise<{ slug: string }>;
@@ -42,12 +43,22 @@ export default async function ListingDetailPage({ params }: ListingDetailPagePro
     ? await listingService.getSavedListingIds([listing.id, ...similarListings.map((item) => item.id)])
     : [];
 
+  const individualListerProfile =
+    user && user.role !== 'office' ? await getMyIndividualListerProfile() : null;
+
+  const isOwnListing =
+    listing.seller.type === 'individual'
+    && individualListerProfile?.id === listing.seller.id;
+
+  const canStartMessage = Boolean(user) && user!.role !== 'office' && !isOwnListing;
+
   return (
     <ListingDetailView
       listing={listing}
       mainFeatures={mainFeatures}
       similarListings={similarListings}
       isAuthenticated={Boolean(user)}
+      canStartMessage={canStartMessage}
       isSaved={savedIds.includes(listing.id)}
       similarSavedIds={savedIds}
     />

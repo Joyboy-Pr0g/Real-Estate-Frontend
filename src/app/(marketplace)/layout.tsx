@@ -5,6 +5,7 @@ import { CategoryNavBar } from '@/features/home/components/CategoryNavBar';
 import { CategoryNavSkeleton } from '@/features/home/components/CategoryNav';
 import { SiteHeaderOverrideProvider } from '@/features/layout/context/site-header-override';
 import { getSession } from '@/lib/auth/session';
+import { MessagingSocketProvider } from '@/features/messaging/providers/MessagingSocketProvider';
 
 export default async function MarketplaceLayout({
   children,
@@ -13,7 +14,7 @@ export default async function MarketplaceLayout({
 }) {
   const user = await getSession();
 
-  return (
+  const content = (
     <SiteHeaderOverrideProvider>
       <SiteHeader
         user={user}
@@ -27,4 +28,8 @@ export default async function MarketplaceLayout({
       <SiteFooter />
     </SiteHeaderOverrideProvider>
   );
+
+  if (!user) return content;
+
+  return <MessagingSocketProvider enabled>{content}</MessagingSocketProvider>;
 }

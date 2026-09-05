@@ -3,6 +3,17 @@
 import { clientFetch } from '@/lib/api/client';
 import { bffPaths } from '@/lib/api/endpoints';
 import { MyListingSummary } from '@/features/listings/types/listing';
+import { ListingDetailPhoto, PublicListingDetail } from '@/features/listings/types/listing-detail';
+
+export async function fetchPublicListingById(id: string): Promise<PublicListingDetail | null> {
+  const response = await clientFetch<PublicListingDetail>(bffPaths.listings.byId(id));
+  return response.data ?? null;
+}
+
+export async function fetchListingPhotos(listingId: string): Promise<ListingDetailPhoto[]> {
+  const response = await clientFetch<ListingDetailPhoto[]>(bffPaths.listings.photos(listingId));
+  return response.data ?? [];
+}
 
 export async function createListing(formData: FormData): Promise<{ id: string }> {
   const res = await clientFetch<{ id: string }>(bffPaths.listings.create, {

@@ -12,11 +12,14 @@ import {
   History,
   Home,
   LayoutDashboard,
+  LifeBuoy,
   LogOut,
   Menu,
+  MessageCircle,
   Sparkles,
   Users,
   X,
+  Bell,
   Bookmark,
 } from 'lucide-react';
 import { AuthUser } from '@/features/auth/types/user';
@@ -25,6 +28,7 @@ import { useLocale } from '@/lib/i18n/locale-provider';
 import { cn } from '@/lib/utils/cn';
 import { Button, ButtonLink } from '@/components/ui/button';
 import type { TranslationKey } from '@/lib/i18n/ar';
+import { useNotificationUnreadCount } from '@/features/notifications/hooks/use-notification-unread-count';
 
 interface DashboardSidebarProps {
   user: AuthUser;
@@ -46,8 +50,19 @@ function buildNavItems(isOffice: boolean, hasIndividualListerProfile: boolean): 
     { href: '/dashboard/saved', labelKey: 'dashboard.savedListings', icon: Heart, exact: false },
     { href: '/dashboard/favorite-filters', labelKey: 'dashboard.favoriteFilters.title', icon: Bookmark, exact: false },
     { href: '/dashboard/history', labelKey: 'dashboard.history', icon: History, exact: false },
+    { href: '/dashboard/messages', labelKey: 'dashboard.messages', icon: MessageCircle, exact: false },
+    { href: '/dashboard/notifications', labelKey: 'dashboard.notifications', icon: Bell, exact: false },
     { href: '/dashboard/reports', labelKey: 'dashboard.reports', icon: Flag, exact: false },
   ];
+
+  if (isOffice || hasIndividualListerProfile) {
+    items.splice(5, 0, {
+      href: '/dashboard/support-tickets',
+      labelKey: 'dashboard.supportTickets',
+      icon: LifeBuoy,
+      exact: false,
+    });
+  }
 
   if (isOffice) {
     items.push(
@@ -117,6 +132,7 @@ export function DashboardSidebar({ user, hasIndividualListerProfile }: Dashboard
   };
 
   const navItems = buildNavItems(user.role === 'office', hasIndividualListerProfile);
+  const notificationUnreadCount = useNotificationUnreadCount();
 
   const brand = (
     <div
@@ -162,6 +178,7 @@ export function DashboardSidebar({ user, hasIndividualListerProfile }: Dashboard
       {navItems.map(({ href, labelKey, icon: Icon, exact }) => {
         const active = exact ? pathname === href : pathname.startsWith(href);
         const label = t(labelKey);
+        const unreadBadge = href === '/dashboard/notifications' ? notificationUnreadCount : 0;
         return (
           <Link
             key={href}
@@ -171,7 +188,7 @@ export function DashboardSidebar({ user, hasIndividualListerProfile }: Dashboard
             title={compact ? label : undefined}
             aria-label={compact ? label : undefined}
             className={cn(
-              'inline-flex w-full shrink-0 items-center gap-2 rounded-xl px-3 py-2.5 text-sm font-medium transition-colors',
+              'relative inline-flex w-full shrink-0 items-center gap-2 rounded-xl px-3 py-2.5 text-sm font-medium transition-colors',
               compact && 'lg:justify-center lg:gap-0 lg:px-2',
               active
                 ? 'bg-brand-muted text-brand-dark'
@@ -180,6 +197,16 @@ export function DashboardSidebar({ user, hasIndividualListerProfile }: Dashboard
           >
             <Icon className="h-4 w-4 shrink-0" />
             <span className={cn('truncate', compact && 'lg:hidden')}>{label}</span>
+            {unreadBadge > 0 ? (
+              <span
+                className={cn(
+                  'ms-auto flex h-5 min-w-5 items-center justify-center rounded-full bg-red-500 px-1.5 text-[10px] font-bold text-white',
+                  compact && 'lg:absolute lg:top-1.5 lg:inset-e-1.5 lg:ms-0 lg:h-2 lg:min-w-2 lg:px-0 lg:text-[0]',
+                )}
+              >
+                {unreadBadge > 99 ? '99+' : unreadBadge}
+              </span>
+            ) : null}
           </Link>
         );
       })}

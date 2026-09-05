@@ -19,6 +19,7 @@ interface ListingDetailViewProps {
   mainFeatures: PublicMainFeature[];
   similarListings: PublicListing[];
   isAuthenticated: boolean;
+  canStartMessage?: boolean;
   isSaved?: boolean;
   similarSavedIds?: string[];
 }
@@ -28,6 +29,7 @@ export function ListingDetailView({
   mainFeatures,
   similarListings,
   isAuthenticated,
+  canStartMessage = false,
   isSaved = false,
   similarSavedIds = [],
 }: ListingDetailViewProps) {
@@ -38,8 +40,10 @@ export function ListingDetailView({
           <ListingBreadcrumb listing={listing} />
           <ListingTitleBar
             listingId={listing.id}
+            listingSlug={listing.slug}
             title={listing.title}
             isAuthenticated={isAuthenticated}
+            canStartMessage={canStartMessage}
             initialSaved={isSaved}
           />
 

@@ -45,7 +45,11 @@ export function PermissionsProvider({ user, permissions, children }: Permissions
             '/admin/sub-features',
             '/admin/cities',
             '/admin/neighborhoods',
+            '/admin/messaging/reports',
+            '/admin/messaging/conversations',
+            '/admin/support-tickets',
             '/admin/permissions',
+            '/admin/notifications',
           ]
         : permissions.map((p) => p.path.replace(/\/+$/, '') || '/admin'),
     );

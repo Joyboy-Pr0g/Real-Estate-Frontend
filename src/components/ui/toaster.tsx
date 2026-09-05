@@ -1,15 +1,24 @@
 'use client';
 
 import { useEffect, useState, useSyncExternalStore } from 'react';
+import { useRouter } from 'next/navigation';
 import { AnimatePresence, motion } from 'framer-motion';
-import { CheckCircle2, Info, X, XCircle } from 'lucide-react';
+import { Bell, CheckCircle2, Info, X, XCircle } from 'lucide-react';
 import { cn } from '@/lib/utils/cn';
 
-export type ToastType = 'success' | 'error' | 'info';
+export type ToastType = 'success' | 'error' | 'info' | 'notification';
+
+export interface NotificationToastInput {
+  title: string;
+  message?: string;
+  href?: string | null;
+}
 
 interface Toast {
   id: string;
   message: string;
+  title?: string;
+  href?: string | null;
   type: ToastType;
 }
 
@@ -31,8 +40,21 @@ function getSnapshot() {
   return toasts;
 }
 
-function addToast(message: string, type: ToastType) {
-  toasts = [...toasts, { id: Math.random().toString(36).slice(2), message, type }];
+function addToast(
+  message: string,
+  type: ToastType,
+  options?: { title?: string; href?: string | null },
+) {
+  toasts = [
+    ...toasts,
+    {
+      id: Math.random().toString(36).slice(2),
+      message,
+      title: options?.title,
+      href: options?.href,
+      type,
+    },
+  ];
   emit();
 }
 
@@ -49,27 +71,34 @@ export const toast = Object.assign(show, {
   success: (message: string) => show(message, 'success'),
   error: (message: string) => show(message, 'error'),
   info: (message: string) => show(message, 'info'),
+  notification: ({ title, message = '', href = null }: NotificationToastInput) => {
+    addToast(message, 'notification', { title, href });
+  },
 });
 
 const TYPE_STYLES: Record<ToastType, string> = {
   success: 'border-brand/30 bg-white text-brand-dark shadow-[var(--shadow-soft)]',
   error: 'border-red-200 bg-red-50 text-red-800 shadow-[var(--shadow-soft)]',
   info: 'border-gray-200 bg-white text-primary-dark shadow-[var(--shadow-soft)]',
+  notification: 'border-brand/20 bg-white text-primary-dark shadow-[var(--shadow-soft)] ring-1 ring-brand/10',
 };
 
 const TYPE_ICONS: Record<ToastType, typeof CheckCircle2> = {
   success: CheckCircle2,
   error: XCircle,
   info: Info,
+  notification: Bell,
 };
 
 const TYPE_ICON_STYLES: Record<ToastType, string> = {
   success: 'text-brand',
   error: 'text-red-500',
   info: 'text-gray-400',
+  notification: 'text-brand',
 };
 
 export function Toaster() {
+  const router = useRouter();
   const currentToasts = useSyncExternalStore(subscribe, getSnapshot, getSnapshot);
   const [dir, setDir] = useState<'ltr' | 'rtl'>('rtl');
 
@@ -99,6 +128,15 @@ export function Toaster() {
       <AnimatePresence>
         {currentToasts.map((t) => {
           const Icon = TYPE_ICONS[t.type];
+          const isClickable = Boolean(t.href);
+
+          const handleOpen = () => {
+            if (t.href) {
+              router.push(t.href);
+            }
+            removeToast(t.id);
+          };
+
           return (
             <motion.div
               key={t.id}
@@ -106,16 +144,42 @@ export function Toaster() {
               animate={{ opacity: 1, x: 0, y: 0 }}
               exit={{ opacity: 0, y: exitY }}
               transition={{ type: 'spring', damping: 26, stiffness: 320 }}
+              role={isClickable ? 'button' : undefined}
+              tabIndex={isClickable ? 0 : undefined}
+              onClick={isClickable ? handleOpen : undefined}
+              onKeyDown={
+                isClickable
+                  ? (event) => {
+                      if (event.key === 'Enter' || event.key === ' ') {
+                        event.preventDefault();
+                        handleOpen();
+                      }
+                    }
+                  : undefined
+              }
               className={cn(
-                'pointer-events-auto flex min-w-[280px] max-w-md items-center gap-3 rounded-xl border px-4 py-3.5 text-sm font-medium',
+                'pointer-events-auto flex min-w-[280px] max-w-md items-start gap-3 rounded-xl border px-4 py-3.5 text-sm',
                 TYPE_STYLES[t.type],
+                isClickable && 'cursor-pointer hover:border-brand/40',
               )}
             >
-              <Icon size={18} className={cn('shrink-0', TYPE_ICON_STYLES[t.type])} />
-              <span className="flex-1 leading-snug">{t.message}</span>
+              <Icon size={18} className={cn('mt-0.5 shrink-0', TYPE_ICON_STYLES[t.type])} />
+              <div className="min-w-0 flex-1">
+                {t.title ? (
+                  <p className="font-semibold leading-snug text-primary-dark">{t.title}</p>
+                ) : null}
+                {t.message ? (
+                  <p className={cn('leading-snug', t.title ? 'mt-0.5 text-xs text-gray-500' : 'font-medium')}>
+                    {t.message}
+                  </p>
+                ) : null}
+              </div>
               <button
                 type="button"
-                onClick={() => removeToast(t.id)}
+                onClick={(event) => {
+                  event.stopPropagation();
+                  removeToast(t.id);
+                }}
                 className="shrink-0 rounded-md p-0.5 opacity-60 transition-opacity hover:opacity-100"
                 aria-label="Dismiss"
               >

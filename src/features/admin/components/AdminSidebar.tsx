@@ -6,6 +6,7 @@ import { usePathname, useRouter } from 'next/navigation';
 import {
   ArrowLeftRight,
   Building2,
+  Bell,
   ChevronsLeft,
   ChevronsRight,
   ClipboardList,
@@ -16,9 +17,11 @@ import {
   Landmark,
   Layers,
   LayoutDashboard,
+  LifeBuoy,
   ListTree,
   LogOut,
   MapPin,
+  MessageCircle,
   Menu,
   Sparkles,
   Users,
@@ -27,6 +30,7 @@ import {
 import { AuthUser } from '@/features/auth/types/user';
 import { logout } from '@/features/auth/services/auth-service';
 import { useAdminNavBadges } from '@/features/admin/hooks/use-admin-nav-badges';
+import { useNotificationUnreadCount } from '@/features/notifications/hooks/use-notification-unread-count';
 import { usePermissions } from '@/features/admin/providers/permissions-provider';
 import { useLocale } from '@/lib/i18n/locale-provider';
 import { cn } from '@/lib/utils/cn';
@@ -66,6 +70,32 @@ const navItems = [
     badgeKey: 'pending_listing_reports' as const,
     totalBadgeKey: 'total_listing_reports' as const,
   },
+  {
+    href: '/admin/messaging/reports',
+    labelKey: 'admin.messaging.reports' as const,
+    icon: MessageCircle,
+    exact: false,
+    badgeKey: 'pending_conversation_reports' as const,
+    totalBadgeKey: 'total_conversation_reports' as const,
+  },
+  {
+    href: '/admin/messaging/conversations',
+    labelKey: 'admin.messaging.conversations' as const,
+    icon: MessageCircle,
+    exact: false,
+  },
+  {
+    href: '/admin/support-tickets',
+    labelKey: 'admin.supportTickets.title' as const,
+    icon: LifeBuoy,
+    exact: false,
+  },
+  {
+    href: '/admin/notifications',
+    labelKey: 'admin.notifications.title' as const,
+    icon: Bell,
+    exact: false,
+  },
   { href: '/admin/office-action-logs', labelKey: 'admin.officeActionLogs' as const, icon: ClipboardList, exact: false },
   { href: '/admin/property-types', labelKey: 'admin.propertyTypes' as const, icon: Home, exact: false },
   { href: '/admin/property-subtypes', labelKey: 'admin.propertySubtypes' as const, icon: Layers, exact: false },
@@ -82,6 +112,7 @@ export function AdminSidebar({ user }: AdminSidebarProps) {
   const { t } = useLocale();
   const { isPlatformAdmin, allowedPaths } = usePermissions();
   const adminBadges = useAdminNavBadges();
+  const notificationUnreadCount = useNotificationUnreadCount();
   const [open, setOpen] = useState(false);
   const [compact, setCompact] = useState(() => {
     if (typeof window === 'undefined') return false;
@@ -175,7 +206,7 @@ export function AdminSidebar({ user }: AdminSidebarProps) {
         const totalBadgeKey = 'totalBadgeKey' in item ? item.totalBadgeKey : undefined;
         const active = exact ? pathname === href : pathname.startsWith(href);
         const label = t(labelKey);
-        const badgeCount = badgeKey ? adminBadges[badgeKey] : 0;
+        const badgeCount = badgeKey ? adminBadges[badgeKey] : href === '/admin/notifications' ? notificationUnreadCount : 0;
         const totalCount = totalBadgeKey ? adminBadges[totalBadgeKey] : 0;
         return (
           <Link

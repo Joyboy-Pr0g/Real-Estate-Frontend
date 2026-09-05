@@ -87,7 +87,7 @@ export function RemovableListingGrid({ listings, onRemove, savedIds = [] }: Remo
       <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
         {listings.map((listing) => (
           <div key={listing.id}>
-            <ListingCard listing={listing} isAuthenticated initialSaved={savedSet.has(listing.id)} />
+            <ListingCard listing={listing} />
             <div className="mt-2 flex items-center justify-between gap-2">
               <label className="inline-flex items-center gap-1.5 text-xs font-medium text-gray-500">
                 <input

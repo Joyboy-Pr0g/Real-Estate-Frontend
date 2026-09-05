@@ -4,16 +4,26 @@ import { useState } from 'react';
 import { Printer, Share2 } from 'lucide-react';
 import { SaveButton } from '@/features/listings/components/detail/SaveButton';
 import { ReportListingButton } from '@/features/listings/components/detail/ReportListingButton';
+import { MessageListingButton } from '@/features/listings/components/detail/MessageListingButton';
 import { useLocale } from '@/lib/i18n/locale-provider';
 
 interface ListingTitleBarProps {
   listingId: string;
+  listingSlug: string;
   title: string;
   isAuthenticated: boolean;
+  canStartMessage?: boolean;
   initialSaved?: boolean;
 }
 
-export function ListingTitleBar({ listingId, title, isAuthenticated, initialSaved = false }: ListingTitleBarProps) {
+export function ListingTitleBar({
+  listingId,
+  listingSlug,
+  title,
+  isAuthenticated,
+  canStartMessage = false,
+  initialSaved = false,
+}: ListingTitleBarProps) {
   const { t } = useLocale();
   const [copied, setCopied] = useState(false);
 
@@ -41,8 +51,19 @@ export function ListingTitleBar({ listingId, title, isAuthenticated, initialSave
       <h1 className="text-xl font-bold text-primary-dark sm:text-2xl">{title}</h1>
 
       <div className="flex shrink-0 items-center gap-2">
+        <MessageListingButton
+          listingId={listingId}
+          listingSlug={listingSlug}
+          isAuthenticated={isAuthenticated}
+          canStartMessage={canStartMessage}
+        />
         <ReportListingButton listingId={listingId} listingTitle={title} isAuthenticated={isAuthenticated} />
-        <SaveButton listingId={listingId} isAuthenticated={isAuthenticated} initialSaved={initialSaved} />
+        <SaveButton
+          listingId={listingId}
+          listingSlug={listingSlug}
+          isAuthenticated={isAuthenticated}
+          initialSaved={initialSaved}
+        />
         <button
           type="button"
           onClick={() => window.print()}

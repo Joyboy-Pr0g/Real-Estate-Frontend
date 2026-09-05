@@ -11,11 +11,12 @@ import { cn } from '@/lib/utils/cn';
 
 interface SaveButtonProps {
   listingId: string;
+  listingSlug: string;
   isAuthenticated: boolean;
   initialSaved?: boolean;
 }
 
-export function SaveButton({ listingId, isAuthenticated, initialSaved = false }: SaveButtonProps) {
+export function SaveButton({ listingId, listingSlug, isAuthenticated, initialSaved = false }: SaveButtonProps) {
   const { t } = useLocale();
   const router = useRouter();
   const [saved, setSaved] = useState(initialSaved);
@@ -23,7 +24,7 @@ export function SaveButton({ listingId, isAuthenticated, initialSaved = false }:
 
   const toggleSave = async () => {
     if (!isAuthenticated) {
-      router.push(`/login?redirect=/listings/${listingId}`);
+      router.push(`/login?redirect=/listings/${listingSlug}`);
       return;
     }
     if (pending) return;

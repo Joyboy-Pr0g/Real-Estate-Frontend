@@ -39,7 +39,7 @@ interface AdminOfficesPanelProps {
   lockedStatus?: OfficeVerificationStatus;
 }
 
-type ConfirmAction = 'soft_delete' | 'hard_delete';
+type ConfirmAction = 'soft_delete' | 'hard_delete' | 'verify';
 
 export function AdminOfficesPanel({
   initial,
@@ -128,6 +128,10 @@ export function AdminOfficesPanel({
 
   const handleConfirm = () => {
     if (!confirmOffice) return;
+    if (confirmAction === 'verify') {
+      void runAction(confirmOffice.id, () => verifyOffice(confirmOffice.id), t('admin.officeVerified'));
+      return;
+    }
     if (confirmAction === 'hard_delete') {
       void runAction(confirmOffice.id, () => hardDeleteOffice(confirmOffice.id), t('admin.officeDeleted'));
       return;
@@ -167,7 +171,7 @@ export function AdminOfficesPanel({
 
   const actionProps = {
     actionId,
-    onVerify: (office: OfficeDetail) => void runAction(office.id, () => verifyOffice(office.id), t('admin.officeVerified')),
+    onVerify: (office: OfficeDetail) => openConfirm(office, 'verify'),
     onReject: (office: OfficeDetail) => setRejectOfficeTarget(office),
     onSuspend: (office: OfficeDetail) => setSuspendOfficeTarget(office),
     onUnsuspend: (office: OfficeDetail) =>
@@ -221,7 +225,7 @@ export function AdminOfficesPanel({
         filters={
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <div className="relative w-full max-w-xl">
-              <Search size={16} className="pointer-events-none absolute start-3 top-1/2 -translate-y-1/2 text-gray-400" />
+              <Search size={16} className="pointer-events-none absolute inset-s-3 top-1/2 -translate-y-1/2 text-gray-400" />
               <input
                 type="search"
                 value={searchInput}
@@ -275,7 +279,7 @@ export function AdminOfficesPanel({
       )}
 
       {offices.length === 0 ? (
-        <div className="rounded-2xl border border-gray-200 bg-white p-12 text-center shadow-[var(--shadow-soft)]">
+        <div className="rounded-2xl border border-gray-200 bg-white p-12 text-center shadow-var(--shadow-soft)">
           <p className="text-gray-500">{t('admin.noOffices')}</p>
         </div>
       ) : (
@@ -312,12 +316,21 @@ export function AdminOfficesPanel({
           description={
             confirmAction === 'hard_delete'
               ? t('admin.confirmHardDelete').replace('{name}', confirmOffice.name)
-              : t('admin.confirmSoftDelete').replace('{name}', confirmOffice.name)
+              : confirmAction === 'soft_delete'
+                ? t('admin.confirmSoftDelete').replace('{name}', confirmOffice.name)
+                : t('admin.confirmVerifyOffice').replace('{name}', confirmOffice.name)
           }
-          confirmText={confirmAction === 'hard_delete' ? t('admin.hardDelete') : t('admin.softDelete')}
+          confirmText={
+            confirmAction === 'hard_delete'
+              ? t('admin.hardDelete')
+              : confirmAction === 'soft_delete'
+                ? t('admin.softDelete')
+                : t('admin.verify')
+          }
           cancelText={t('admin.cancel')}
           loading={actionId === confirmOffice.id}
-          danger
+          danger={confirmAction !== 'verify'}
+          showCannotUndo={confirmAction !== 'verify'}
           onCancel={() => {
             setConfirmOpen(false);
             setConfirmOffice(null);

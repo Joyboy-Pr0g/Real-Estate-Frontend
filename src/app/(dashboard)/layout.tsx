@@ -3,6 +3,8 @@ import { DashboardSidebar } from '@/features/dashboard/components/DashboardSideb
 import { getSession } from '@/lib/auth/session';
 import { isAdminPanelRole } from '@/lib/auth/constants';
 import { getMyIndividualListerProfile } from '@/features/individual-lister/services/individual-lister-service';
+import { MessagingSocketProvider } from '@/features/messaging/providers/MessagingSocketProvider';
+import { NotificationProviders } from '@/features/notifications/components/NotificationProviders';
 
 export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
   const user = await getSession();
@@ -13,9 +15,12 @@ export default async function DashboardLayout({ children }: { children: React.Re
   const hasIndividualListerProfile = individualListerProfile !== null;
 
   return (
-    <div className="flex min-h-screen flex-col bg-gray-50 lg:flex-row">
-      <DashboardSidebar user={user} hasIndividualListerProfile={hasIndividualListerProfile} />
-      <main className="min-w-0 flex-1 overflow-auto">{children}</main>
-    </div>
+    <MessagingSocketProvider enabled>
+      <NotificationProviders user={user} />
+      <div className="flex min-h-screen flex-col bg-gray-50 lg:flex-row">
+        <DashboardSidebar user={user} hasIndividualListerProfile={hasIndividualListerProfile} />
+        <main className="min-w-0 flex-1 overflow-auto">{children}</main>
+      </div>
+    </MessagingSocketProvider>
   );
 }

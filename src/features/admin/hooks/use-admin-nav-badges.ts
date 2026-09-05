@@ -8,6 +8,8 @@ const EMPTY: AdminNavBadges = {
   pending_individual_listers: 0,
   total_listing_reports: 0,
   pending_listing_reports: 0,
+  total_conversation_reports: 0,
+  pending_conversation_reports: 0,
 };
 
 export function useAdminNavBadges(enabled = true) {

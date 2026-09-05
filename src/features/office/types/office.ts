@@ -31,6 +31,7 @@ export interface OfficeUserMember {
     l_name: string;
     email: string;
     phone_number: string;
+    user_photo?: { url: string } | null;
   };
 }
 

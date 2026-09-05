@@ -4,6 +4,7 @@ import { AdminSidebar } from '@/features/admin/components/AdminSidebar';
 import { AdminAccessToast } from '@/features/admin/components/AdminAccessToast';
 import { AdminPermissionsCookieSync } from '@/features/admin/components/AdminPermissionsCookieSync';
 import { PermissionsProvider } from '@/features/admin/providers/permissions-provider';
+import { NotificationProviders } from '@/features/notifications/components/NotificationProviders';
 import { getSession, getSubAdminPermissions } from '@/lib/auth/session';
 
 export default async function AdminLayout({ children }: { children: React.ReactNode }) {
@@ -15,6 +16,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
 
   return (
     <PermissionsProvider user={user} permissions={permissions}>
+      <NotificationProviders user={user} />
       {user.role === 'sub_admin' ? <AdminPermissionsCookieSync /> : null}
       <div className="flex min-h-screen flex-col bg-gray-50 lg:flex-row">
         <AdminSidebar user={user} />

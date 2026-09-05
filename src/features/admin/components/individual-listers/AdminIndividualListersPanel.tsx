@@ -42,7 +42,7 @@ interface AdminIndividualListersPanelProps {
   lockedStatus?: IndividualListerVerificationStatus;
 }
 
-type ConfirmAction = 'soft_delete' | 'hard_delete';
+type ConfirmAction = 'soft_delete' | 'hard_delete' | 'verify';
 
 export function AdminIndividualListersPanel({
   initial,
@@ -129,6 +129,10 @@ export function AdminIndividualListersPanel({
 
   const handleConfirm = () => {
     if (!confirmLister) return;
+    if (confirmAction === 'verify') {
+      void runAction(confirmLister.id, () => verifyIndividualLister(confirmLister.id), t('admin.listerVerified'));
+      return;
+    }
     if (confirmAction === 'hard_delete') {
       void runAction(confirmLister.id, () => hardDeleteIndividualLister(confirmLister.id), t('admin.listerDeleted'));
       return;
@@ -168,8 +172,7 @@ export function AdminIndividualListersPanel({
 
   const actionProps = {
     actionId,
-    onVerify: (lister: IndividualListerProfile) =>
-      void runAction(lister.id, () => verifyIndividualLister(lister.id), t('admin.listerVerified')),
+    onVerify: (lister: IndividualListerProfile) => openConfirm(lister, 'verify'),
     onReject: (lister: IndividualListerProfile) => setRejectTarget(lister),
     onSuspend: (lister: IndividualListerProfile) => setSuspendTarget(lister),
     onUnsuspend: (lister: IndividualListerProfile) =>
@@ -260,12 +263,21 @@ export function AdminIndividualListersPanel({
           description={
             confirmAction === 'hard_delete'
               ? t('admin.confirmHardDelete').replace('{name}', listerName(confirmLister))
-              : t('admin.confirmSoftDelete').replace('{name}', listerName(confirmLister))
+              : confirmAction === 'soft_delete'
+                ? t('admin.confirmSoftDelete').replace('{name}', listerName(confirmLister))
+                : t('admin.confirmVerifyLister').replace('{name}', listerName(confirmLister))
           }
-          confirmText={confirmAction === 'hard_delete' ? t('admin.hardDelete') : t('admin.softDelete')}
+          confirmText={
+            confirmAction === 'hard_delete'
+              ? t('admin.hardDelete')
+              : confirmAction === 'soft_delete'
+                ? t('admin.softDelete')
+                : t('admin.verify')
+          }
           cancelText={t('admin.cancel')}
           loading={actionId === confirmLister.id}
-          danger
+          danger={confirmAction !== 'verify'}
+          showCannotUndo={confirmAction !== 'verify'}
           onCancel={() => {
             setConfirmOpen(false);
             setConfirmLister(null);
