@@ -19,6 +19,7 @@ import { useLocale } from '@/lib/i18n/locale-provider';
 
 interface StickyListingHeaderProps {
   listingId: string;
+  listingSlug: string;
   title: string;
   price: string;
   cityName: string;
@@ -32,6 +33,7 @@ interface StickyListingHeaderProps {
 
 function CondensedBar({
   listingId,
+  listingSlug,
   title,
   price,
   cityName,
@@ -54,7 +56,7 @@ function CondensedBar({
           <div className="min-w-0 flex-1">
             <div className="flex items-center gap-3">
               <p className="truncate text-sm font-bold text-primary-dark">{title}</p>
-              <SaveButton listingId={listingId} isAuthenticated={isAuthenticated} initialSaved={initialSaved} />
+              <SaveButton listingId={listingId} listingSlug={listingSlug} isAuthenticated={isAuthenticated} initialSaved={initialSaved} />
             </div>
 
             <div className="mt-1 flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-gray-600">

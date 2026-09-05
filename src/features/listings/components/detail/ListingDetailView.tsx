@@ -78,6 +78,7 @@ export function ListingDetailView({
           {listing.seller ? (
             <StickyListingHeader
               listingId={listing.id}
+              listingSlug={listing.slug}
               title={listing.title}
               price={listing.price}
               cityName={listing.city.name}

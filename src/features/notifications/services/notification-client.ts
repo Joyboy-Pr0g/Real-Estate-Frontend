@@ -96,6 +96,10 @@ export function resolveNotificationHref(
       return '/dashboard/become-a-lister';
     case 'new_message':
       return notification.entity_id ? `/dashboard/messages/${notification.entity_id}` : '/dashboard/messages';
+    case 'platform_announcement': {
+      const announcementId = notification.announcement_id ?? notification.entity_id;
+      return announcementId ? `/dashboard/announcements/${announcementId}` : null;
+    }
     default:
       return null;
   }

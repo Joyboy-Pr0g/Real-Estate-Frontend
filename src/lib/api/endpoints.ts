@@ -194,6 +194,16 @@ export const backendPaths = {
     markRead: (id: string) => `/notifications/${id}/read`,
     markAllRead: '/notifications/read-all',
   },
+  announcements: {
+    byId: (id: string) => `/announcements/${id}`,
+    admin: {
+      list: '/announcements/admin',
+      estimateAudience: '/announcements/admin/estimate-audience',
+      draft: '/announcements/admin/draft',
+      send: '/announcements/admin/send',
+      byId: (id: string) => `/announcements/admin/${id}`,
+    },
+  },
 } as const;
 
 export const bffPaths = {
@@ -256,6 +266,16 @@ export const bffPaths = {
     unreadCount: '/api/notifications/unread-count',
     markRead: (id: string) => `/api/notifications/${id}/read`,
     markAllRead: '/api/notifications/read-all',
+  },
+  announcements: {
+    byId: (id: string) => `/api/announcements/${id}`,
+    admin: {
+      list: '/api/announcements/admin',
+      estimateAudience: '/api/announcements/admin/estimate-audience',
+      draft: '/api/announcements/admin/draft',
+      send: '/api/announcements/admin/send',
+      byId: (id: string) => `/api/announcements/admin/${id}`,
+    },
   },
   listings: {
     search: '/api/listings/search',

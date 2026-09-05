@@ -21,8 +21,10 @@ import {
   ListTree,
   LogOut,
   MapPin,
+  Megaphone,
   MessageCircle,
   Menu,
+  Send,
   Sparkles,
   Users,
   X,
@@ -41,6 +43,15 @@ interface AdminSidebarProps {
 }
 
 const SIDEBAR_COMPACT_KEY = 're-admin-sidebar-compact';
+
+function isNavPathAllowed(href: string, allowedPaths: Set<string>): boolean {
+  const normalized = href.replace(/\/+$/, '') || '/admin';
+  if (allowedPaths.has(normalized)) return true;
+  for (const path of allowedPaths) {
+    if (normalized.startsWith(`${path}/`)) return true;
+  }
+  return false;
+}
 
 const navItems = [
   { href: '/admin', labelKey: 'admin.dashboard' as const, icon: LayoutDashboard, exact: true },
@@ -96,6 +107,18 @@ const navItems = [
     icon: Bell,
     exact: false,
   },
+  {
+    href: '/admin/announcements/campaigns',
+    labelKey: 'admin.announcements.campaigns' as const,
+    icon: Megaphone,
+    exact: false,
+  },
+  {
+    href: '/admin/announcements/send',
+    labelKey: 'admin.announcements.send' as const,
+    icon: Send,
+    exact: true,
+  },
   { href: '/admin/office-action-logs', labelKey: 'admin.officeActionLogs' as const, icon: ClipboardList, exact: false },
   { href: '/admin/property-types', labelKey: 'admin.propertyTypes' as const, icon: Home, exact: false },
   { href: '/admin/property-subtypes', labelKey: 'admin.propertySubtypes' as const, icon: Layers, exact: false },
@@ -110,7 +133,7 @@ export function AdminSidebar({ user }: AdminSidebarProps) {
   const pathname = usePathname();
   const router = useRouter();
   const { t } = useLocale();
-  const { isPlatformAdmin, allowedPaths } = usePermissions();
+  const { isPlatformAdmin, allowedPaths, hasPermission } = usePermissions();
   const adminBadges = useAdminNavBadges();
   const notificationUnreadCount = useNotificationUnreadCount();
   const [open, setOpen] = useState(false);
@@ -192,11 +215,16 @@ export function AdminSidebar({ user }: AdminSidebarProps) {
   );
 
   const visibleNavItems = [
-    ...navItems.filter((item) => allowedPaths.has(item.href.replace(/\/+$/, '') || '/admin')),
+    ...navItems.filter((item) => isNavPathAllowed(item.href, allowedPaths)),
     ...(isPlatformAdmin
       ? [{ href: '/admin/permissions', labelKey: 'admin.permissions.nav' as const, icon: KeyRound, exact: true }]
       : []),
-  ];
+  ].filter((item) => {
+    if (item.href === '/admin/announcements/send') {
+      return hasPermission('announcements.send');
+    }
+    return true;
+  });
 
   const nav = (
     <nav className={cn('min-h-0 flex-1 space-y-1 overflow-y-auto py-3', compact ? 'px-2 lg:px-1.5' : 'px-3')}>

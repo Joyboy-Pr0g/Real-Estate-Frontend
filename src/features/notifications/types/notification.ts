@@ -15,6 +15,7 @@ export type NotificationType =
   | 'staff_new_conversation_report'
   | 'staff_new_support_ticket'
   | 'new_message'
+  | 'platform_announcement'
   | 'user_activated'
   | 'user_deactivated';
 
@@ -25,6 +26,7 @@ export interface AppNotification {
   message: string;
   entity_type: string | null;
   entity_id: string | null;
+  announcement_id?: string | null;
   link_path: string | null;
   read_at: string | null;
   created_at: string;
