@@ -10,7 +10,7 @@ export function getSiteUrl(settings: WebsiteSettings): string {
   if (fromSettings) return fromSettings.replace(/\/$/, '');
   const fromEnv = env.NEXT_PUBLIC_SITE_URL?.trim() || env.NEXT_PUBLIC_APP_URL?.trim();
   if (fromEnv) return fromEnv.replace(/\/$/, '');
-  return 'https://aqarat-yemen.com';
+  return 'https://yemen-land.com';
 }
 
 export function shouldAllowIndexing(settings: WebsiteSettings): boolean {

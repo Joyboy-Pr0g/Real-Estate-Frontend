@@ -68,7 +68,7 @@ export function Reveal({
   return (
     <motion.div
       ref={ref}
-      initial="hidden"
+      initial={immediate ? false : 'hidden'}
       animate={active ? 'visible' : 'hidden'}
       variants={fadeUpVariants}
       transition={{ delay }}
@@ -103,7 +103,7 @@ export function Stagger({ children, className, immediate = false }: StaggerProps
   return (
     <motion.div
       ref={ref}
-      initial="hidden"
+      initial={immediate ? false : 'hidden'}
       animate={active ? 'visible' : 'hidden'}
       variants={staggerContainerVariants}
       className={className}
@@ -113,16 +113,22 @@ export function Stagger({ children, className, immediate = false }: StaggerProps
   );
 }
 
+interface StaggerItemProps {
+  children: ReactNode;
+  className?: string;
+  /** When true, skip enter animation (e.g. inside a Stagger with immediate). */
+  immediate?: boolean;
+}
+
 export function StaggerItem({
   children,
   className,
-}: {
-  children: ReactNode;
-  className?: string;
-}) {
+  immediate = false,
+}: StaggerItemProps) {
   const ref = useRef<HTMLDivElement>(null);
   const inView = useInView(ref, { once: true, margin: '-24px' });
   const reduced = useReducedMotion();
+  const active = immediate || inView;
 
   if (reduced) {
     return (
@@ -135,8 +141,8 @@ export function StaggerItem({
   return (
     <motion.div
       ref={ref}
-      initial="hidden"
-      animate={inView ? 'visible' : 'hidden'}
+      initial={immediate ? false : 'hidden'}
+      animate={active ? 'visible' : 'hidden'}
       variants={staggerItemVariants}
       className={className}
     >

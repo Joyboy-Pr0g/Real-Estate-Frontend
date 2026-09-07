@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import {
+  Activity,
   ArrowLeftRight,
   Building2,
   Bell,
@@ -219,7 +220,10 @@ export function AdminSidebar({ user }: AdminSidebarProps) {
   const visibleNavItems = [
     ...navItems.filter((item) => isNavPathAllowed(item.href, allowedPaths)),
     ...(isPlatformAdmin
-      ? [{ href: '/admin/permissions', labelKey: 'admin.permissions.nav' as const, icon: KeyRound, exact: true }]
+      ? [
+          { href: '/admin/system-status', labelKey: 'admin.systemStatus.nav' as const, icon: Activity, exact: true },
+          { href: '/admin/permissions', labelKey: 'admin.permissions.nav' as const, icon: KeyRound, exact: true },
+        ]
       : []),
   ].filter((item) => {
     if (item.href === '/admin/announcements/send') {

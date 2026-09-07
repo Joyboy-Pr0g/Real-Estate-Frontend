@@ -7,9 +7,9 @@ export const FALLBACK_WEBSITE_SETTINGS: WebsiteSettings = {
   title: 'عقارات اليمن',
   description:
     'منصة عقارية يمنية تجمع آلاف العقارات من مكاتب موثّقة. ابحث عن شقق وفيلات وأراضٍ للبيع والإيجار في صنعاء وعدن وتعز وجميع المحافظات.',
-  website_email: 'info@aqarat-yemen.com',
+  website_email: 'info@yemen-land.com',
   website_phone: '+967 777 000 000',
-  support_email: 'support@aqarat-yemen.com',
+  support_email: 'support@yemen-land.com',
   legal_entity_name: 'عقارات اليمن',
   address_text: 'صنعاء، الجمهورية اليمنية',
   header_logo_url: null,
@@ -22,11 +22,11 @@ export const FALLBACK_WEBSITE_SETTINGS: WebsiteSettings = {
   og_image_public_id: null,
   default_listing_og_fallback_url: null,
   default_listing_og_fallback_public_id: null,
-  facebook: 'https://facebook.com/aqarat-yemen',
-  instagram: 'https://instagram.com/aqarat-yemen',
+  facebook: 'https://facebook.com/yemen.land',
+  instagram: 'https://instagram.com/yemen.land',
   whatsapp: '+967777000000',
-  tiktok: 'https://tiktok.com/@aqarat-yemen',
-  site_url: null,
+  tiktok: 'https://tiktok.com/@yemen.land',
+  site_url: 'https://yemen-land.com',
   meta_title: 'عقارات اليمن | Real Estate Marketplace in Yemen',
   meta_description:
     'اعثر على منزلك في اليمن — آلاف العقارات المعروضة من مكاتب عقارية موثّقة. بحث متقدم، خرائط تفاعلية، وتواصل مباشر مع الوكلاء.',
@@ -43,6 +43,11 @@ export const FALLBACK_WEBSITE_SETTINGS: WebsiteSettings = {
   index_listing_search_pages: false,
   index_office_profiles: true,
   allow_public_indexing: true,
+  storefront_mode: 'live',
+  maintenance_title: 'الصيانة جارية',
+  maintenance_message:
+    'نعتذر عن الإزعاج. نعمل حالياً على تحسين المنصة لتقديم تجربة أفضل. يرجى المحاولة لاحقاً.',
+  coming_soon_message: 'منصة عقارات اليمن قادمة قريباً. ترقّبوا الإطلاق!',
   created_at: new Date(0).toISOString(),
   updated_at: new Date(0).toISOString(),
 };
@@ -74,6 +79,12 @@ export function withWebsiteSettingsDefaults(settings: WebsiteSettings): WebsiteS
     default_locale: settings.default_locale?.trim() || FALLBACK_WEBSITE_SETTINGS.default_locale,
     theme_color: settings.theme_color?.trim() || FALLBACK_WEBSITE_SETTINGS.theme_color,
     robots: settings.robots?.trim() || FALLBACK_WEBSITE_SETTINGS.robots,
+    storefront_mode: settings.storefront_mode ?? FALLBACK_WEBSITE_SETTINGS.storefront_mode,
+    maintenance_title: settings.maintenance_title?.trim() || FALLBACK_WEBSITE_SETTINGS.maintenance_title,
+    maintenance_message:
+      settings.maintenance_message?.trim() || FALLBACK_WEBSITE_SETTINGS.maintenance_message,
+    coming_soon_message:
+      settings.coming_soon_message?.trim() || FALLBACK_WEBSITE_SETTINGS.coming_soon_message,
   };
 }
 

@@ -58,7 +58,6 @@ export function SearchModal({ open, title, onClose, children }: SearchModalProps
 
           <div
             className="fixed inset-0 z-[9999] flex items-center justify-center p-4 sm:p-6 pointer-events-none"
-            aria-hidden={!open}
           >
             <motion.div
               role="dialog"

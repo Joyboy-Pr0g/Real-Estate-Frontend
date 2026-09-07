@@ -7,6 +7,8 @@ import { SiteHeaderOverrideProvider } from '@/features/layout/context/site-heade
 import { getSession } from '@/lib/auth/session';
 import { MessagingSocketProvider } from '@/features/messaging/providers/MessagingSocketProvider';
 import { getWebsiteSettingsServer } from '@/features/website-settings/services/website-settings-server';
+import { ComingSoonPage } from '@/features/storefront/components/ComingSoonPage';
+import { MaintenancePage } from '@/features/storefront/components/MaintenancePage';
 
 export default async function MarketplaceLayout({
   children,
@@ -14,6 +16,14 @@ export default async function MarketplaceLayout({
   children: React.ReactNode;
 }) {
   const [user, settings] = await Promise.all([getSession(), getWebsiteSettingsServer()]);
+
+  if (settings.storefront_mode === 'maintenance') {
+    return <MaintenancePage settings={settings} />;
+  }
+
+  if (settings.storefront_mode === 'coming_soon') {
+    return <ComingSoonPage settings={settings} />;
+  }
 
   const content = (
     <SiteHeaderOverrideProvider>

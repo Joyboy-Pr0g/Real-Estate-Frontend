@@ -10,7 +10,7 @@ export const FOOTER_MOCK = {
     en: 'A Yemeni marketplace connecting thousands of listings from verified offices. Search, compare, and reach agents in every city.',
   },
   phone: '+967 777 000 000',
-  email: 'info@aqarat-yemen.com',
+  email: 'info@yemen-land.com',
   social: {
     facebook: 'https://facebook.com',
     instagram: 'https://instagram.com',

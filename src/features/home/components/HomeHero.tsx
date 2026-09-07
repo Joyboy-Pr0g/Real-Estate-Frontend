@@ -23,18 +23,18 @@ export function HomeHero({ catalog }: HomeHeroProps) {
 
       <Container className="relative">
         <Stagger immediate className="text-center space-y-3 mb-8 md:mb-10 max-w-2xl mx-auto">
-          <StaggerItem>
+          <StaggerItem immediate>
             <p className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/10 px-4 py-1.5 text-xs font-medium text-white/90 shadow-sm backdrop-blur-sm">
               <span className="h-1.5 w-1.5 rounded-full bg-brand-light animate-pulse" />
               {t('trust.verified')} · {t('trust.secure')}
             </p>
           </StaggerItem>
-          <StaggerItem>
+          <StaggerItem immediate>
             <h1 className="text-3xl sm:text-4xl md:text-[2.75rem] font-bold tracking-tight text-white leading-[1.15]">
               {t('hero.title')}
             </h1>
           </StaggerItem>
-          <StaggerItem>
+          <StaggerItem immediate>
             <p className="text-base md:text-lg text-white/75 leading-relaxed">
               {t('hero.subtitle')}
             </p>

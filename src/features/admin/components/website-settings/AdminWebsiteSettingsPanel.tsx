@@ -14,6 +14,7 @@ import {
   Settings,
   Trash2,
   ToggleLeft,
+  Store,
 } from 'lucide-react';
 import type { WebsiteSettings } from '@/features/website-settings/types/website-settings';
 import { Button } from '@/components/ui/button';
@@ -66,6 +67,10 @@ function toFormValues(settings: WebsiteSettings): WebsiteSettingsFormValues {
     index_listing_search_pages: settings.index_listing_search_pages ?? false,
     index_office_profiles: settings.index_office_profiles ?? true,
     allow_public_indexing: settings.allow_public_indexing ?? true,
+    storefront_mode: settings.storefront_mode ?? 'live',
+    maintenance_title: settings.maintenance_title ?? 'الصيانة جارية',
+    maintenance_message: settings.maintenance_message ?? '',
+    coming_soon_message: settings.coming_soon_message ?? '',
     remove_header_logo: false,
     remove_footer_logo: false,
     remove_favicon: false,
@@ -132,6 +137,7 @@ export function AdminWebsiteSettingsPanel({ initialSettings }: AdminWebsiteSetti
   const removeFavicon = watch('remove_favicon');
   const removeOgImage = watch('remove_og_image');
   const removeListingOgFallback = watch('remove_default_listing_og_fallback');
+  const storefrontMode = watch('storefront_mode');
 
   const handleAssetChange = (
     file: File | null,
@@ -182,6 +188,10 @@ export function AdminWebsiteSettingsPanel({ initialSettings }: AdminWebsiteSetti
       formData.append('index_listing_search_pages', String(values.index_listing_search_pages ?? false));
       formData.append('index_office_profiles', String(values.index_office_profiles ?? true));
       formData.append('allow_public_indexing', String(values.allow_public_indexing ?? true));
+      formData.append('storefront_mode', values.storefront_mode ?? 'live');
+      appendOptional(formData, 'maintenance_title', values.maintenance_title);
+      appendOptional(formData, 'maintenance_message', values.maintenance_message);
+      appendOptional(formData, 'coming_soon_message', values.coming_soon_message);
       formData.append('remove_header_logo', String(values.remove_header_logo ?? false));
       formData.append('remove_footer_logo', String(values.remove_footer_logo ?? false));
       formData.append('remove_favicon', String(values.remove_favicon ?? false));
@@ -300,6 +310,49 @@ export function AdminWebsiteSettingsPanel({ initialSettings }: AdminWebsiteSetti
       <form onSubmit={handleSubmit(onSubmit)} className="max-w-7xl space-y-6">
         <section className={sectionClass}>
           <div className="flex items-center gap-2">
+            <Store className="h-4 w-4 text-brand" />
+            <h2 className="font-semibold text-primary-dark">{t('admin.websiteSettings.storefront')}</h2>
+          </div>
+          <p className="text-sm text-gray-500">{t('admin.websiteSettings.storefrontHint')}</p>
+          <div className="flex flex-wrap gap-2">
+            {(['live', 'coming_soon', 'maintenance'] as const).map((mode) => (
+              <button
+                key={mode}
+                type="button"
+                onClick={() => setValue('storefront_mode', mode)}
+                className={cn(
+                  'rounded-xl border px-4 py-2 text-sm font-medium transition-colors',
+                  storefrontMode === mode
+                    ? 'border-brand bg-brand-muted text-brand-dark'
+                    : 'border-gray-200 bg-gray-50 text-gray-600 hover:border-brand/30',
+                )}
+              >
+                {t(`admin.websiteSettings.storefrontMode.${mode}`)}
+              </button>
+            ))}
+          </div>
+          {storefrontMode === 'maintenance' ? (
+            <div className="space-y-4">
+              <div className="space-y-2">
+                <label htmlFor="maintenance_title">{t('admin.websiteSettings.maintenanceTitle')}</label>
+                <input id="maintenance_title" className={fieldClass} {...register('maintenance_title')} />
+              </div>
+              <div className="space-y-2">
+                <label htmlFor="maintenance_message">{t('admin.websiteSettings.maintenanceMessage')}</label>
+                <textarea id="maintenance_message" rows={4} className={textareaClass} {...register('maintenance_message')} />
+              </div>
+            </div>
+          ) : null}
+          {storefrontMode === 'coming_soon' ? (
+            <div className="space-y-2">
+              <label htmlFor="coming_soon_message">{t('admin.websiteSettings.comingSoonMessage')}</label>
+              <textarea id="coming_soon_message" rows={3} className={textareaClass} {...register('coming_soon_message')} />
+            </div>
+          ) : null}
+        </section>
+
+        <section className={sectionClass}>
+          <div className="flex items-center gap-2">
             <Globe className="h-4 w-4 text-brand" />
             <h2 className="font-semibold text-primary-dark">{t('admin.websiteSettings.general')}</h2>
           </div>
@@ -333,7 +386,7 @@ export function AdminWebsiteSettingsPanel({ initialSettings }: AdminWebsiteSetti
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <div className="space-y-2 sm:col-span-2">
               <label htmlFor="site_url">{t('admin.websiteSettings.siteUrl')}</label>
-              <input id="site_url" className={fieldClass} placeholder="https://aqarat-yemen.com" {...register('site_url')} />
+              <input id="site_url" className={fieldClass} placeholder="https://yemen-land.com" {...register('site_url')} />
               {errors.site_url ? <p className="text-sm text-red-600">{errors.site_url.message}</p> : null}
             </div>
             <div className="space-y-2 sm:col-span-2">
@@ -369,7 +422,7 @@ export function AdminWebsiteSettingsPanel({ initialSettings }: AdminWebsiteSetti
             </div>
             <div className="space-y-2 sm:col-span-2">
               <label htmlFor="twitter_handle">{t('admin.websiteSettings.twitterHandle')}</label>
-              <input id="twitter_handle" className={fieldClass} placeholder="@aqarat-yemen" {...register('twitter_handle')} />
+              <input id="twitter_handle" className={fieldClass} placeholder="@yemen_land" {...register('twitter_handle')} />
             </div>
           </div>
           {renderImageField(

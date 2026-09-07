@@ -36,6 +36,10 @@ export interface WebsiteSettings {
   index_listing_search_pages: boolean;
   index_office_profiles: boolean;
   allow_public_indexing: boolean;
+  storefront_mode: 'live' | 'coming_soon' | 'maintenance';
+  maintenance_title: string;
+  maintenance_message: string;
+  coming_soon_message: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -67,6 +71,10 @@ export interface UpdateWebsiteSettingsPayload {
   index_listing_search_pages?: boolean;
   index_office_profiles?: boolean;
   allow_public_indexing?: boolean;
+  storefront_mode?: 'live' | 'coming_soon' | 'maintenance';
+  maintenance_title?: string;
+  maintenance_message?: string | null;
+  coming_soon_message?: string | null;
   remove_header_logo?: boolean;
   remove_footer_logo?: boolean;
   remove_favicon?: boolean;

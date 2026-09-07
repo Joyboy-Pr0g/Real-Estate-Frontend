@@ -12,10 +12,11 @@ function useResolvedDir(dir?: 'ltr' | 'rtl') {
 
 const DropdownMenu = ({
   dir,
+  modal = false,
   ...props
 }: React.ComponentPropsWithoutRef<typeof DropdownMenuPrimitive.Root>) => {
   const resolvedDir = useResolvedDir(dir);
-  return <DropdownMenuPrimitive.Root dir={resolvedDir} {...props} />;
+  return <DropdownMenuPrimitive.Root dir={resolvedDir} modal={modal} {...props} />;
 };
 
 const DropdownMenuTrigger = DropdownMenuPrimitive.Trigger;
