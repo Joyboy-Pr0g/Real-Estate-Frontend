@@ -1,4 +1,6 @@
-import type { Metadata } from 'next';
+import type { Metadata, Viewport } from 'next';
+import { getRootMetadata, getRootOrganizationSchema, getRootViewport } from '@/lib/seo/metadata';
+import { JsonLdScript } from '@/components/seo/JsonLdScript';
 import { Tajawal } from 'next/font/google';
 import { getServerLocale } from '@/lib/i18n/server';
 import { LocaleProvider } from '@/lib/i18n/locale-provider';
@@ -12,14 +14,18 @@ const tajawal = Tajawal({
   display: 'swap',
 });
 
-export const metadata: Metadata = {
-  title: 'عقارات اليمن | Real Estate Marketplace',
-  description: 'اعثر على منزلك في اليمن — آلاف العقارات من مكاتب موثّقة',
-};
+export async function generateMetadata(): Promise<Metadata> {
+  return getRootMetadata();
+}
+
+export async function generateViewport(): Promise<Viewport> {
+  return getRootViewport();
+}
 
 export default async function RootLayout({ children }: LayoutProps<'/'>) {
   const locale = await getServerLocale();
   const dir = locale === 'ar' ? 'rtl' : 'ltr';
+  const organizationSchema = await getRootOrganizationSchema();
 
   return (
     <html
@@ -29,6 +35,7 @@ export default async function RootLayout({ children }: LayoutProps<'/'>) {
       className={`${tajawal.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col font-sans">
+        <JsonLdScript data={organizationSchema} />
         <LocaleProvider locale={locale}>
           {children}
           <Toaster />

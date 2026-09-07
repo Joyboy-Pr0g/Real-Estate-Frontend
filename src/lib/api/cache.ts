@@ -3,6 +3,7 @@ export const CACHE = {
   short: 60,
   medium: 300,
   long: 3600,
+  static: 86400,
 } as const;
 
 export type CacheProfile = keyof typeof CACHE;

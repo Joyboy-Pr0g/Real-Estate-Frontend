@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { GoogleMap, InfoWindowF, MarkerF, useJsApiLoader } from '@react-google-maps/api';
+import { env } from '@/env';
 import {
   Banknote,
   ChevronDown,
@@ -76,7 +77,7 @@ function buildCategoryMarkerIcon(category: NearByPointCategory): google.maps.Ico
 // same default — the map shows exactly the same points that panel does.
 export function ListingMap({ listingId, latitude, longitude, address }: ListingMapProps) {
   const { t, locale } = useLocale();
-  const apiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_KEY;
+  const apiKey = env.NEXT_PUBLIC_GOOGLE_MAPS_KEY;
   const center = { lat: latitude, lng: longitude };
   const directionsUrl = `https://www.google.com/maps/dir/?api=1&destination=${latitude},${longitude}`;
 

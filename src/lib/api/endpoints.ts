@@ -204,6 +204,10 @@ export const backendPaths = {
       byId: (id: string) => `/announcements/admin/${id}`,
     },
   },
+  websiteSettings: {
+    public: '/website-settings',
+    admin: '/website-settings/admin',
+  },
 } as const;
 
 export const bffPaths = {
@@ -399,5 +403,9 @@ export const bffPaths = {
     permissionAssignUser: '/api/admin/permissions/assign/user',
     permissionById: (id: string) => `/api/admin/permissions/${id}`,
     subAdminsSearch: '/api/admin/permissions/sub-admins/search',
+  },
+  websiteSettings: {
+    public: '/api/website-settings',
+    admin: '/api/website-settings/admin',
   },
 } as const;

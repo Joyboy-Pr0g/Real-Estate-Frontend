@@ -1,5 +1,8 @@
 import { Suspense } from 'react';
+import type { Metadata } from 'next';
 import { OfficesContent } from '@/features/office/components/public/OfficesContent';
+import { getPageMetadataFromSettings } from '@/lib/seo/metadata';
+import { getOfficesCanonicalPath } from '@/lib/seo/indexing';
 
 interface OfficesPageProps {
   searchParams: Promise<{
@@ -8,6 +11,14 @@ interface OfficesPageProps {
     search?: string;
     cursor?: string;
   }>;
+}
+
+export async function generateMetadata(): Promise<Metadata> {
+  return getPageMetadataFromSettings({
+    title: 'مكاتب العقارات المعتمدة',
+    description: 'تصفح مكاتب العقارات المعتمدة في اليمن واستكشف القوائم المنشورة بواسطتها.',
+    path: getOfficesCanonicalPath(),
+  });
 }
 
 export default function OfficesPage({ searchParams }: OfficesPageProps) {

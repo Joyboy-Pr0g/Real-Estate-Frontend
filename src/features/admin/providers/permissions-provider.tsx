@@ -53,6 +53,7 @@ export function PermissionsProvider({ user, permissions, children }: Permissions
             '/admin/announcements',
             '/admin/announcements/campaigns',
             '/admin/announcements/send',
+            '/admin/website-settings',
           ]
         : permissions.map((p) => p.path.replace(/\/+$/, '') || '/admin'),
     );

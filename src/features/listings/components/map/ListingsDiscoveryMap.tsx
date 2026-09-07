@@ -11,6 +11,7 @@ import {
   useJsApiLoader,
 } from '@react-google-maps/api';
 import { ChevronLeft, MapPin } from 'lucide-react';
+import { env } from '@/env';
 import { PublicCatalog, PublicCity } from '@/features/catalog/types/catalog';
 import { PublicNeighborhood } from '@/features/catalog/types/neighborhood';
 import { LISTING_URL_PARAMS } from '@/features/listings/constants/search-url-params';
@@ -81,7 +82,7 @@ export function ListingsDiscoveryMap({
   const { t } = useLocale();
   const router = useRouter();
   const searchParams = useSearchParams();
-  const apiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_KEY;
+  const apiKey = env.NEXT_PUBLIC_GOOGLE_MAPS_KEY;
 
   const mapRef = useRef<google.maps.Map | null>(null);
   const layerCleanupRef = useRef<Array<() => void>>([]);

@@ -38,6 +38,11 @@ export const FOOTER_LINKS = {
     { href: '/contact', labelKey: 'footer.contact' as const },
     { href: '/privacy', labelKey: 'footer.privacy' as const },
     { href: '/terms', labelKey: 'footer.terms' as const },
+    { href: '/cookies', labelKey: 'footer.cookies' as const },
+    { href: '/messaging-policy', labelKey: 'footer.messagingPolicy' as const },
+    { href: '/listing-policy', labelKey: 'footer.listingPolicy' as const },
+    { href: '/data-protection', labelKey: 'footer.dataProtection' as const },
+    { href: '/verification', labelKey: 'footer.verification' as const },
   ],
   account: [
     { href: '/login', labelKey: 'footer.signIn' as const },

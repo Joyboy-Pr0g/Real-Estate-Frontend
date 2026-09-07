@@ -3,6 +3,7 @@
 import { useCallback, useMemo, useState } from 'react';
 import { GoogleMap, MarkerF, useJsApiLoader } from '@react-google-maps/api';
 import { MapPin } from 'lucide-react';
+import { env } from '@/env';
 import { Button } from '@/components/ui/button';
 import { YEMEN_MAP_CENTER, MAP_ZOOM } from '@/features/listings/constants/map-config';
 import { GOOGLE_MAPS_LIBRARIES, GOOGLE_MAPS_LOADER_ID } from '@/lib/google-maps/loader-config';
@@ -26,7 +27,7 @@ export function ListingLocationPicker({
   initialCenter = null,
 }: ListingLocationPickerProps) {
   const { t } = useLocale();
-  const apiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_KEY;
+  const apiKey = env.NEXT_PUBLIC_GOOGLE_MAPS_KEY;
   const [open, setOpen] = useState(false);
   const [draftLat, setDraftLat] = useState(latitude);
   const [draftLng, setDraftLng] = useState(longitude);

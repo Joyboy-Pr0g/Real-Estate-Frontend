@@ -8,6 +8,8 @@ import { useState, type ReactNode } from 'react';
 import { ButtonLink } from '@/components/ui/button';
 import { Container } from '@/components/ui/container';
 import { AuthUser } from '@/features/auth/types/user';
+import type { WebsiteSettings } from '@/features/website-settings/types/website-settings';
+import { splitWebsiteTitle, resolveWebsiteLogo } from '@/lib/website-settings/defaults';
 import { getRoleHomePath } from '@/lib/auth/constants';
 import { UserMenu } from '@/features/layout/components/UserMenu';
 import { useSiteHeaderOverride } from '@/features/layout/context/site-header-override';
@@ -17,9 +19,10 @@ import { cn } from '@/lib/utils/cn';
 interface SiteHeaderProps {
   categoryNav: ReactNode;
   user?: AuthUser | null;
+  settings?: WebsiteSettings | null;
 }
 
-export function SiteHeader({ categoryNav, user = null }: SiteHeaderProps) {
+export function SiteHeader({ categoryNav, user = null, settings = null }: SiteHeaderProps) {
   const pathname = usePathname();
   const { t, locale, setLocale } = useLocale();
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -30,6 +33,8 @@ export function SiteHeader({ categoryNav, user = null }: SiteHeaderProps) {
     ['none', '0 1px 0 rgba(0,0,0,0.06), 0 8px 32px rgba(15,23,42,0.08)'],
   );
   const { override, hidden } = useSiteHeaderOverride();
+  const brand = splitWebsiteTitle(settings?.title ?? 'عقارات اليمن');
+  const logoUrl = resolveWebsiteLogo(settings?.header_logo_url);
 
   return (
     <>
@@ -44,12 +49,17 @@ export function SiteHeader({ categoryNav, user = null }: SiteHeaderProps) {
             <Link href="/" className="flex items-center gap-2.5 shrink-0 group">
               <motion.span
                 whileHover={{ scale: 1.05 }}
-                className="flex h-10 w-10 items-center justify-center rounded-xl bg-brand text-white shadow-md shadow-brand/20"
+                className="flex h-10 w-10 items-center justify-center rounded-xl bg-brand text-white shadow-md shadow-brand/20 overflow-hidden"
               >
-                <Building2 className="h-5 w-5" />
+                {settings?.header_logo_url ? (
+                  <img src={logoUrl} alt={settings.title} className="h-full w-full object-cover" />
+                ) : (
+                  <Building2 className="h-5 w-5" />
+                )}
               </motion.span>
               <span className="text-lg font-bold tracking-tight text-primary-dark hidden sm:inline">
-                <span className="text-brand">عقارات</span> اليمن
+                <span className="text-brand">{brand.primary}</span>
+                {brand.secondary ? ` ${brand.secondary}` : ''}
               </span>
             </Link>
 

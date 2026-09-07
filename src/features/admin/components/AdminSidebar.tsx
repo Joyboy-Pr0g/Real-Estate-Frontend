@@ -25,6 +25,7 @@ import {
   MessageCircle,
   Menu,
   Send,
+  Settings,
   Sparkles,
   Users,
   X,
@@ -127,6 +128,7 @@ const navItems = [
   { href: '/admin/sub-features', labelKey: 'admin.subFeatures' as const, icon: ListTree, exact: false },
   { href: '/admin/cities', labelKey: 'admin.cities' as const, icon: Landmark, exact: false },
   { href: '/admin/neighborhoods', labelKey: 'admin.neighborhoods' as const, icon: MapPin, exact: false },
+  { href: '/admin/website-settings', labelKey: 'admin.websiteSettings.nav' as const, icon: Settings, exact: true },
 ];
 
 export function AdminSidebar({ user }: AdminSidebarProps) {

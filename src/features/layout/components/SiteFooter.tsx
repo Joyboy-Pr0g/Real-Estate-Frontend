@@ -16,6 +16,17 @@ import {
   FOOTER_MOCK,
   FOOTER_SECTION_KEYS,
 } from '@/features/layout/constants/footer-mock';
+import type { WebsiteSettings } from '@/features/website-settings/types/website-settings';
+import {
+  FALLBACK_WEBSITE_SETTINGS,
+  formatWhatsappLink,
+  splitWebsiteTitle,
+  withWebsiteSettingsDefaults,
+} from '@/lib/website-settings/defaults';
+
+interface SiteFooterProps {
+  settings?: WebsiteSettings | null;
+}
 
 function FacebookIcon({ className }: { className?: string }) {
   return (
@@ -41,27 +52,22 @@ function TikTokIcon({ className }: { className?: string }) {
   );
 }
 
-export function SiteFooter() {
+export function SiteFooter({ settings = null }: SiteFooterProps) {
   const { t, locale } = useLocale();
   const year = new Date().getFullYear();
+  const resolved = withWebsiteSettingsDefaults(settings ?? FALLBACK_WEBSITE_SETTINGS);
+  const brand = splitWebsiteTitle(resolved.title);
 
   const description =
-    locale === 'ar' ? FOOTER_MOCK.description.ar : FOOTER_MOCK.description.en;
+    locale === 'ar'
+      ? resolved.description ?? FOOTER_MOCK.description.ar
+      : resolved.description ?? FOOTER_MOCK.description.en;
 
   const browseLinks = useMemo(
     () =>
       FOOTER_LINKS.browse.map((link) => ({
         href: link.href,
         label: t(link.labelKey),
-      })),
-    [t],
-  );
-
-  const cityLinks = useMemo(
-    () =>
-      FOOTER_MOCK.cities.map((city) => ({
-        href: city.href,
-        label: t(city.labelKey),
       })),
     [t],
   );
@@ -87,17 +93,25 @@ export function SiteFooter() {
   const sections: { key: keyof typeof FOOTER_SECTION_KEYS; links: { href: string; label: string }[] }[] =
     [
       { key: 'browse', links: browseLinks },
-      { key: 'cities', links: cityLinks },
       { key: 'company', links: companyLinks },
       { key: 'account', links: accountLinks },
     ];
 
   const socialLinks = [
-    { href: FOOTER_MOCK.social.facebook, icon: FacebookIcon, label: 'Facebook' },
-    { href: FOOTER_MOCK.social.instagram, icon: InstagramIcon, label: 'Instagram' },
-    { href: FOOTER_MOCK.social.whatsapp, icon: MessageCircle, label: 'WhatsApp' },
-    { href: FOOTER_MOCK.social.tiktok, icon: TikTokIcon, label: 'TikTok' },
-  ];
+    resolved.facebook
+      ? { href: resolved.facebook, icon: FacebookIcon, label: 'Facebook' }
+      : null,
+    resolved.instagram
+      ? { href: resolved.instagram, icon: InstagramIcon, label: 'Instagram' }
+      : null,
+    resolved.whatsapp
+      ? { href: formatWhatsappLink(resolved.whatsapp), icon: MessageCircle, label: 'WhatsApp' }
+      : null,
+    resolved.tiktok ? { href: resolved.tiktok, icon: TikTokIcon, label: 'TikTok' } : null,
+  ].filter(Boolean) as { href: string; icon: typeof FacebookIcon; label: string }[];
+
+  const phone = resolved.website_phone ?? FOOTER_MOCK.phone;
+  const email = resolved.website_email ?? FOOTER_MOCK.email;
 
   return (
     <footer className="mt-auto border-t border-gray-200 bg-gray-50">
@@ -109,8 +123,8 @@ export function SiteFooter() {
                 <Building2 className="h-6 w-6" />
               </span>
               <span className="text-xl font-bold text-primary-dark">
-                <span className="text-secondary">{FOOTER_MOCK.brand.primary}</span>{' '}
-                {FOOTER_MOCK.brand.secondary}
+                <span className="text-secondary">{brand.primary}</span>
+                {brand.secondary ? ` ${brand.secondary}` : ''}
               </span>
             </Link>
             <p className="text-sm text-gray-500 max-w-sm leading-relaxed">{description}</p>
@@ -118,19 +132,19 @@ export function SiteFooter() {
               <p className="flex items-center gap-2">
                 <Phone className="h-4 w-4 text-secondary shrink-0" />
                 <a
-                  href={`tel:${FOOTER_MOCK.phone.replace(/\s/g, '')}`}
+                  href={`tel:${phone.replace(/\s/g, '')}`}
                   className="hover:text-primary transition-colors"
                 >
-                  {FOOTER_MOCK.phone}
+                  {phone}
                 </a>
               </p>
               <p className="flex items-center gap-2">
                 <Mail className="h-4 w-4 text-secondary shrink-0" />
                 <a
-                  href={`mailto:${FOOTER_MOCK.email}`}
+                  href={`mailto:${email}`}
                   className="hover:text-primary transition-colors"
                 >
-                  {FOOTER_MOCK.email}
+                  {email}
                 </a>
               </p>
             </div>

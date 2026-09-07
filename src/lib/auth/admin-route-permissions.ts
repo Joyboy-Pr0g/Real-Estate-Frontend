@@ -19,6 +19,7 @@ export const ADMIN_ROUTE_VIEW_PERMISSION: Record<string, string> = {
   '/admin/cities': 'cities.view',
   '/admin/neighborhoods': 'neighborhoods.view',
   '/admin/announcements': 'announcements.view',
+  '/admin/website-settings': 'website_settings.view',
   '/admin/permissions': 'dashboard.view',
 };
 

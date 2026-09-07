@@ -3,6 +3,7 @@ import { serverFetch } from '@/lib/api/server';
 import { appendSpecToSearchParams } from '@/features/listings/lib/spec-url';
 import { backendPaths } from '@/lib/api/endpoints';
 import { ApiError } from '@/lib/errors/api-error';
+import { ListingGoneError } from '@/lib/errors/listing-gone-error';
 import { getAuthToken } from '@/lib/auth/session';
 import { MyListingReport, MyListingSummary, PublicListing, SavedListingItem, ViewedListingItem } from '../types/listing';
 import { hasListingSeller } from '../lib/listing-detail-guards';
@@ -96,6 +97,9 @@ export const listingService = {
       const retried = retry.data ?? null;
       return hasListingSeller(retried) ? retried : null;
     } catch (error) {
+      if (error instanceof ApiError && error.status === 410) {
+        throw new ListingGoneError(slug);
+      }
       if (error instanceof ApiError && error.status === 404) return null;
       throw error;
     }

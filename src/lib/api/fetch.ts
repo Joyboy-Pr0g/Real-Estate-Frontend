@@ -10,6 +10,7 @@ export interface FetchBackendOptions extends Omit<RequestInit, 'body'> {
   revalidate?: number;
   searchParams?: Record<string, string | number | boolean | undefined>;
   body?: BodyInit | Record<string, unknown> | null;
+  tags?: string[];
 }
 
 function buildUrl(path: string, searchParams?: FetchBackendOptions['searchParams']): string {
@@ -27,15 +28,18 @@ function buildUrl(path: string, searchParams?: FetchBackendOptions['searchParams
   return url.toString();
 }
 
-function resolveFetchCache(options: FetchBackendOptions): Pick<RequestInit, 'cache' | 'next'> {
+function resolveFetchCache(
+  options: FetchBackendOptions,
+  tags: string[] = [],
+): Pick<RequestInit, 'cache' | 'next'> {
   const profile = options.cacheProfile ?? 'short';
   const seconds = options.revalidate ?? CACHE[profile];
 
   if (seconds <= 0) {
-    return { cache: 'no-store' };
+    return { cache: 'no-store', next: { tags } };
   }
 
-  return { next: { revalidate: seconds } };
+  return { next: { revalidate: seconds, tags } };
 }
 
 function prepareBody(body: FetchBackendOptions['body']): BodyInit | null {
@@ -53,7 +57,7 @@ export async function fetchBackend<T = unknown>(
   const { token, searchParams, headers, body, ...rest } = options;
   const preparedBody = prepareBody(body);
   const isJsonBody = preparedBody !== null && !(body instanceof FormData);
-  const fetchCache = resolveFetchCache(options);
+  const fetchCache = resolveFetchCache(options, options.tags ?? []);
 
   let response: Response;
   try {
