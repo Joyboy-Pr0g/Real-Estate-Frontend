@@ -35,6 +35,27 @@ export const en: Record<TranslationKey, string> = {
   'hero.search': 'Search',
   'hero.city': 'City',
   'hero.transaction': 'Transaction',
+  'home.seo.metaDescription':
+    'Search apartments, villas, and land for sale and rent in Yemen. Updated listings from verified real estate offices with filters by city, neighborhood, and budget.',
+  'home.seo.intro.title': 'Yemen Real Estate — trusted property search',
+  'home.seo.intro.p1':
+    'Yemen Land is a dedicated marketplace that connects buyers and renters with verified real estate offices and trusted advertisers across Yemen. Our goal is to simplify the journey of finding a home, commercial unit, or plot of land through a clear interface and precise filters that help you reach relevant results quickly.',
+  'home.seo.intro.p2':
+    'Whether you need a rental apartment in Sana’a, a villa for sale in Aden, or agricultural land in Taiz or Ibb, you will find updated listings with photos, area, price, and location details. Compare offers, save favorites, and message offices securely without sharing personal contact details upfront.',
+  'home.seo.browse.title': 'Browse properties by city and transaction type',
+  'home.seo.browse.p1':
+    'Use the homepage search bar to pick a city or neighborhood, transaction type — for sale or for rent — and property type such as apartment, villa, land, or shop. Then open the listings page to narrow results further by budget, bedrooms, area, and the features that matter to you.',
+  'home.seo.browse.p2':
+    'For visual discovery, the property map shows listings by city and district so you can understand pricing and areas before scheduling a visit. You can also browse verified real estate offices and review their profiles and current inventory in one place.',
+  'home.seo.trust.title': 'Verified offices and a safer browsing experience',
+  'home.seo.trust.p1':
+    'We work with registered real estate offices on the platform to improve listing quality and credibility. Each listing includes clear location, price, and description details, with reporting tools for inappropriate content. We protect user data and optimize performance on mobile and desktop.',
+  'home.seo.trust.p2':
+    'If you are an office or owner who wants to advertise, register and publish listings through a dedicated dashboard. The platform supports Arabic and English to reach more searchers inside Yemen and abroad.',
+  'home.seo.start.title': 'Start your property search today',
+  'home.seo.start.p1':
+    'Use the links below to jump to property listings, the map view, or the office directory. For more about our mission and services, visit the about page or contact support.',
+  'home.seo.start.aboutLink': 'About the platform',
   'search.where': 'Where?',
   'search.whereHint': 'Search city or neighborhood',
   'search.type': 'Type',

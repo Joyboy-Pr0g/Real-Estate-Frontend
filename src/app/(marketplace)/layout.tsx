@@ -1,4 +1,5 @@
 import { Suspense } from 'react';
+import { Analytics } from '@vercel/analytics/next';
 import { SiteHeader } from '@/features/layout/components/SiteHeader';
 import { SiteFooter } from '@/features/layout/components/SiteFooter';
 import { CategoryNavBar } from '@/features/home/components/CategoryNavBar';
@@ -18,11 +19,21 @@ export default async function MarketplaceLayout({
   const [user, settings] = await Promise.all([getSession(), getWebsiteSettingsServer()]);
 
   if (settings.storefront_mode === 'maintenance') {
-    return <MaintenancePage settings={settings} />;
+    return (
+      <>
+        <MaintenancePage settings={settings} />
+        <Analytics />
+      </>
+    );
   }
 
   if (settings.storefront_mode === 'coming_soon') {
-    return <ComingSoonPage settings={settings} />;
+    return (
+      <>
+        <ComingSoonPage settings={settings} />
+        <Analytics />
+      </>
+    );
   }
 
   const content = (
@@ -41,7 +52,19 @@ export default async function MarketplaceLayout({
     </SiteHeaderOverrideProvider>
   );
 
-  if (!user) return content;
+  if (!user) {
+    return (
+      <>
+        {content}
+        <Analytics />
+      </>
+    );
+  }
 
-  return <MessagingSocketProvider enabled>{content}</MessagingSocketProvider>;
+  return (
+    <>
+      <MessagingSocketProvider enabled>{content}</MessagingSocketProvider>
+      <Analytics />
+    </>
+  );
 }

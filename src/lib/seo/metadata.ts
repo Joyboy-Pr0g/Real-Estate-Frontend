@@ -4,6 +4,7 @@ import type { WebsiteSettings } from '@/features/website-settings/types/website-
 import type { PublicListingDetail } from '@/features/listings/types/listing-detail';
 import { getListingCanonicalPath } from '@/lib/seo/indexing';
 import { withWebsiteSettingsDefaults, resolveWebsiteLogo } from '@/lib/website-settings/defaults';
+import type { Locale } from '@/lib/i18n/config';
 
 export function getSiteUrl(settings: WebsiteSettings): string {
   const fromEnv = env.NEXT_PUBLIC_SITE_URL?.trim() || env.NEXT_PUBLIC_APP_URL?.trim();
@@ -24,19 +25,35 @@ function absoluteAssetUrl(siteUrl: string, asset?: string | null): string {
   return `${siteUrl}${value.startsWith('/') ? value : `/${value}`}`;
 }
 
-function buildHreflangAlternates(siteUrl: string, path?: string): NonNullable<Metadata['alternates']> {
-  const normalizedPath = path
-    ? path.startsWith('/')
-      ? path
-      : `/${path}`
-    : '';
-  const url = `${siteUrl}${normalizedPath}`;
+/** Normalizes route segments so `/` and `` both map to the site root (no trailing slash). */
+export function normalizePagePath(path?: string): string {
+  const raw = (path ?? '').trim();
+  if (!raw || raw === '/') return '';
+  return raw.startsWith('/') ? raw : `/${raw}`;
+}
+
+export function buildCanonicalUrl(siteUrl: string, path?: string): string {
+  const base = siteUrl.replace(/\/$/, '');
+  const segment = normalizePagePath(path);
+  return segment ? `${base}${segment}` : base;
+}
+
+function resolveHreflangKey(locale?: Locale): 'ar-YE' | 'en' {
+  return locale === 'en' ? 'en' : 'ar-YE';
+}
+
+function buildHreflangAlternates(
+  siteUrl: string,
+  path?: string,
+  locale?: Locale,
+): NonNullable<Metadata['alternates']> {
+  const url = buildCanonicalUrl(siteUrl, path);
+  const selfHreflang = resolveHreflangKey(locale);
 
   return {
     canonical: url,
     languages: {
-      'ar-YE': url,
-      en: url,
+      [selfHreflang]: url,
       'x-default': url,
     },
   };
@@ -231,19 +248,20 @@ export function buildPageMetadata(
     type?: 'website' | 'article';
     robots?: Metadata['robots'];
   },
+  locale?: Locale,
 ): Metadata {
   const s = withWebsiteSettingsDefaults(settings);
   const siteUrl = getSiteUrl(s);
   const description = page.description?.trim() || s.meta_description?.trim() || s.description || '';
   const image = absoluteAssetUrl(siteUrl, page.image || s.og_image_url || s.header_logo_url);
   const path = page.path ?? '';
-  const url = `${siteUrl}${path.startsWith('/') ? path : `/${path}`}`;
+  const url = buildCanonicalUrl(siteUrl, path);
 
   return {
     title: page.title,
     description,
     robots: resolveRobots(s, page.robots),
-    alternates: buildHreflangAlternates(siteUrl, path),
+    alternates: buildHreflangAlternates(siteUrl, path, locale),
     openGraph: {
       type: page.type ?? 'website',
       url,
@@ -292,12 +310,15 @@ export async function getRootViewport() {
 
 export async function getPageMetadataFromSettings(
   page: Parameters<typeof buildPageMetadata>[1],
+  locale?: Locale,
 ): Promise<Metadata> {
   const { getWebsiteSettingsServer } = await import(
     '@/features/website-settings/services/website-settings-server'
   );
+  const { getServerLocale } = await import('@/lib/i18n/server');
   const settings = await getWebsiteSettingsServer();
-  return buildPageMetadata(settings, page);
+  const resolvedLocale = locale ?? (await getServerLocale());
+  return buildPageMetadata(settings, page, resolvedLocale);
 }
 
 export async function getWebsiteSettingsForMetadata(): Promise<WebsiteSettings> {
