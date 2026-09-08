@@ -25,13 +25,13 @@ type FloatIconDef = {
 };
 
 const ORBIT_ICONS: FloatIconDef[] = [
-  { key: 'trust.verified', icon: BadgeCheck, style: { top: '14%', left: '6%' }, variant: 'pill' },
-  { key: 'trust.maps', icon: MapPin, style: { top: '22%', left: '28%' }, variant: 'icon' },
-  { key: 'trust.search', icon: Search, style: { top: '38%', left: '10%' }, variant: 'pill' },
-  { key: 'trust.agents', icon: UserCheck, style: { top: '48%', left: '32%' }, variant: 'pill' },
-  { key: 'trust.secure', icon: Shield, style: { top: '62%', left: '5%' }, variant: 'icon' },
-  { key: 'trust.listings', icon: Building2, style: { bottom: '28%', left: '18%' }, variant: 'pill' },
-  { key: 'trust.saved', icon: Heart, style: { bottom: '14%', left: '8%' }, variant: 'pill' },
+  { key: 'trust.verified', icon: BadgeCheck, style: { top: '10%', left: '6%' }, variant: 'pill' },
+  { key: 'trust.maps', icon: MapPin, style: { top: '18%', left: '28%' }, variant: 'icon' },
+  { key: 'trust.search', icon: Search, style: { top: '34%', left: '10%' }, variant: 'pill' },
+  { key: 'trust.agents', icon: UserCheck, style: { top: '44%', left: '32%' }, variant: 'pill' },
+  { key: 'trust.secure', icon: Shield, style: { top: '58%', left: '5%' }, variant: 'icon' },
+  { key: 'trust.listings', icon: Building2, style: { bottom: '32%', left: '18%' }, variant: 'pill' },
+  { key: 'trust.saved', icon: Heart, style: { bottom: '18%', left: '8%' }, variant: 'pill' },
 ];
 
 function FloatIcon({ item }: { item: FloatIconDef }) {
