@@ -238,9 +238,9 @@ export function SearchPill({
       whileHover={{ scale: 1.03 }}
       whileTap={{ scale: 0.97 }}
       className={cn(
-        'inline-flex shrink-0 items-center justify-center bg-brand font-bold text-white transition-colors hover:bg-brand-dark',
+        'inline-flex w-full shrink-0 items-center justify-center bg-brand font-bold text-white transition-colors hover:bg-brand-dark',
         isHeroRow
-          ? 'h-12 w-12 rounded-full md:h-14 md:w-14'
+          ? 'h-12  rounded-full md:h-14 md:w-14'
           : cn(
               'gap-2 rounded-xl',
               compact ? 'h-11 px-5 text-sm' : 'h-12 px-6 text-sm md:h-[52px] md:px-8 md:text-base',
@@ -258,7 +258,7 @@ export function SearchPill({
       <div
         className={cn(
           'relative w-full mx-auto',
-          isHeroRow ? 'max-w-5xl' : 'max-w-[920px]',
+          isHeroRow ? 'max-w-7xl' : 'max-w-[920px]',
           activePanel && 'z-[10000]',
           className,
         )}

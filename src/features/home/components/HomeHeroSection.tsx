@@ -31,7 +31,7 @@ export async function HomeHeroSection() {
 
         <div className="relative z-10 flex min-h-[560px] flex-col md:min-h-[620px] lg:min-h-[680px]">
           <Container className="flex flex-1 flex-col justify-center py-10 md:py-14 lg:py-16">
-            <div className="max-w-xl">
+            <div className="max-w-4xl">
               <HomeHeroHeading />
               <div className="mt-8 md:mt-10">
                 <HomeHero catalog={catalog} />

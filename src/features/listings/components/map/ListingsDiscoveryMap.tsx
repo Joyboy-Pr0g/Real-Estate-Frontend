@@ -83,6 +83,11 @@ export function ListingsDiscoveryMap({
   const router = useRouter();
   const searchParams = useSearchParams();
   const apiKey = env.NEXT_PUBLIC_GOOGLE_MAPS_KEY;
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   const mapRef = useRef<google.maps.Map | null>(null);
   const layerCleanupRef = useRef<Array<() => void>>([]);
@@ -390,7 +395,9 @@ export function ListingsDiscoveryMap({
       >
         <MapPin className="mb-2 h-10 w-10 text-gray-300" />
         <p className="text-sm text-gray-500">
-          {apiKey ? t('search.loading') : t('detail.location.mapUnavailable')}
+          {!mounted || (apiKey && !isLoaded)
+            ? t('search.loading')
+            : t('detail.location.mapUnavailable')}
         </p>
       </div>
     );
