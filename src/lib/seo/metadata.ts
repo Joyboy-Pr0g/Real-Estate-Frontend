@@ -6,10 +6,10 @@ import { getListingCanonicalPath } from '@/lib/seo/indexing';
 import { withWebsiteSettingsDefaults, resolveWebsiteLogo } from '@/lib/website-settings/defaults';
 
 export function getSiteUrl(settings: WebsiteSettings): string {
-  const fromSettings = settings.site_url?.trim();
-  if (fromSettings) return fromSettings.replace(/\/$/, '');
   const fromEnv = env.NEXT_PUBLIC_SITE_URL?.trim() || env.NEXT_PUBLIC_APP_URL?.trim();
   if (fromEnv) return fromEnv.replace(/\/$/, '');
+  const fromSettings = settings.site_url?.trim();
+  if (fromSettings) return fromSettings.replace(/\/$/, '');
   return 'https://yemen-land.com';
 }
 

@@ -3,6 +3,7 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
 import { io, Socket } from 'socket.io-client';
 import { useRouter } from 'next/navigation';
+import { env } from '@/env';
 import {
   fetchSocketTicket,
   type SocketNotificationPayload,
@@ -28,7 +29,7 @@ export function useMessagingSocket() {
 }
 
 function getSocketUrl(): string {
-  return process.env.NEXT_PUBLIC_SOCKET_URL ?? 'http://localhost:3000';
+  return env.NEXT_PUBLIC_SOCKET_URL ?? 'http://localhost:3000';
 }
 
 export function MessagingSocketProvider({
