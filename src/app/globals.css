@@ -103,6 +103,12 @@ body {
     radial-gradient(ellipse at 15% 85%, rgba(40, 177, 109, 0.12) 0%, transparent 45%);
 }
 
+.hero-dot-grid {
+  background-image: radial-gradient(circle, rgba(255, 255, 255, 0.55) 1px, transparent 1px);
+  background-size: 22px 22px;
+  mask-image: radial-gradient(ellipse at center, black 20%, transparent 72%);
+}
+
 .glass-panel {
   background: rgba(255, 255, 255, 0.82);
   backdrop-filter: blur(16px);

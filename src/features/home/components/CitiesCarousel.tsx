@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
+import { useGSAP } from '@gsap/react';
 import { buildListingsUrl } from '@/features/listings/lib/build-listings-url';
 import Image from 'next/image';
 import Link from 'next/link';
@@ -10,9 +11,16 @@ import { Container } from '@/components/ui/container';
 import { CarouselArrow } from '@/features/home/components/CarouselArrow';
 import { PublicCity } from '@/features/catalog/types/catalog';
 import { getCityGradient } from '@/features/home/constants/city-gradients';
-import { Reveal } from '@/lib/motion/reveal';
 import { useLocale } from '@/lib/i18n/locale-provider';
 import { cn } from '@/lib/utils/cn';
+import {
+  ensureGsapPlugins,
+  gsap,
+  GSAP_EASE,
+  prefersReducedMotion,
+  SCROLL_START,
+  ScrollTrigger,
+} from '@/lib/motion/gsap-config';
 
 interface CitiesCarouselProps {
   cities: PublicCity[];
@@ -26,7 +34,7 @@ function CityCard({ city, index }: { city: PublicCity; index: number }) {
   return (
     <Link
       href={buildListingsUrl({ cityPcode: city.pcode })}
-      className="group block snap-start shrink-0 w-[148px] sm:w-[168px] md:w-[180px]"
+      className="home-city-card group block snap-start shrink-0 w-[148px] sm:w-[168px] md:w-[180px]"
     >
       <motion.div
         whileHover={{ y: -4 }}
@@ -67,6 +75,7 @@ function CityCard({ city, index }: { city: PublicCity; index: number }) {
 
 export function CitiesCarousel({ cities, title, subtitle }: CitiesCarouselProps) {
   const { t, dir } = useLocale();
+  const sectionRef = useRef<HTMLElement>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
   const [canPrev, setCanPrev] = useState(false);
   const [canNext, setCanNext] = useState(false);
@@ -92,6 +101,51 @@ export function CitiesCarousel({ cities, title, subtitle }: CitiesCarouselProps)
     return () => window.removeEventListener('resize', updateArrows);
   }, [cities, dir]);
 
+  useGSAP(
+    () => {
+      ensureGsapPlugins();
+      const scope = sectionRef.current;
+      if (!scope || prefersReducedMotion()) return;
+
+      const header = scope.querySelector('.home-section-header');
+      if (header) {
+        gsap.from(header, {
+          scrollTrigger: {
+            trigger: header,
+            start: SCROLL_START,
+            once: true,
+          },
+          y: 24,
+          opacity: 0,
+          duration: 0.5,
+          ease: GSAP_EASE,
+        });
+      }
+
+      const cards = scope.querySelectorAll('.home-city-card');
+      if (cards.length) {
+        gsap.set(cards, { opacity: 0, y: 24, scale: 0.95 });
+
+        ScrollTrigger.batch(cards, {
+          start: SCROLL_START,
+          once: true,
+          onEnter: (batch) => {
+            gsap.to(batch, {
+              y: 0,
+              opacity: 1,
+              scale: 1,
+              duration: 0.45,
+              stagger: 0.05,
+              ease: GSAP_EASE,
+              overwrite: true,
+            });
+          },
+        });
+      }
+    },
+    { scope: sectionRef, dependencies: [cities.length] },
+  );
+
   const scroll = (direction: 'prev' | 'next') => {
     const el = scrollRef.current;
     if (!el) return;
@@ -112,9 +166,9 @@ export function CitiesCarousel({ cities, title, subtitle }: CitiesCarouselProps)
   const NextIcon = dir === 'rtl' ? ChevronLeft : ChevronRight;
 
   return (
-    <section className="py-12 md:py-16 bg-white">
+    <section ref={sectionRef} className="py-12 md:py-16 bg-white">
       <Container>
-        <Reveal className="flex items-end justify-between gap-4 mb-6 md:mb-8">
+        <div className="home-section-header flex items-end justify-between gap-4 mb-6 md:mb-8">
           <div>
             <h2 className="text-xl md:text-2xl font-semibold text-primary-dark tracking-tight">
               {title}
@@ -135,7 +189,7 @@ export function CitiesCarousel({ cities, title, subtitle }: CitiesCarouselProps)
               icon={NextIcon}
             />
           </div>
-        </Reveal>
+        </div>
 
         <div
           ref={scrollRef}

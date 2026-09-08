@@ -1,17 +1,24 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
+import { useGSAP } from '@gsap/react';
 import { buildListingsUrl } from '@/features/listings/lib/build-listings-url';
 import Link from 'next/link';
-import { motion } from 'framer-motion';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { Container } from '@/components/ui/container';
 import { CarouselArrow } from '@/features/home/components/CarouselArrow';
 import { HomePropertyTypeSection } from '@/features/home/types/home-listings';
 import { ListingCard } from '@/features/listings/components/ListingCard';
-import { Reveal } from '@/lib/motion/reveal';
 import { useLocale } from '@/lib/i18n/locale-provider';
 import { cn } from '@/lib/utils/cn';
+import {
+  ensureGsapPlugins,
+  gsap,
+  GSAP_EASE,
+  prefersReducedMotion,
+  SCROLL_START,
+  ScrollTrigger,
+} from '@/lib/motion/gsap-config';
 
 interface ListingsCarouselProps {
   sections: HomePropertyTypeSection[];
@@ -75,8 +82,8 @@ function TypeListingsRow({
   const NextIcon = dir === 'rtl' ? ChevronLeft : ChevronRight;
 
   return (
-    <div className="space-y-4">
-      <Reveal className="flex items-end justify-between gap-4">
+    <div className="home-listing-row space-y-4">
+      <div className="home-listing-row-header flex items-end justify-between gap-4">
         <div>
           <h3 className="text-lg md:text-xl font-semibold text-primary-dark tracking-tight">
             {section.name}
@@ -104,26 +111,17 @@ function TypeListingsRow({
             {viewAllLabel}
           </Link>
         </div>
-      </Reveal>
+      </div>
 
       <div
         ref={scrollRef}
         onScroll={updateArrows}
         className="flex gap-5 overflow-x-auto no-scrollbar scroll-smooth snap-x snap-mandatory pb-2 -mx-1 px-1"
       >
-        {section.listings.map((listing, i) => (
-          <motion.div
-            key={listing.id}
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true, margin: '-40px' }}
-            transition={{ delay: i * 0.06, duration: 0.45 }}
-            className="snap-start shrink-0 w-[280px] sm:w-[300px]"
-          >
-            <ListingCard
-              listing={listing}
-            />
-          </motion.div>
+        {section.listings.map((listing) => (
+          <div key={listing.id} className="home-listing-card snap-start shrink-0 w-[280px] sm:w-[300px]">
+            <ListingCard listing={listing} />
+          </div>
         ))}
       </div>
     </div>
@@ -137,22 +135,82 @@ export function ListingsCarousel({
   viewAllLabel,
 }: ListingsCarouselProps) {
   const { t } = useLocale();
+  const sectionRef = useRef<HTMLElement>(null);
   const visibleSections = sections.filter((section) => section.listings.length > 0);
   const resolvedViewAllLabel = viewAllLabel ?? t('featured.viewAll');
+
+  useGSAP(
+    () => {
+      ensureGsapPlugins();
+      const scope = sectionRef.current;
+      if (!scope || prefersReducedMotion()) return;
+
+      const header = scope.querySelector('.home-section-header');
+      if (header) {
+        gsap.from(header, {
+          scrollTrigger: {
+            trigger: header,
+            start: SCROLL_START,
+            once: true,
+          },
+          y: 24,
+          opacity: 0,
+          duration: 0.5,
+          ease: GSAP_EASE,
+        });
+      }
+
+      const rowHeaders = scope.querySelectorAll('.home-listing-row-header');
+      rowHeaders.forEach((rowHeader) => {
+        gsap.from(rowHeader, {
+          scrollTrigger: {
+            trigger: rowHeader,
+            start: SCROLL_START,
+            once: true,
+          },
+          y: 20,
+          opacity: 0,
+          duration: 0.45,
+          ease: GSAP_EASE,
+        });
+      });
+
+      const cards = scope.querySelectorAll('.home-listing-card');
+      if (cards.length) {
+        gsap.set(cards, { opacity: 0, y: 28 });
+
+        ScrollTrigger.batch(cards, {
+          start: SCROLL_START,
+          once: true,
+          onEnter: (batch) => {
+            gsap.to(batch, {
+              y: 0,
+              opacity: 1,
+              duration: 0.45,
+              stagger: 0.06,
+              ease: GSAP_EASE,
+              overwrite: true,
+            });
+          },
+        });
+      }
+    },
+    { scope: sectionRef, dependencies: [visibleSections.length] },
+  );
 
   if (visibleSections.length === 0) {
     return null;
   }
 
   return (
-    <section className="py-10 md:py-14 bg-surface">
+    <section ref={sectionRef} className="py-10 md:py-14 bg-surface">
       <Container>
-        <Reveal className="mb-8 md:mb-10">
+        <div className="home-section-header mb-8 md:mb-10">
           <h2 className="text-xl md:text-2xl font-semibold text-primary-dark tracking-tight">
             {title}
           </h2>
           {subtitle && <p className="mt-1 text-sm text-gray-500">{subtitle}</p>}
-        </Reveal>
+        </div>
 
         <div className={cn('space-y-10 md:space-y-12')}>
           {visibleSections.map((section) => (

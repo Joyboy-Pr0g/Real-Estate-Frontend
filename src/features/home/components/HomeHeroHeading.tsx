@@ -1,21 +1,48 @@
-import { Container } from '@/components/ui/container';
+import Link from 'next/link';
+import { ArrowRight, Building2 } from 'lucide-react';
 import { getServerTranslations } from '@/lib/i18n/server';
+import { cn } from '@/lib/utils/cn';
 
 export async function HomeHeroHeading() {
   const { t } = await getServerTranslations();
 
   return (
-    <Container className="relative">
-      <div className="mx-auto mb-8 max-w-2xl space-y-3 text-center md:mb-10">
-        <p className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/10 px-4 py-1.5 text-xs font-medium text-white/90 shadow-sm backdrop-blur-sm">
-          <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-brand-light" />
-          {t('trust.verified')} · {t('trust.secure')}
-        </p>
-        <h1 className="text-3xl font-bold leading-[1.15] tracking-tight text-white sm:text-4xl md:text-[2.75rem]">
-          {t('hero.title')}
+    <div className="relative mx-auto max-w-xl text-center lg:mx-0 lg:text-start">
+      <div className="relative space-y-4">
+        <h1 className="hero-title text-3xl font-bold leading-[1.1] tracking-tight text-white sm:text-4xl md:text-5xl lg:text-[3.25rem]">
+          {t('hero.titlePrefix')}{' '}
+          <span className="hero-title-accent text-brand-light">{t('hero.titleAccent')}</span>
         </h1>
-        <p className="text-base leading-relaxed text-white/75 md:text-lg">{t('hero.subtitle')}</p>
+
+        <p className="hero-subtitle text-lg font-semibold text-white/90 md:text-xl">
+          {t('hero.subtitle')}
+        </p>
+
+        <p className="hero-description mx-auto max-w-lg text-base leading-relaxed text-white/70 md:text-[1.05rem] lg:mx-0">
+          {t('hero.description')}
+        </p>
+
+        <div className="hero-ctas flex flex-wrap items-center justify-center gap-3 pt-2 lg:justify-start">
+          <Link
+            href="/listings"
+            className={cn(
+              'inline-flex h-11 items-center justify-center gap-2 rounded-full bg-white px-6 text-sm font-semibold text-brand transition-colors hover:bg-white/90',
+            )}
+          >
+            {t('hero.discoverListings')}
+            <ArrowRight className="h-4 w-4" />
+          </Link>
+          <Link
+            href="/offices"
+            className={cn(
+              'inline-flex h-11 items-center justify-center gap-2 rounded-full border border-white/25 bg-white/10 px-6 text-sm font-semibold text-white transition-colors hover:bg-white/15',
+            )}
+          >
+            <Building2 className="h-4 w-4" />
+            {t('hero.browseOffices')}
+          </Link>
+        </div>
       </div>
-    </Container>
+    </div>
   );
 }

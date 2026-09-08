@@ -1,7 +1,7 @@
 import { Suspense } from 'react';
 import type { Metadata } from 'next';
 import { HomeHeroSection } from '@/features/home/components/HomeHeroSection';
-import { HomeSeoContent } from '@/features/home/components/HomeSeoContent';
+// import { HomeSeoContent } from '@/features/home/components/HomeSeoContent';
 import { FeaturedListings } from '@/features/home/components/FeaturedListings';
 import { ExploreCities } from '@/features/home/components/ExploreCities';
 import {
@@ -44,7 +44,7 @@ export default async function HomePage() {
       <Suspense fallback={<CitiesCarouselSkeleton />}>
         <ExploreCities />
       </Suspense>
-      <HomeSeoContent />
+      {/* <HomeSeoContent /> */}
       <ScrollToTopButton />
     </>
   );

@@ -2,13 +2,7 @@
 
 import { useMemo } from 'react';
 import Link from 'next/link';
-import {
-  Building2,
-  Mail,
-  MessageCircle,
-  Phone,
-} from 'lucide-react';
-import { Container } from '@/components/ui/container';
+import { Mail, MessageCircle, Phone } from 'lucide-react';import { Container } from '@/components/ui/container';
 import { useLocale } from '@/lib/i18n/locale-provider';
 import type { TranslationKey } from '@/lib/i18n/ar';
 import {
@@ -21,9 +15,9 @@ import {
   FALLBACK_WEBSITE_SETTINGS,
   formatWhatsappLink,
   splitWebsiteTitle,
+  resolveWebsiteLogo,
   withWebsiteSettingsDefaults,
 } from '@/lib/website-settings/defaults';
-
 interface SiteFooterProps {
   settings?: WebsiteSettings | null;
 }
@@ -81,6 +75,15 @@ export function SiteFooter({ settings = null }: SiteFooterProps) {
     [t],
   );
 
+  const legalLinks = useMemo(
+    () =>
+      FOOTER_LINKS.legal.map((link) => ({
+        href: link.href,
+        label: t(link.labelKey),
+      })),
+    [t],
+  );
+
   const accountLinks = useMemo(
     () =>
       FOOTER_LINKS.account.map((link) => ({
@@ -94,9 +97,13 @@ export function SiteFooter({ settings = null }: SiteFooterProps) {
     [
       { key: 'browse', links: browseLinks },
       { key: 'company', links: companyLinks },
+      { key: 'legal', links: legalLinks },
       { key: 'account', links: accountLinks },
     ];
 
+  const footerLogoUrl = resolveWebsiteLogo(
+    resolved.footer_logo_url ?? resolved.header_logo_url,
+  );
   const socialLinks = [
     resolved.facebook
       ? { href: resolved.facebook, icon: FacebookIcon, label: 'Facebook' }
@@ -116,18 +123,21 @@ export function SiteFooter({ settings = null }: SiteFooterProps) {
   return (
     <footer className="mt-auto border-t border-gray-200 bg-gray-50">
       <Container className="py-14">
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-10">
-          <div className="sm:col-span-2 lg:col-span-2 space-y-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-12 gap-10">
+          <div className="sm:col-span-2 lg:col-span-4 space-y-4">
             <Link href="/" className="inline-flex items-center gap-3 group">
-              <span className="flex h-12 w-12 items-center justify-center rounded-xl bg-primary text-white shadow-md shadow-primary/20 transition-transform group-hover:scale-105">
-                <Building2 className="h-6 w-6" />
+              <span className="flex h-14 w-14 items-center justify-center overflow-hidden rounded-xl bg-white shadow-md shadow-primary/10 ring-1 ring-gray-200/80 transition-transform group-hover:scale-105">
+                <img
+                  src={footerLogoUrl}
+                  alt={resolved.title}
+                  className="h-full w-full object-contain p-1.5"
+                />
               </span>
               <span className="text-xl font-bold text-primary-dark">
                 <span className="text-secondary">{brand.primary}</span>
                 {brand.secondary ? ` ${brand.secondary}` : ''}
               </span>
-            </Link>
-            <p className="text-sm text-gray-500 max-w-sm leading-relaxed">{description}</p>
+            </Link>            <p className="text-sm text-gray-500 max-w-sm leading-relaxed">{description}</p>
             <div className="space-y-2 text-sm text-gray-500">
               <p className="flex items-center gap-2">
                 <Phone className="h-4 w-4 text-secondary shrink-0" />
@@ -151,8 +161,7 @@ export function SiteFooter({ settings = null }: SiteFooterProps) {
           </div>
 
           {sections.map((section) => (
-            <div key={section.key}>
-              <h4 className="text-sm font-semibold text-primary-dark mb-4">
+            <div key={section.key} className="lg:col-span-2">              <h4 className="text-sm font-semibold text-primary-dark mb-4">
                 {t(FOOTER_SECTION_KEYS[section.key] as TranslationKey)}
               </h4>
               <ul className="space-y-2.5">

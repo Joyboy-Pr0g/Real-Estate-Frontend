@@ -4,7 +4,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { motion, useScroll, useTransform } from 'framer-motion';
 import { Building2, Globe, Menu, X } from 'lucide-react';
-import { useState, type ReactNode } from 'react';
+import { useState } from 'react';
 import { ButtonLink } from '@/components/ui/button';
 import { Container } from '@/components/ui/container';
 import { AuthUser } from '@/features/auth/types/user';
@@ -14,15 +14,34 @@ import { getRoleHomePath } from '@/lib/auth/constants';
 import { UserMenu } from '@/features/layout/components/UserMenu';
 import { useSiteHeaderOverride } from '@/features/layout/context/site-header-override';
 import { useLocale } from '@/lib/i18n/locale-provider';
+import type { TranslationKey } from '@/lib/i18n/ar';
 import { cn } from '@/lib/utils/cn';
 
 interface SiteHeaderProps {
-  categoryNav: ReactNode;
   user?: AuthUser | null;
   settings?: WebsiteSettings | null;
 }
 
-export function SiteHeader({ categoryNav, user = null, settings = null }: SiteHeaderProps) {
+type NavItem = {
+  href: string;
+  labelKey: TranslationKey;
+  isActive: (pathname: string) => boolean;
+};
+
+const PRIMARY_NAV: NavItem[] = [
+  { href: '/', labelKey: 'nav.home', isActive: (p) => p === '/' },
+  {
+    href: '/listings',
+    labelKey: 'nav.listings',
+    isActive: (p) => p === '/listings' || (p.startsWith('/listings/') && p !== '/listings/map'),
+  },
+  { href: '/listings/map', labelKey: 'nav.map', isActive: (p) => p === '/listings/map' },
+  { href: '/offices', labelKey: 'nav.offices', isActive: (p) => p.startsWith('/offices') },
+  { href: '/about', labelKey: 'nav.about', isActive: (p) => p === '/about' },
+  { href: '/contact', labelKey: 'nav.contact', isActive: (p) => p === '/contact' },
+];
+
+export function SiteHeader({ user = null, settings = null }: SiteHeaderProps) {
   const pathname = usePathname();
   const { t, locale, setLocale } = useLocale();
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -35,6 +54,20 @@ export function SiteHeader({ categoryNav, user = null, settings = null }: SiteHe
   const { override, hidden } = useSiteHeaderOverride();
   const brand = splitWebsiteTitle(settings?.title ?? 'عقارات اليمن');
   const logoUrl = resolveWebsiteLogo(settings?.header_logo_url);
+  const isHome = pathname === '/';
+
+  const isLinkActive = (href: string) => {
+    if (href === '/') return pathname === '/';
+    if (href === '/listings') {
+      return pathname === '/listings' || (pathname.startsWith('/listings/') && pathname !== '/listings/map');
+    }
+    return pathname === href || pathname.startsWith(`${href}/`);
+  };
+
+  const mobileLinks: Array<{ href: string; label: string }> = [
+    ...PRIMARY_NAV.map(({ href, labelKey }) => ({ href, label: t(labelKey) })),
+    ...(user ? [{ href: getRoleHomePath(user.role), label: t('nav.dashboard') }] : []),
+  ];
 
   return (
     <>
@@ -42,14 +75,22 @@ export function SiteHeader({ categoryNav, user = null, settings = null }: SiteHe
         style={{ boxShadow }}
         animate={{ y: hidden ? '-100%' : '0%' }}
         transition={{ duration: 0.25, ease: 'easeInOut' }}
-        className="sticky top-0 z-50 glass-panel border-b border-gray-200/60"
+        className={cn(
+          'sticky top-0 z-50 border-b transition-colors',
+          isHome
+            ? 'border-white/10 bg-[#163d2e]/90 text-white backdrop-blur-md'
+            : 'glass-panel border-gray-200/60',
+        )}
       >
-        <Container className='max-w-8xl' >
-          <div className="flex h-18 items-center gap-4 justify-between">
-            <Link href="/" className="flex items-center gap-2.5 shrink-0 group">
+        <Container className="max-w-8xl">
+          <div className="flex h-16 items-center justify-between gap-4 md:h-18">
+            <Link href="/" className="group flex shrink-0 items-center gap-2.5">
               <motion.span
                 whileHover={{ scale: 1.05 }}
-                className="flex h-10 w-10 items-center justify-center rounded-xl bg-brand text-white shadow-md shadow-brand/20 overflow-hidden"
+                className={cn(
+                  'flex h-10 w-10 items-center justify-center overflow-hidden rounded-xl shadow-md',
+                  isHome ? 'bg-white/15 text-white shadow-black/10' : 'bg-brand text-white shadow-brand/20',
+                )}
               >
                 {settings?.header_logo_url ? (
                   <img src={logoUrl} alt={settings.title} className="h-full w-full object-cover" />
@@ -57,33 +98,64 @@ export function SiteHeader({ categoryNav, user = null, settings = null }: SiteHe
                   <Building2 className="h-5 w-5" />
                 )}
               </motion.span>
-              <span className="text-lg font-bold tracking-tight text-primary-dark hidden sm:inline">
-                <span className="text-brand">{brand.primary}</span>
+              <span
+                className={cn(
+                  'hidden text-lg font-bold tracking-tight sm:inline',
+                  isHome ? 'text-white' : 'text-primary-dark',
+                )}
+              >
+                <span className={isHome ? 'text-brand-light' : 'text-brand'}>{brand.primary}</span>
                 {brand.secondary ? ` ${brand.secondary}` : ''}
               </span>
             </Link>
 
-            <div className="hidden md:block border-t border-gray-100 pb-3 pt-4">
-              {categoryNav}
-            </div>
+            <nav className="hidden items-center gap-1 lg:flex" aria-label="Primary">
+              {PRIMARY_NAV.map(({ href, labelKey, isActive }) => {
+                const active = isActive(pathname);
+                return (
+                  <Link
+                    key={href}
+                    href={href}
+                    className={cn(
+                      'rounded-full px-3.5 py-2 text-sm font-medium transition-colors',
+                      isHome
+                        ? active
+                          ? 'bg-white/15 text-white'
+                          : 'text-white/75 hover:bg-white/10 hover:text-white'
+                        : active
+                          ? 'bg-brand-muted text-brand-dark'
+                          : 'text-gray-600 hover:bg-gray-100 hover:text-primary-dark',
+                    )}
+                  >
+                    {t(labelKey)}
+                  </Link>
+                );
+              })}
+            </nav>
 
             <div className="flex items-center gap-1.5">
               {!user ? (
                 <ButtonLink
                   href="/register"
                   size="sm"
-                  className="rounded-full"
+                  className={cn(
+                    'hidden rounded-full sm:inline-flex',
+                    isHome && 'border-white/25 bg-white/10 text-white hover:bg-white/20',
+                  )}
+                  variant={isHome ? 'outline' : 'primary'}
                 >
                   {t('nav.host')}
                 </ButtonLink>
-              ) : null
-              }
+              ) : null}
 
               {!user ? (
                 <button
                   type="button"
                   onClick={() => setLocale(locale === 'ar' ? 'en' : 'ar')}
-                  className="flex h-10 w-10 items-center justify-center rounded-full hover:bg-gray-100 text-gray-600 transition-colors"
+                  className={cn(
+                    'flex h-10 w-10 items-center justify-center rounded-full transition-colors',
+                    isHome ? 'text-white/80 hover:bg-white/10' : 'text-gray-600 hover:bg-gray-100',
+                  )}
                   aria-label={t('nav.toggleLanguage')}
                 >
                   <Globe className="h-5 w-5" />
@@ -93,16 +165,24 @@ export function SiteHeader({ categoryNav, user = null, settings = null }: SiteHe
               {user ? (
                 <UserMenu user={user} />
               ) : (
-                <div className="hidden sm:flex items-center gap-2">
-                  <ButtonLink href="/login" size="sm" className="rounded-full">
-                    {t('nav.login')}
-                  </ButtonLink>
-                </div>
+                <ButtonLink
+                  href="/login"
+                  size="sm"
+                  className={cn(
+                    'hidden rounded-full sm:inline-flex',
+                    isHome && 'bg-white text-brand hover:bg-white/90',
+                  )}
+                >
+                  {t('nav.login')}
+                </ButtonLink>
               )}
 
               <button
                 type="button"
-                className="flex h-10 w-10 items-center justify-center rounded-full hover:bg-gray-100 text-gray-600 transition-colors md:hidden"
+                className={cn(
+                  'flex h-10 w-10 items-center justify-center rounded-full transition-colors lg:hidden',
+                  isHome ? 'text-white/80 hover:bg-white/10' : 'text-gray-600 hover:bg-gray-100',
+                )}
                 onClick={() => setMobileOpen((v) => !v)}
                 aria-label={t('nav.toggleMenu')}
               >
@@ -115,23 +195,25 @@ export function SiteHeader({ categoryNav, user = null, settings = null }: SiteHe
             <motion.nav
               initial={{ opacity: 0, height: 0 }}
               animate={{ opacity: 1, height: 'auto' }}
-              className="md:hidden border-t border-gray-100 py-4 space-y-2"
+              className={cn(
+                'space-y-1 border-t py-4 lg:hidden',
+                isHome ? 'border-white/10' : 'border-gray-100',
+              )}
             >
-              {[
-                { href: '/', label: t('nav.home') },
-                { href: '/listings', label: t('nav.listings') },
-                { href: '/listings/map', label: t('nav.map') },
-                ...(user
-                  ? [{ href: getRoleHomePath(user.role), label: t('nav.dashboard') }]
-                  : []),
-              ].map(({ href, label }) => (
+              {mobileLinks.map(({ href, label }) => (
                 <Link
                   key={href}
                   href={href}
                   onClick={() => setMobileOpen(false)}
                   className={cn(
                     'block rounded-xl px-4 py-3 text-sm font-medium transition-colors',
-                    pathname === href ? 'bg-gray-100 text-primary-dark' : 'text-gray-600',
+                    isLinkActive(href)
+                      ? isHome
+                        ? 'bg-white/10 text-white'
+                        : 'bg-gray-100 text-primary-dark'
+                      : isHome
+                        ? 'text-white/80 hover:bg-white/10'
+                        : 'text-gray-600 hover:bg-gray-50',
                   )}
                 >
                   {label}
@@ -140,7 +222,11 @@ export function SiteHeader({ categoryNav, user = null, settings = null }: SiteHe
 
               {!user ? (
                 <div className="flex gap-2 px-1 pt-2 sm:hidden">
-                  <ButtonLink href="/login" variant="outline" className="flex-1 rounded-xl">
+                  <ButtonLink
+                    href="/login"
+                    variant="outline"
+                    className={cn('flex-1 rounded-xl', isHome && 'border-white/30 text-white')}
+                  >
                     {t('nav.login')}
                   </ButtonLink>
                   <ButtonLink href="/register" className="flex-1 rounded-xl">

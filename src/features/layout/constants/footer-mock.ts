@@ -36,13 +36,15 @@ export const FOOTER_LINKS = {
   company: [
     { href: '/about', labelKey: 'footer.about' as const },
     { href: '/contact', labelKey: 'footer.contact' as const },
+    { href: '/verification', labelKey: 'footer.verification' as const },
+  ],
+  legal: [
     { href: '/privacy', labelKey: 'footer.privacy' as const },
     { href: '/terms', labelKey: 'footer.terms' as const },
     { href: '/cookies', labelKey: 'footer.cookies' as const },
     { href: '/messaging-policy', labelKey: 'footer.messagingPolicy' as const },
     { href: '/listing-policy', labelKey: 'footer.listingPolicy' as const },
     { href: '/data-protection', labelKey: 'footer.dataProtection' as const },
-    { href: '/verification', labelKey: 'footer.verification' as const },
   ],
   account: [
     { href: '/login', labelKey: 'footer.signIn' as const },
@@ -56,5 +58,6 @@ export const FOOTER_SECTION_KEYS = {
   browse: 'footer.browse',
   cities: 'footer.cities',
   company: 'footer.company',
+  legal: 'footer.legal',
   account: 'footer.account',
 } as const;
