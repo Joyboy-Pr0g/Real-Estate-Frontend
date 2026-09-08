@@ -1190,7 +1190,7 @@ export const en: Record<TranslationKey, string> = {
   'admin.websiteSettings.facebookVerification': 'Facebook domain verification',
   'admin.websiteSettings.indexingHint': 'Control what search engines may index in production.',
   'admin.websiteSettings.allowPublicIndexing': 'Allow public indexing',
-  'admin.websiteSettings.allowPublicIndexingHint': 'Master switch for robots and sitemap when NEXT_PUBLIC_IS_PRODUCTION=true.',
+  'admin.websiteSettings.allowPublicIndexingHint': 'Master switch for robots and sitemap when IS_PRODUCTION=true.',
   'admin.websiteSettings.indexListingSearch': 'Index filtered listing search pages',
   'admin.websiteSettings.indexListingSearchHint': 'When off, /listings with query params are noindex.',
   'admin.websiteSettings.indexOfficeProfiles': 'Index office profile pages',

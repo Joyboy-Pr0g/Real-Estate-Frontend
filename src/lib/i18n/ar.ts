@@ -1188,7 +1188,7 @@ export const ar = {
   'admin.websiteSettings.facebookVerification': 'تحقق نطاق فيسبوك',
   'admin.websiteSettings.indexingHint': 'تحكم فيما يمكن لمحركات البحث فهرسته في بيئة الإنتاج.',
   'admin.websiteSettings.allowPublicIndexing': 'السماح بالفهرسة العامة',
-  'admin.websiteSettings.allowPublicIndexingHint': 'المفتاح الرئيسي لـ robots وsitemap عندما NEXT_PUBLIC_IS_PRODUCTION=true.',
+  'admin.websiteSettings.allowPublicIndexingHint': 'المفتاح الرئيسي لـ robots وsitemap عندما IS_PRODUCTION=true.',
   'admin.websiteSettings.indexListingSearch': 'فهرسة صفحات البحث المفلترة',
   'admin.websiteSettings.indexListingSearchHint': 'عند الإيقاف، /listings مع معاملات URL تكون noindex.',
   'admin.websiteSettings.indexOfficeProfiles': 'فهرسة صفحات المكاتب',
