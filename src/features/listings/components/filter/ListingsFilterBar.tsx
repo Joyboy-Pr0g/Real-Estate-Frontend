@@ -4,6 +4,7 @@ import {
   Building2,
   KeyRound,
   Loader2,
+  Map,
   MapPin,
   RotateCcw,
   SlidersHorizontal,
@@ -13,6 +14,7 @@ import {
   Bookmark,
 } from 'lucide-react';
 import { AnimatePresence, motion } from 'framer-motion';
+import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useCallback, useEffect, useMemo, useRef, useState, useTransition } from 'react';
 import { PublicCatalog } from '@/features/catalog/types/catalog';
@@ -307,6 +309,11 @@ export function ListingsFilterBar({
 
   const transactionLabel = selectedTransaction?.display_name_ar || selectedTransaction?.name || '';
 
+  const mapViewHref = useMemo(
+    () => buildListingsHref(searchParams, {}, { basePath: '/listings/map' }),
+    [searchParams],
+  );
+
   const filterContent = (
     <>
       <div className="relative flex items-center justify-between gap-2 border-b border-gray-100/80 px-4 py-3">
@@ -325,6 +332,15 @@ export function ListingsFilterBar({
         </div>
 
         <div className="flex items-center gap-2">
+          {basePath === '/listings' ? (
+            <Link
+              href={mapViewHref}
+              className="inline-flex items-center gap-1.5 rounded-full bg-brand-muted px-2.5 py-1.5 text-[11px] font-semibold text-brand-dark transition-colors hover:bg-brand/15"
+            >
+              <Map className="h-3.5 w-3.5" />
+              <span className="hidden sm:inline">{t('map.mapView')}</span>
+            </Link>
+          ) : null}
           {pending ? <Loader2 className="h-4 w-4 animate-spin text-gray-400" aria-hidden /> : null}
           {activeFilterCount > 0 ? (
             <>

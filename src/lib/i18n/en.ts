@@ -35,6 +35,7 @@ export const en: Record<TranslationKey, string> = {
   'map.selectNeighborhoodPrompt': 'Select a neighborhood on the map or use the filters above',
   'map.backToCountry': 'Back to Yemen',
   'map.listView': 'List view',
+  'map.mapView': 'View on map',
   'map.toggleSidebar': 'Toggle sidebar',
   'map.loadMoreListings': 'Load more',
   'category.all': 'All',

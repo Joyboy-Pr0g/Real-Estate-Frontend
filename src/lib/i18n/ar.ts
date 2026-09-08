@@ -33,6 +33,7 @@ export const ar = {
   'map.selectNeighborhoodPrompt': 'اختر حيًا من الخريطة أو من الفلاتر أعلاه',
   'map.backToCountry': 'العودة لليمن',
   'map.listView': 'عرض القائمة',
+  'map.mapView': 'عرض الخريطة',
   'map.toggleSidebar': 'إظهار/إخفاء اللوحة',
   'map.loadMoreListings': 'تحميل المزيد',
   'category.all': 'الكل',
