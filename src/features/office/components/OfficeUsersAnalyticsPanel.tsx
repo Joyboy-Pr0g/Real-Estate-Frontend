@@ -2,6 +2,8 @@
 
 import { useRouter } from 'next/navigation';
 import { OfficeUserAnalytics, MyOffice, OfficeAnalyticsPeriod } from '@/features/office/types/office';
+import { OfficeUserAnalyticsCard } from '@/features/office/components/OfficeUserAnalyticsCard';
+import { OfficeUserAnalyticsTable } from '@/features/office/components/OfficeUserAnalyticsTable';
 import { SearchableSelect } from '@/components/ui/searchable-select';
 import { createSearchMyOfficesForSelect } from '@/features/office/services/office-client';
 import { useLocale } from '@/lib/i18n/locale-provider';
@@ -82,38 +84,14 @@ export function OfficeUsersAnalyticsPanel({
           {t('dashboard.office.noUserAnalyticsData')}
         </div>
       ) : (
-        <div className="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-[var(--shadow-soft)]">
-          <table className="min-w-full text-sm">
-            <thead className="border-b border-gray-100 bg-gray-50/80 text-start text-xs uppercase tracking-wide text-gray-500">
-              <tr>
-                <th className="px-4 py-3 font-medium">{t('dashboard.office.userAnalyticsMember')}</th>
-                <th className="px-4 py-3 font-medium">{t('dashboard.listings.status.sold')}</th>
-                <th className="px-4 py-3 font-medium">{t('dashboard.listings.status.rented')}</th>
-                <th className="px-4 py-3 font-medium">{t('dashboard.office.userAnalyticsTotal')}</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-100">
-              {analytics.users.map((user, index) => (
-                <tr key={user.user_id} className="hover:bg-gray-50/80">
-                  <td className="px-4 py-3">
-                    <div className="flex items-center gap-3">
-                      <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-brand-muted text-xs font-bold text-brand-dark">
-                        {index + 1}
-                      </span>
-                      <div>
-                        <p className="font-medium text-primary-dark">{user.f_name} {user.l_name}</p>
-                        <p className="text-xs text-gray-500">{user.email}</p>
-                      </div>
-                    </div>
-                  </td>
-                  <td className="px-4 py-3 font-medium text-primary-dark">{user.sold_count}</td>
-                  <td className="px-4 py-3 font-medium text-primary-dark">{user.rented_count}</td>
-                  <td className="px-4 py-3 font-semibold text-brand-dark">{user.total_count}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+        <>
+          <OfficeUserAnalyticsTable users={analytics.users} />
+          <div className="space-y-3 lg:hidden">
+            {analytics.users.map((user, index) => (
+              <OfficeUserAnalyticsCard key={user.user_id} user={user} rank={index + 1} />
+            ))}
+          </div>
+        </>
       )}
     </div>
   );

@@ -35,7 +35,7 @@ export async function GET() {
       return NextResponse.json({ success: false, message: err.message }, { status: err.status });
     }
 
-    return NextResponse.json({ success: false, message: 'Internal server error' }, { status: 500 });
+    return NextResponse.json({ success: false, message: 'خطأ في الخادم' }, { status: 500 });
   }
 }
 
@@ -51,7 +51,7 @@ export async function PATCH(request: NextRequest) {
     const parsed = updateProfileBodySchema.safeParse(body);
     if (!parsed.success) {
       return NextResponse.json(
-        { success: false, message: parsed.error.issues[0]?.message ?? 'Validation failed' },
+        { success: false, message: parsed.error.issues[0]?.message ?? 'فشل تحديث البيانات' },
         { status: 400 },
       );
     }
@@ -65,6 +65,6 @@ export async function PATCH(request: NextRequest) {
       { path: backendPaths.auth.me, method: 'PATCH' },
     );
   } catch {
-    return NextResponse.json({ success: false, message: 'Invalid request body' }, { status: 400 });
+    return NextResponse.json({ success: false, message: 'فشل تحديث البيانات' }, { status: 400 });
   }
 }

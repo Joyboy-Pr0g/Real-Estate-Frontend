@@ -61,6 +61,10 @@ export async function updateProfile(
   await clientFetch(bffPaths.auth.me, { method: 'PATCH', body: data });
 }
 
+export async function deleteProfileImage(): Promise<void> {
+  await clientFetch(bffPaths.auth.meDeleteProfileImage, { method: 'PATCH' });
+}
+
 export async function verifyEmail(data: VerifyEmailInput): Promise<void> {
   await clientFetch(bffPaths.auth.verifyEmail, {
     method: 'POST',

@@ -9,6 +9,10 @@ import { ImageGalleryInput } from '@/features/listings/components/dashboard/Imag
 import { VideoInput } from '@/features/listings/components/dashboard/VideoInput';
 import { ListingLocationPicker } from '@/features/listings/components/dashboard/ListingLocationPicker';
 import { createListing } from '@/features/listings/services/listing-client';
+import {
+  buildCreateImageMeta,
+  type ListingImageDraft,
+} from '@/features/listings/lib/listing-image-meta';
 import { PublicPropertyType, PublicTransactionType, PublicCity } from '@/features/catalog/types/catalog';
 import { PublicPropertySubtype } from '@/features/catalog/types/property-subtype';
 import { PublicNeighborhood } from '@/features/catalog/types/neighborhood';
@@ -72,7 +76,8 @@ export function CreateListingForm({
   const [latitude, setLatitude] = useState('');
   const [longitude, setLongitude] = useState('');
   const [specs, setSpecs] = useState<ListingPropertySpecs>({});
-  const [images, setImages] = useState<File[]>([]);
+  const [images, setImages] = useState<ListingImageDraft[]>([]);
+  const [mainImageId, setMainImageId] = useState<string | null>(null);
   const [video, setVideo] = useState<File | null>(null);
   const [submitting, setSubmitting] = useState(false);
 
@@ -201,7 +206,8 @@ export function CreateListingForm({
       formData.append('latitude', latitude.trim());
       formData.append('longitude', longitude.trim());
       formData.append('property_specs', JSON.stringify(specs));
-      images.forEach((image) => formData.append('images', image));
+      images.forEach((item) => formData.append('images', item.file));
+      formData.append('image_meta', JSON.stringify(buildCreateImageMeta(images, mainImageId)));
       if (video) formData.append('video', video);
 
       await createListing(formData);
@@ -433,7 +439,12 @@ export function CreateListingForm({
             <>
               <label className="block space-y-1.5">
                 <FieldLabel>{t('dashboard.listings.images')}</FieldLabel>
-                <ImageGalleryInput images={images} onChange={setImages} />
+                <ImageGalleryInput
+                  images={images}
+                  mainImageId={mainImageId}
+                  onImagesChange={setImages}
+                  onMainImageChange={setMainImageId}
+                />
               </label>
 
               <label className="block space-y-1.5">

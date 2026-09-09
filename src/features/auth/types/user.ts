@@ -55,6 +55,7 @@ export interface AdminUserListItem {
   phone_number: string;
   role: UserRole;
   status: UserStatus;
+  user_photo: UserPhoto | null;
   created_at: string;
   updated_at: string;
   deleted_at?: string | null;

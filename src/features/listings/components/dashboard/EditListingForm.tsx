@@ -11,7 +11,12 @@ import { ImageGalleryInput } from '@/features/listings/components/dashboard/Imag
 import { VideoInput } from '@/features/listings/components/dashboard/VideoInput';
 import { ExistingPhotosGallery } from '@/features/listings/components/dashboard/ExistingPhotosGallery';
 import { ExistingVideoPreview } from '@/features/listings/components/dashboard/ExistingVideoPreview';
-import { updateListing } from '@/features/listings/services/listing-client';
+import { updateListing, fetchListingPhotos, setListingImagesOrder, setListingMainImage } from '@/features/listings/services/listing-client';
+import {
+  buildImagesOrderPayload,
+  sortPhotosByOrder,
+  type ListingImageDraft,
+} from '@/features/listings/lib/listing-image-meta';
 import { PublicCity } from '@/features/catalog/types/catalog';
 import { PublicNeighborhood } from '@/features/catalog/types/neighborhood';
 import { PublicListingDetail, ListingPropertySpecs } from '@/features/listings/types/listing-detail';
@@ -64,7 +69,8 @@ export function EditListingForm({
       ? { url: listing.video_url, public_id: listing.video_public_id }
       : null,
   );
-  const [newImages, setNewImages] = useState<File[]>([]);
+  const [newImages, setNewImages] = useState<ListingImageDraft[]>([]);
+  const [newMainImageId, setNewMainImageId] = useState<string | null>(null);
   const [video, setVideo] = useState<File | null>(null);
   const [submitting, setSubmitting] = useState(false);
 
@@ -116,10 +122,27 @@ export function EditListingForm({
       formData.append('latitude', latitude.trim());
       formData.append('longitude', longitude.trim());
       formData.append('property_specs', JSON.stringify(specs));
-      newImages.forEach((image) => formData.append('images', image));
+      newImages.forEach((item) => formData.append('images', item.file));
       if (video) formData.append('video', video);
 
+      const originalPublicIds = new Set(existingPhotos.map((photo) => photo.public_id));
+
       await updateListing(listing.id, formData);
+
+      if (newImages.length > 0) {
+        const photos = await fetchListingPhotos(listing.id);
+        const uploaded = sortPhotosByOrder(
+          photos.filter((photo) => !originalPublicIds.has(photo.public_id)),
+        );
+
+        const combined = [...sortPhotosByOrder(existingPhotos), ...uploaded.slice(0, newImages.length)];
+        await setListingImagesOrder(listing.id, buildImagesOrderPayload(combined));
+
+        const mainDraftIndex = newImages.findIndex((draft) => draft.id === newMainImageId);
+        if (mainDraftIndex >= 0 && uploaded[mainDraftIndex]) {
+          await setListingMainImage(listing.id, uploaded[mainDraftIndex].public_id);
+        }
+      }
       toast.success(t('dashboard.listings.updated'));
       router.push(redirectPath);
     } catch (err) {
@@ -296,7 +319,12 @@ export function EditListingForm({
 
           <label className="block space-y-1.5">
             <FieldLabel>{t('dashboard.listings.addImages')}</FieldLabel>
-            <ImageGalleryInput images={newImages} onChange={setNewImages} />
+            <ImageGalleryInput
+              images={newImages}
+              mainImageId={newMainImageId}
+              onImagesChange={setNewImages}
+              onMainImageChange={setNewMainImageId}
+            />
           </label>
 
           <label className="block space-y-1.5">

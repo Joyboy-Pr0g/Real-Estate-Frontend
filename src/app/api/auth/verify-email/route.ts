@@ -10,7 +10,7 @@ export async function POST(request: NextRequest) {
     const parsed = verifyEmailBodySchema.safeParse(body);
     if (!parsed.success) {
       return NextResponse.json(
-        { success: false, message: parsed.error.issues[0]?.message ?? 'Validation failed' },
+        { success: false, message: parsed.error.issues[0]?.message ?? 'فشل التحقق من البريد الإلكتروني' },
         { status: 400 },
       );
     }
@@ -24,6 +24,6 @@ export async function POST(request: NextRequest) {
       { path: backendPaths.auth.verifyEmail, method: 'POST', requireAuth: false },
     );
   } catch {
-    return NextResponse.json({ success: false, message: 'Invalid request body' }, { status: 400 });
+    return NextResponse.json({ success: false, message: 'فشل التحقق من البريد الإلكتروني' }, { status: 400 });
   }
 }

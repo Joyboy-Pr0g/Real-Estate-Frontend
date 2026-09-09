@@ -106,6 +106,13 @@ export async function setListingMainImage(id: string, publicId: string): Promise
   await clientFetch(bffPaths.listings.setMainImage(id), { method: 'PATCH', body: { public_id: publicId } });
 }
 
+export async function setListingImagesOrder(
+  id: string,
+  images: Array<{ public_id: string; order: number }>,
+): Promise<void> {
+  await clientFetch(bffPaths.listings.setImagesOrder(id), { method: 'PATCH', body: { images } });
+}
+
 export async function deleteListingVideo(id: string, publicId: string): Promise<void> {
   await clientFetch(bffPaths.listings.deleteVideo(id), { method: 'DELETE', body: { public_id: publicId } });
 }

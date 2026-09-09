@@ -29,7 +29,7 @@ export default async function OfficeUsersPage({ searchParams }: OfficeUsersPageP
   const officeId = params.office_id ?? offices[0]?.id;
   const period = VALID_PERIODS.includes(params.period as OfficeAnalyticsPeriod)
     ? (params.period as OfficeAnalyticsPeriod)
-    : 'last_year';
+    : 'this_month';
 
   const analytics = officeId ? await getOfficeUserAnalytics(officeId, period) : null;
 

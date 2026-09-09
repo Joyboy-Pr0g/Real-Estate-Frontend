@@ -12,7 +12,7 @@ export async function POST(request: NextRequest) {
     const parsed = registerBodySchema.safeParse(body);
     if (!parsed.success) {
       return NextResponse.json(
-        { success: false, message: parsed.error.issues[0]?.message ?? 'Validation failed' },
+        { success: false, message: parsed.error.issues[0]?.message ?? 'فشل التسجيل' },
         { status: 400 },
       );
     }
@@ -37,6 +37,6 @@ export async function POST(request: NextRequest) {
     if (err instanceof ApiError) {
       return NextResponse.json({ success: false, message: err.message }, { status: err.status });
     }
-    return NextResponse.json({ success: false, message: 'Registration failed' }, { status: 500 });
+    return NextResponse.json({ success: false, message: 'فشل التسجيل' }, { status: 500 });
   }
 }

@@ -1,17 +1,14 @@
 import { redirect } from 'next/navigation';
 import { getSession } from '@/lib/auth/session';
-import { isAdminPanelRole } from '@/lib/auth/constants';
 import { Container } from '@/components/ui/container';
-import { DashboardContent } from '@/features/dashboard/components/DashboardContent';
+import { ProfileSettingsPanel } from '@/features/dashboard/components/ProfileSettingsPanel';
 
-export default async function DashboardPage() {
+export default async function ProfilePage() {
   const user = await getSession();
   if (!user) redirect('/login');
-  if (isAdminPanelRole(user.role)) redirect('/admin');
-
   return (
     <Container className="py-8">
-      <DashboardContent user={user} />
+      <ProfileSettingsPanel user={user} />
     </Container>
   );
 }

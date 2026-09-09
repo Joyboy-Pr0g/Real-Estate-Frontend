@@ -21,6 +21,7 @@ import {
   X,
   Bell,
   Bookmark,
+  User,
 } from 'lucide-react';
 import { AuthUser } from '@/features/auth/types/user';
 import { logout } from '@/features/auth/services/auth-service';
@@ -71,17 +72,25 @@ function buildNavItems(isOffice: boolean, hasIndividualListerProfile: boolean): 
       { href: '/dashboard/office/analytics', labelKey: 'dashboard.office.analyticsNav', icon: LayoutDashboard, exact: false },
       { href: '/dashboard/office/users', labelKey: 'dashboard.office.userAnalyticsNav', icon: Users, exact: false },
     );
-    return items;
   }
 
   if (hasIndividualListerProfile) {
     items.push({ href: '/dashboard/listings', labelKey: 'dashboard.listings', icon: Home, exact: false });
   }
 
+  if (!isOffice && !hasIndividualListerProfile) {
+    items.push({
+      href: '/dashboard/become-a-lister',
+      labelKey: 'dashboard.becomeALister',
+      icon: Sparkles,
+      exact: false,
+    });
+  }
+
   items.push({
-    href: '/dashboard/become-a-lister',
-    labelKey: 'dashboard.becomeALister',
-    icon: Sparkles,
+    href: '/dashboard/profile',
+    labelKey: 'dashboard.profile',
+    icon: User,
     exact: false,
   });
 

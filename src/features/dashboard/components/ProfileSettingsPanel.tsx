@@ -5,7 +5,6 @@ import { useRouter } from 'next/navigation';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as Tabs from '@radix-ui/react-tabs';
-import { Button } from '@/components/ui/button';
 import { toast } from '@/components/ui/toaster';
 import {
   createUpdateProfileSchema,
@@ -13,12 +12,15 @@ import {
   createChangePasswordSchema,
   ChangePasswordInput,
 } from '@/features/auth/schemas/auth-schemas';
-import { updateProfile, changePassword } from '@/features/auth/services/auth-service';
+import { updateProfile, changePassword, deleteProfileImage } from '@/features/auth/services/auth-service';
 import { AuthUser } from '@/features/auth/types/user';
 import { buildPartialUpdate, hasPartialChanges } from '@/features/admin/lib/partial-update';
 import { getErrorMessage } from '@/lib/errors/api-error';
 import { useLocale } from '@/lib/i18n/locale-provider';
 import { cn } from '@/lib/utils/cn';
+import Image from 'next/image';
+import { Trash } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 
 const fieldClassName =
   'h-11 w-full rounded-xl border border-gray-200 bg-gray-50 px-4 text-sm outline-none transition-colors focus:border-brand/40 focus:bg-white focus:ring-2 focus:ring-brand/15';
@@ -41,6 +43,7 @@ export function ProfileSettingsPanel({ user }: ProfileSettingsPanelProps) {
   const profileSchema = useMemo(() => createUpdateProfileSchema(t), [t]);
   const passwordSchema = useMemo(() => createChangePasswordSchema(t), [t]);
   const photoInputRef = useRef<HTMLInputElement>(null);
+  const [isUpdating, setIsUpdating] = useState(false);
   const [photoFile, setPhotoFile] = useState<File | null>(null);
   const [photoPreview, setPhotoPreview] = useState<string | null>(user.user_photo?.url ?? null);
 
@@ -69,6 +72,7 @@ export function ProfileSettingsPanel({ user }: ProfileSettingsPanelProps) {
       toast.info(t('dashboard.noChangesToSave'));
       return;
     }
+    setIsUpdating(true);
 
     try {
       await updateProfile(patch, photoFile);
@@ -77,6 +81,8 @@ export function ProfileSettingsPanel({ user }: ProfileSettingsPanelProps) {
       router.refresh();
     } catch (err) {
       toast.error(getErrorMessage(err));
+    } finally {
+      setIsUpdating(false);
     }
   };
 
@@ -107,12 +113,25 @@ export function ProfileSettingsPanel({ user }: ProfileSettingsPanelProps) {
     }
   };
 
+  const onDeleteProfileImage = async () => {
+    setIsUpdating(true);
+    try {
+      await deleteProfileImage();
+      toast.success(t('dashboard.profileImageDeleted'));
+      setPhotoPreview(null);
+    } catch (err) {
+      toast.error(getErrorMessage(err));
+    } finally {
+      setIsUpdating(false);
+    }
+  };
+
   return (
-    <div className="mx-auto w-full max-w-2xl">
+    <div className={`mx-auto w-full max-w-2xl ${isUpdating ? 'opacity-50' : ''}`}>
       <Tabs.Root
         defaultValue="profile"
         dir={dir}
-        className="rounded-2xl border border-gray-200 bg-white shadow-[var(--shadow-soft)]"
+        className="rounded-2xl border border-gray-200 bg-white shadow-var(--shadow-soft)"
       >
         <Tabs.List className="flex gap-1 border-b border-gray-100 p-2">
           <Tabs.Trigger value="profile" className={tabTriggerClass}>
@@ -128,17 +147,22 @@ export function ProfileSettingsPanel({ user }: ProfileSettingsPanelProps) {
             <div className="space-y-2">
               <p className="text-sm font-medium text-primary-dark">{t('dashboard.profilePhoto')}</p>
               <div className="flex items-center gap-4">
-                <div className="flex h-20 w-20 shrink-0 items-center justify-center overflow-hidden rounded-full border border-gray-200 bg-gray-100">
+                <div className="relative flex h-20 w-20 shrink-0 items-center justify-center rounded-full border border-gray-200 bg-gray-100">
                   {photoPreview ? (
-                    // eslint-disable-next-line @next/next/no-img-element
-                    <img src={photoPreview} alt="" className="h-full w-full object-cover" />
+                    <div className="size-20 ring-2 ring-gray-400 rounded-full">
+                      <Image src={photoPreview} alt="" fill className="object-cover rounded-full" />
+                      <Button type="button" variant="danger" size='icon' onClick={onDeleteProfileImage}
+                        className="absolute bottom-0 left-1/2 -translate-x-1/2 translate-y-1/2">
+                        <Trash className="size-4 text-white" />
+                      </Button>
+                    </div>
                   ) : (
                     <span className="text-lg font-semibold text-gray-400">
                       {user.f_name.charAt(0)}
                       {user.l_name.charAt(0)}
                     </span>
                   )}
-                </div>
+                </div>  
                 <div className="space-y-1">
                   <input
                     ref={photoInputRef}

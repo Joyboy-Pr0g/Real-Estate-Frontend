@@ -12,7 +12,7 @@ export async function POST(request: NextRequest) {
     const parsed = loginBodySchema.safeParse(body);
     if (!parsed.success) {
       return NextResponse.json(
-        { success: false, message: parsed.error.issues[0]?.message ?? 'Validation failed' },
+        { success: false, message: parsed.error.issues[0]?.message ?? 'فشل تسجيل الدخول' },
         { status: 400 },
       );
     }
@@ -41,6 +41,6 @@ export async function POST(request: NextRequest) {
         { status: err.status },
       );
     }
-    return NextResponse.json({ success: false, message: 'Login failed' }, { status: 500 });
+    return NextResponse.json({ success: false, message: 'فشل تسجيل الدخول' }, { status: 500 });
   }
 }

@@ -6,6 +6,7 @@ import { UserRoleBadge, UserStatusBadge } from '@/features/admin/components/user
 import { formatDateTime } from '@/lib/utils/format';
 import { useLocale } from '@/lib/i18n/locale-provider';
 import type { TranslationKey } from '@/lib/i18n/ar';
+import Image from 'next/image';
 
 const roleKeys: Record<UserRole, TranslationKey> = {
   buyer: 'admin.role.buyer',
@@ -47,9 +48,16 @@ export function UserCard({
     <article className="rounded-2xl border border-gray-200 bg-white p-4 shadow-var(--shadow-soft)">
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
-          <h3 className="truncate font-semibold text-primary-dark">
-            {user.f_name} {user.l_name}
-          </h3>
+          <div className="flex items-center gap-2">
+            {user.user_photo ? (
+              <Image src={user.user_photo.url} alt={user.f_name} width={40} height={40} className="size-12 ring-2 ring-gray-400 rounded-full object-cover" />
+            ) : (
+              <Image src={'/default-profile.jpg'} alt={user.f_name} width={40} height={40} className="size-12 ring-2 ring-gray-400 rounded-full object-cover" />
+            )}
+            <h3 className="truncate font-semibold text-primary-dark">
+              {user.f_name} {user.l_name}
+            </h3>
+          </div>
           <p className="truncate text-sm text-gray-500">{user.email}</p>
         </div>
         <UserActionsMenu

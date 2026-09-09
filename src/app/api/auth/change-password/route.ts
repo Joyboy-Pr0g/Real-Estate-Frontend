@@ -10,7 +10,7 @@ export async function POST(request: NextRequest) {
     const parsed = changePasswordBodySchema.safeParse(body);
     if (!parsed.success) {
       return NextResponse.json(
-        { success: false, message: parsed.error.issues[0]?.message ?? 'Validation failed' },
+        { success: false, message: parsed.error.issues[0]?.message ?? 'فشل تغيير كلمة المرور' },
         { status: 400 },
       );
     }
@@ -24,6 +24,6 @@ export async function POST(request: NextRequest) {
       { path: backendPaths.auth.changePassword, method: 'POST' },
     );
   } catch {
-    return NextResponse.json({ success: false, message: 'Invalid request body' }, { status: 400 });
+    return NextResponse.json({ success: false, message: 'فشل تغيير كلمة المرور' }, { status: 400 });
   }
 }

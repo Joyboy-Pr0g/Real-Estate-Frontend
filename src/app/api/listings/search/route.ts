@@ -25,7 +25,7 @@ export async function GET(req: NextRequest) {
   } catch (error) {
     if (error instanceof ZodError) {
       return NextResponse.json(
-        { success: false, message: error.issues[0]?.message ?? 'Validation error' },
+        { success: false, message: error.issues[0]?.message ?? 'فشل البحث' },
         { status: 400 },
       );
     }
@@ -38,7 +38,7 @@ export async function GET(req: NextRequest) {
     }
 
     return NextResponse.json(
-      { success: false, message: 'Internal server error' },
+      { success: false, message: 'خطأ في الخادم' },
       { status: 500 },
     );
   }

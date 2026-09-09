@@ -31,7 +31,7 @@ export default async function OfficeAnalyticsPage({ searchParams }: OfficeAnalyt
   const officeId = params.office_id ?? verifiedOffices[0]?.id;
   const period = VALID_PERIODS.includes(params.period as OfficeAnalyticsPeriod)
     ? (params.period as OfficeAnalyticsPeriod)
-    : 'last_year';
+    : 'this_month';
   const cityId = params.city_id;
 
   const analytics = officeId ? await getOfficeAnalytics(officeId, period, cityId) : null;

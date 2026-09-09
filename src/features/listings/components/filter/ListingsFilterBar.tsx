@@ -316,7 +316,7 @@ export function ListingsFilterBar({
 
   const filterContent = (
     <>
-      <div className="relative flex items-center justify-between gap-2 border-b border-gray-100/80 px-4 py-3">
+      <div className="relative flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 border-b border-gray-100/80 px-4 py-3">
         <div className="flex items-center gap-2">
           <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-brand-muted text-brand">
             <SlidersHorizontal className="h-3.5 w-3.5" strokeWidth={2.2} />
@@ -331,14 +331,14 @@ export function ListingsFilterBar({
           </div>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex items-center w-full sm:w-auto gap-2">
           {basePath === '/listings' ? (
             <Link
               href={mapViewHref}
-              className="inline-flex items-center gap-1.5 rounded-full bg-brand-muted px-2.5 py-1.5 text-[11px] font-semibold text-brand-dark transition-colors hover:bg-brand/15"
+              className="flex-1 sm:flex-none inline-flex items-center gap-1.5 rounded-full bg-brand-muted px-2.5 py-1.5 text-[11px] font-semibold text-brand-dark transition-colors hover:bg-brand/15"
             >
               <Map className="h-3.5 w-3.5" />
-              <span className="hidden sm:inline">{t('map.mapView')}</span>
+              <span className="inline">{t('map.mapView')}</span>
             </Link>
           ) : null}
           {pending ? <Loader2 className="h-4 w-4 animate-spin text-gray-400" aria-hidden /> : null}
@@ -347,7 +347,7 @@ export function ListingsFilterBar({
               <button
                 type="button"
                 onClick={handleSaveFilterClick}
-                className="inline-flex items-center gap-1.5 rounded-full bg-brand-muted px-2.5 py-1.5 text-[11px] font-semibold text-brand-dark transition-colors hover:bg-brand/15"
+                className="flex-1 sm:flex-none inline-flex items-center justify-center gap-1.5 rounded-full bg-brand-muted px-2.5 py-1.5 text-[11px] font-semibold text-brand-dark transition-colors hover:bg-brand/15"
               >
                 <Bookmark className="h-3.5 w-3.5" />
                 {t('filters.saveFilter')}
@@ -355,7 +355,7 @@ export function ListingsFilterBar({
               <button
                 type="button"
                 onClick={clearAll}
-                className="inline-flex items-center gap-1.5 rounded-full bg-gray-100/90 px-2.5 py-1.5 text-[11px] font-semibold text-gray-600 transition-colors hover:bg-gray-200/90 hover:text-primary-dark"
+                className="flex-1 sm:flex-none inline-flex items-center justify-center gap-1.5 rounded-full bg-gray-100/90 px-2.5 py-1.5 text-[11px] font-semibold text-gray-600 transition-colors hover:bg-gray-200/90 hover:text-primary-dark"
               >
                 <RotateCcw className="h-3.5 w-3.5" />
                 {t('filters.clearAll')}

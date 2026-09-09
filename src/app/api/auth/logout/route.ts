@@ -15,12 +15,12 @@ export async function POST() {
       }
     }
     await clearSession();
-    return NextResponse.json({ success: true, message: 'Logged out successfully' });
+    return NextResponse.json({ success: true, message: 'تم تسجيل الخروج بنجاح' });
   } catch (err) {
     await clearSession();
     if (err instanceof ApiError) {
       return NextResponse.json({ success: false, message: err.message }, { status: err.status });
     }
-    return NextResponse.json({ success: true, message: 'Logged out' });
+    return NextResponse.json({ success: true, message: 'تم تسجيل الخروج' });
   }
 }

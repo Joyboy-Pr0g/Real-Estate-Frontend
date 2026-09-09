@@ -6,6 +6,8 @@ import { UserRoleBadge, UserStatusBadge } from '@/features/admin/components/user
 import { formatDateTime } from '@/lib/utils/format';
 import { useLocale } from '@/lib/i18n/locale-provider';
 import type { TranslationKey } from '@/lib/i18n/ar';
+import Image from 'next/image';
+import { X } from 'lucide-react';
 
 const roleKeys: Record<UserRole, TranslationKey> = {
   buyer: 'admin.role.buyer',
@@ -69,6 +71,7 @@ export function UserTable({
                   />
                 </th>
               ) : null}
+              <th className="px-5 py-4 font-semibold text-gray-600">الصورة</th>
               <th className="px-5 py-4 font-semibold text-gray-600">{t('admin.userName')}</th>
               <th className="px-5 py-4 font-semibold text-gray-600">{t('admin.userEmail')}</th>
               <th className="px-5 py-4 font-semibold text-gray-600">{t('admin.userPhone')}</th>
@@ -92,6 +95,16 @@ export function UserTable({
                     />
                   </td>
                 ) : null}
+                <td className="px-5 py-4">
+                  {user.user_photo ? (
+                    <Image src={user.user_photo.url} alt={user.f_name} width={40} height={40} className="size-12 ring-2 ring-gray-400 rounded-full object-cover" />
+                  ) : (
+                    <Image src={'/default-profile.jpg'} alt={user.f_name} width={40} height={40} className="size-12 ring-2 ring-gray-400 rounded-full object-cover" />
+                  )}
+                  {/* <button type="button" onClick={() => onDeleteProfileImage(user.id)} className="absolute top-0 right-0">
+                    <X className="h-4 w-4 text-gray-500" />
+                  </button> */}
+                </td>
                 <td className="px-5 py-4">
                   <p className="font-semibold text-primary-dark">
                     {user.f_name} {user.l_name}
