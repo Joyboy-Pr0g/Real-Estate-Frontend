@@ -14,3 +14,19 @@ export function revalidateWebsiteSettingsMarketplace() {
   revalidatePath('/sitemap.xml');
   revalidatePath('/robots.txt');
 }
+
+export function revalidatePublicCatalog() {
+  revalidateTag('public-catalog', 'max');
+  revalidateMarketplaceLayout();
+  revalidatePath('/listings', 'layout');
+}
+
+export function revalidateListingsMarketplace(listingId?: string) {
+  revalidateTag('listings-search', 'max');
+  if (listingId) {
+    revalidateTag(`listing-${listingId}`, 'max');
+  }
+  revalidateMarketplaceLayout();
+  revalidatePath('/listings', 'layout');
+  revalidatePath('/');
+}

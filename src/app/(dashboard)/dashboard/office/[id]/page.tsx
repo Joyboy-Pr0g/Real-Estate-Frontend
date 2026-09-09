@@ -1,4 +1,3 @@
-import { redirect } from 'next/navigation';
 import { getSession } from '@/lib/auth/session';
 import { getServerTranslations } from '@/lib/i18n/server';
 import { Container } from '@/components/ui/container';
@@ -9,9 +8,7 @@ interface OfficeDetailPageProps {
 }
 
 export default async function OfficeDetailPage({ params }: OfficeDetailPageProps) {
-  const user = await getSession();
-  if (!user) redirect('/login');
-
+  const user = (await getSession())!;
   const { id } = await params;
   const { t } = await getServerTranslations();
 

@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { proxyCatalogMutation } from '@/lib/api/catalog-mutation-route';
 import { proxyToBackend } from '@/lib/api/route-handler';
 import { backendPaths } from '@/lib/api/endpoints';
 import {
@@ -39,7 +40,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    return proxyToBackend(
+    return proxyCatalogMutation(
       new NextRequest(request.url, {
         method: 'POST',
         headers: request.headers,

@@ -1,3 +1,4 @@
+import { cache } from 'react';
 import { cookies } from 'next/headers';
 import { fetchBackend } from '@/lib/api/fetch';
 import { backendPaths } from '@/lib/api/endpoints';
@@ -92,7 +93,7 @@ export async function syncAdminPermissionsCookie(token?: string): Promise<UserPe
   }
 }
 
-export async function getSession(): Promise<AuthUser | null> {
+export const getSession = cache(async (): Promise<AuthUser | null> => {
   const token = await getAuthToken();
   if (!token) return null;
 
@@ -105,7 +106,7 @@ export async function getSession(): Promise<AuthUser | null> {
   } catch {
     return null;
   }
-}
+});
 
 /** Sub-admin permissions for RSC (layout/provider). Does not mutate cookies. */
 export async function getSubAdminPermissions(user: AuthUser | null): Promise<UserPermissionAccess[]> {

@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import { useQueryClient } from '@tanstack/react-query';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import Image from 'next/image';
 import { useRouter, useSearchParams } from 'next/navigation';
@@ -27,9 +28,11 @@ import {
   restoreListing,
   softDeleteListing,
 } from '@/features/listings/services/listing-client';
+import { useMyListingsInfinite } from '@/features/listings/hooks/use-my-listings-infinite';
 import { clientFetch } from '@/lib/api/client';
 import { bffPaths } from '@/lib/api/endpoints';
 import { getErrorMessage } from '@/lib/errors/api-error';
+import { invalidateListingsQueries } from '@/lib/query/invalidate-listings';
 import { useLocale } from '@/lib/i18n/locale-provider';
 import { formatPriceYER } from '@/lib/utils/currency';
 import { cn } from '@/lib/utils/cn';
@@ -51,14 +54,6 @@ interface MyListingsPanelProps {
   myOffices?: MyOffice[];
   initialOfficeId?: string;
   initialOfficeLabel?: string;
-}
-
-interface CursorApiResponse {
-  success: boolean;
-  data: MyListingSummary[];
-  next_cursor: string | null;
-  has_more: boolean;
-  message?: string;
 }
 
 const STATUS_STYLES: Record<PublicListing['status'], string> = {
@@ -371,8 +366,27 @@ export function MyListingsPanel({
 }: MyListingsPanelProps) {
   const { t } = useLocale();
   const router = useRouter();
+  const queryClient = useQueryClient();
   const searchParams = useSearchParams();
   const sentinelRef = useRef<HTMLDivElement>(null);
+
+  const {
+    items,
+    hasMore,
+    filterLoading,
+    loadMoreLoading,
+    loadMoreError,
+    loadMore,
+    filterKey,
+  } = useMyListingsInfinite({
+    initialItems,
+    initialCursor,
+    initialHasMore,
+  });
+
+  const invalidateListings = useCallback(() => {
+    void invalidateListingsQueries(queryClient);
+  }, [queryClient]);
 
   const [searchInput, setSearchInput] = useState(initialSearch);
   const debouncedSearch = useDebounce(searchInput, 400);
@@ -387,11 +401,6 @@ export function MyListingsPanel({
     setOfficeLabel(initialOfficeLabel);
   }
 
-  const [items, setItems] = useState(initialItems);
-  const [cursor, setCursor] = useState(initialCursor);
-  const [hasMore, setHasMore] = useState(initialHasMore);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(false);
   const [actionId, setActionId] = useState<string | null>(null);
   const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
   const [deletedModalOpen, setDeletedModalOpen] = useState(false);
@@ -409,14 +418,6 @@ export function MyListingsPanel({
   const [loadingSubtypes, setLoadingSubtypes] = useState(false);
   const [neighborhoods, setNeighborhoods] = useState<PublicNeighborhood[]>(initialNeighborhoods);
   const [loadingNeighborhoods, setLoadingNeighborhoods] = useState(false);
-
-  const [prevItems, setPrevItems] = useState(initialItems);
-  if (initialItems !== prevItems) {
-    setPrevItems(initialItems);
-    setItems(initialItems);
-    setCursor(initialCursor);
-    setHasMore(initialHasMore);
-  }
 
   const updateFilters = (updates: Record<string, string>) => {
     const params = new URLSearchParams(searchParams.toString());
@@ -482,45 +483,9 @@ export function MyListingsPanel({
     setOfficeLabel(label);
   };
 
-  const loadMore = useCallback(async () => {
-    if (!hasMore || !cursor || loading) return;
-
-    setLoading(true);
-    setError(false);
-
-    try {
-      const params = new URLSearchParams({ cursor });
-      if (status) params.set('status', status);
-      if (debouncedSearch.trim()) params.set('search', debouncedSearch.trim());
-      if (propertyTypeId) params.set('property_type_id', propertyTypeId);
-      if (propertySubtypeId) params.set('property_subtype_id', propertySubtypeId);
-      if (transactionTypeId) params.set('transaction_type_id', transactionTypeId);
-      if (cityId) params.set('city_id', cityId);
-      if (neighborhoodId) params.set('neighborhood_id', neighborhoodId);
-      if (officeId) params.set('office_id', officeId);
-
-      const response = await fetch(`${bffPaths.listings.myListings}?${params.toString()}`, {
-        headers: { Accept: 'application/json' },
-      });
-      const json = (await response.json()) as CursorApiResponse;
-
-      if (!response.ok || !json.success) {
-        throw new Error(json.message ?? 'Request failed');
-      }
-
-      setItems((prev) => [...prev, ...(json.data ?? [])]);
-      setCursor(json.next_cursor ?? null);
-      setHasMore(json.has_more ?? false);
-    } catch {
-      setError(true);
-    } finally {
-      setLoading(false);
-    }
-  }, [cursor, hasMore, loading, status, debouncedSearch, propertyTypeId, propertySubtypeId, transactionTypeId, cityId, neighborhoodId, officeId]);
-
   useEffect(() => {
     const node = sentinelRef.current;
-    if (!node || !hasMore) return;
+    if (!node || !hasMore || filterLoading || loadMoreLoading) return;
 
     const observer = new IntersectionObserver(
       (entries) => {
@@ -531,14 +496,14 @@ export function MyListingsPanel({
 
     observer.observe(node);
     return () => observer.disconnect();
-  }, [hasMore, loadMore]);
+  }, [hasMore, loadMore, filterKey, filterLoading, loadMoreLoading]);
 
   const runAction = async (id: string, action: () => Promise<void>, successMessageKey: TranslationKey) => {
     setActionId(id);
     try {
       await action();
       toast.success(t(successMessageKey));
-      router.refresh();
+      invalidateListings();
     } catch (err) {
       toast.error(getErrorMessage(err));
     } finally {
@@ -558,7 +523,7 @@ export function MyListingsPanel({
         toast.success(t('dashboard.listings.rented'));
       }
       setHistoryModal({ listingId, action });
-      router.refresh();
+      invalidateListings();
     } catch (err) {
       toast.error(getErrorMessage(err));
     } finally {
@@ -694,12 +659,16 @@ export function MyListingsPanel({
         </div>
       </div>
 
-      {items.length === 0 ? (
+      {filterLoading && items.length === 0 ? (
+        <div className="rounded-2xl border border-gray-200 bg-white px-6 py-16 text-center">
+          <Loader2 className="mx-auto h-6 w-6 animate-spin text-gray-400" />
+        </div>
+      ) : items.length === 0 ? (
         <div className="rounded-2xl border border-dashed border-gray-200 bg-white px-6 py-16 text-center">
           <p className="text-gray-500">{t('dashboard.listings.empty')}</p>
         </div>
       ) : (
-        <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
+        <div className={cn('grid grid-cols-1 gap-4 lg:grid-cols-3', filterLoading && 'opacity-60')}>
           {items.map((listing) => (
             <MyListingCard
               key={listing.id}
@@ -719,8 +688,8 @@ export function MyListingsPanel({
       )}
 
       <div ref={sentinelRef} className="flex min-h-8 items-center justify-center">
-        {loading ? <p className="text-xs text-gray-400">…</p> : null}
-        {error ? (
+        {loadMoreLoading ? <p className="text-xs text-gray-400">…</p> : null}
+        {loadMoreError ? (
           <button
             type="button"
             onClick={() => void loadMore()}
@@ -729,7 +698,7 @@ export function MyListingsPanel({
             {t('filters.loadMoreError')}
           </button>
         ) : null}
-        {!hasMore && items.length > 0 ? (
+        {!hasMore && items.length > 0 && !filterLoading ? (
           <p className="text-xs text-gray-400">{t('filters.endOfResults')}</p>
         ) : null}
       </div>
@@ -752,7 +721,7 @@ export function MyListingsPanel({
       <DeletedListingsModal
         open={deletedModalOpen}
         onClose={() => setDeletedModalOpen(false)}
-        onChanged={() => router.refresh()}
+        onChanged={invalidateListings}
       />
 
       {historyModal ? (
@@ -761,7 +730,7 @@ export function MyListingsPanel({
           listingId={historyModal.listingId}
           action={historyModal.action}
           onClose={() => setHistoryModal(null)}
-          onComplete={() => router.refresh()}
+          onComplete={invalidateListings}
         />
       ) : null}
     </div>

@@ -83,8 +83,6 @@ export async function ListingsMapContent({ searchParams }: ListingsMapContentPro
       initialNeighborhoods={initialNeighborhoods}
       initialPropertySubtypes={initialPropertySubtypes}
       isAuthenticated={Boolean(session)}
-      viewLevel={viewLevel}
-      resolvedFilters={{ ...resolvedFilters, limit: MAP_LISTINGS_PAGE_SIZE }}
     />
   );
 }

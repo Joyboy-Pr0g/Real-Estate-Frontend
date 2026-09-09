@@ -1,4 +1,4 @@
-import { notFound, redirect } from 'next/navigation';
+import { notFound } from 'next/navigation';
 import { getSession } from '@/lib/auth/session';
 import { Container } from '@/components/ui/container';
 import { getOfficeDetail } from '@/features/office/services/office-service';
@@ -11,9 +11,7 @@ interface OfficeUserActionLogsPageProps {
 }
 
 export default async function OfficeUserActionLogsPage({ params }: OfficeUserActionLogsPageProps) {
-  const user = await getSession();
-  if (!user) redirect('/login');
-
+  const user = (await getSession())!;
   const { id: officeId, userId } = await params;
   const { t } = await getServerTranslations();
 

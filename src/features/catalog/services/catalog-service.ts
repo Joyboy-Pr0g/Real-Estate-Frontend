@@ -1,3 +1,4 @@
+import { cache } from 'react';
 import { serverFetch } from '@/lib/api/server';
 import { backendPaths } from '@/lib/api/endpoints';
 import { ApiError } from '@/lib/errors/api-error';
@@ -14,28 +15,32 @@ import { PublicPropertySubtype } from '../types/property-subtype';
 export const catalogService = {
   async getCities(): Promise<PublicCity[]> {
     const res = await serverFetch<PublicCity[]>(backendPaths.cities.public, {
-      cacheProfile: 'long',
+      cacheProfile: 'static',
+      tags: ['public-catalog'],
     });
     return res.data ?? [];
   },
 
   async getPropertyTypes(): Promise<PublicPropertyType[]> {
     const res = await serverFetch<PublicPropertyType[]>(backendPaths.propertyTypes.public, {
-      cacheProfile: 'long',
+      cacheProfile: 'static',
+      tags: ['public-catalog'],
     });
     return res.data ?? [];
   },
 
   async getTransactionTypes(): Promise<PublicTransactionType[]> {
     const res = await serverFetch<PublicTransactionType[]>(backendPaths.transactionTypes.public, {
-      cacheProfile: 'long',
+      cacheProfile: 'static',
+      tags: ['public-catalog'],
     });
     return res.data ?? [];
   },
 
   async getNeighborhoodsByCity(cityId: string): Promise<PublicNeighborhood[]> {
     const res = await serverFetch<PublicNeighborhood[]>(backendPaths.neighborhoods.public, {
-      cacheProfile: 'short',
+      cacheProfile: 'static',
+      tags: ['public-catalog'],
       searchParams: { city_id: cityId, limit: 100 },
     });
     return normalizePublicNeighborhoods((res.data ?? []) as Array<PublicNeighborhood & Record<string, unknown>>);
@@ -44,7 +49,7 @@ export const catalogService = {
   async getPropertySubtypes(propertyTypeId: string): Promise<PublicPropertySubtype[]> {
     const res = await serverFetch<PublicPropertySubtype[]>(
       backendPaths.propertySubtypes.byPropertyType(propertyTypeId),
-      { cacheProfile: 'long' },
+      { cacheProfile: 'static', tags: ['public-catalog'] },
     );
     return res.data ?? [];
   },
@@ -52,7 +57,8 @@ export const catalogService = {
   async getPropertySubtypeBySlug(slug: string): Promise<PublicPropertySubtype | null> {
     try {
       const res = await serverFetch<PublicPropertySubtype>(backendPaths.propertySubtypes.bySlug(slug), {
-        cacheProfile: 'long',
+        cacheProfile: 'static',
+        tags: ['public-catalog'],
       });
       return res.data ?? null;
     } catch (error) {
@@ -61,12 +67,12 @@ export const catalogService = {
     }
   },
 
-  async getPublicCatalog(): Promise<PublicCatalog> {
+  getPublicCatalog: cache(async (): Promise<PublicCatalog> => {
     const [cities, propertyTypes, transactionTypes] = await Promise.all([
-      this.getCities(),
-      this.getPropertyTypes(),
-      this.getTransactionTypes(),
+      catalogService.getCities(),
+      catalogService.getPropertyTypes(),
+      catalogService.getTransactionTypes(),
     ]);
     return { cities, propertyTypes, transactionTypes };
-  },
+  }),
 };

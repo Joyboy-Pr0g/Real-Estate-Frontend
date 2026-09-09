@@ -20,8 +20,7 @@ const VALID_PERIODS: OfficeAnalyticsPeriod[] = [
 ];
 
 export default async function OfficeAnalyticsPage({ searchParams }: OfficeAnalyticsPageProps) {
-  const user = await getSession();
-  if (!user) redirect('/login');
+  const user = (await getSession())!;
   if (user.role !== 'office') redirect('/dashboard');
 
   const { t } = await getServerTranslations();

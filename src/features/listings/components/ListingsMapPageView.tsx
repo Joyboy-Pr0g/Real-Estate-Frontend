@@ -10,13 +10,23 @@ import { PublicPropertySubtype } from '@/features/catalog/types/property-subtype
 import { ListingsFilterBar } from '@/features/listings/components/filter/ListingsFilterBar';
 import { ListingsDiscoveryMap, MapViewLevel } from '@/features/listings/components/map/ListingsDiscoveryMap';
 import { ListingsMapListingList } from '@/features/listings/components/map/ListingsMapListingList';
+import { MAP_LISTINGS_PAGE_SIZE } from '@/features/listings/constants/map-config';
 import { LISTING_URL_PARAMS } from '@/features/listings/constants/search-url-params';
-import { ListingSearchQuery } from '@/features/listings/schemas/search-schema';
+import { useMarketplaceListingsInfinite } from '@/features/listings/hooks/use-marketplace-listings-infinite';
 import { PublicListing } from '@/features/listings/types/listing';
 import { useLocale } from '@/lib/i18n/locale-provider';
 import { cn } from '@/lib/utils/cn';
 
 const MAP_PATH = '/listings/map';
+
+function resolveViewLevel(searchParams: URLSearchParams): MapViewLevel {
+  const city = searchParams.get(LISTING_URL_PARAMS.city);
+  const neighborhood = searchParams.get(LISTING_URL_PARAMS.neighborhood);
+  const hasNeighborhood = Boolean(neighborhood && neighborhood !== 'undefined');
+  if (city && hasNeighborhood) return 'listings';
+  if (city) return 'city';
+  return 'country';
+}
 
 interface ListingsMapPageViewProps {
   catalog: PublicCatalog;
@@ -26,8 +36,6 @@ interface ListingsMapPageViewProps {
   initialNeighborhoods: PublicNeighborhood[];
   initialPropertySubtypes: PublicPropertySubtype[];
   isAuthenticated: boolean;
-  viewLevel: MapViewLevel;
-  resolvedFilters: ListingSearchQuery;
 }
 
 export function ListingsMapPageView({
@@ -38,14 +46,32 @@ export function ListingsMapPageView({
   initialNeighborhoods,
   initialPropertySubtypes,
   isAuthenticated,
-  viewLevel,
-  resolvedFilters,
 }: ListingsMapPageViewProps) {
   const { t } = useLocale();
   const searchParams = useSearchParams();
   const [sidebarOpen, setSidebarOpen] = useState(true);
 
   const queryKey = searchParams.toString();
+  const viewLevel = useMemo(() => resolveViewLevel(searchParams), [searchParams]);
+
+  const {
+    listings: searchListings,
+    hasMore: searchHasMore,
+    filterLoading,
+    filterError,
+    loadMoreLoading,
+    loadMoreError,
+    loadMore,
+    retryFilter,
+  } = useMarketplaceListingsInfinite({
+    initialListings: listings,
+    initialCursor: nextCursor,
+    initialHasMore: hasMore,
+    enabled: viewLevel === 'listings',
+    defaultLimit: MAP_LISTINGS_PAGE_SIZE,
+  });
+
+  const displayListings = viewLevel === 'listings' ? searchListings : [];
 
   const cityPcode = searchParams.get(LISTING_URL_PARAMS.city) ?? '';
   const neighborhoodPcode = searchParams.get(LISTING_URL_PARAMS.neighborhood) ?? '';
@@ -84,7 +110,7 @@ export function ListingsMapPageView({
                 ? t('map.hintCountry')
                 : viewLevel === 'city'
                   ? t('map.hintCity')
-                  : t('map.hintListings').replace('{count}', String(listings.length))}
+                  : t('map.hintListings').replace('{count}', String(displayListings.length))}
             </p>
           </div>
           <div className="flex shrink-0 items-center gap-1">
@@ -125,11 +151,14 @@ export function ListingsMapPageView({
             <div className="min-h-0 flex-1 overflow-y-auto px-3 py-3 md:px-4">
               {viewLevel === 'listings' ? (
                 <ListingsMapListingList
-                  initialListings={listings}
-                  initialCursor={nextCursor}
-                  initialHasMore={hasMore}
-                  resolvedFilters={resolvedFilters}
-                  queryKey={queryKey}
+                  listings={displayListings}
+                  hasMore={searchHasMore}
+                  filterLoading={filterLoading}
+                  filterError={filterError}
+                  loadMoreLoading={loadMoreLoading}
+                  loadMoreError={loadMoreError}
+                  onLoadMore={() => void loadMore()}
+                  onRetryFilter={retryFilter}
                 />
               ) : (
                 <div className="rounded-xl border border-dashed border-gray-200 bg-gray-50 px-4 py-8 text-center text-sm text-gray-500">
@@ -145,7 +174,7 @@ export function ListingsMapPageView({
         <ListingsDiscoveryMap
           catalog={catalog}
           neighborhoods={initialNeighborhoods}
-          listings={listings}
+          listings={displayListings}
           viewLevel={viewLevel}
           selectedCity={selectedCity}
           selectedNeighborhood={selectedNeighborhood}

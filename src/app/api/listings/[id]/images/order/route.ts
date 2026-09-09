@@ -1,8 +1,12 @@
 import { NextRequest } from 'next/server';
-import { proxyToBackend } from '@/lib/api/route-handler';
+import { proxyListingMutation } from '@/lib/api/listing-mutation-route';
 import { backendPaths } from '@/lib/api/endpoints';
 
 export async function PATCH(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
-  return proxyToBackend(request, { path: backendPaths.listings.setImagesOrder(id), method: 'PATCH' });
+  return proxyListingMutation(request, {
+    path: backendPaths.listings.setImagesOrder(id),
+    method: 'PATCH',
+    listingId: id,
+  });
 }

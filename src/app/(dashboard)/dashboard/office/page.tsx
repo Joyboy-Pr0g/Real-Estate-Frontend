@@ -1,4 +1,3 @@
-import { redirect } from 'next/navigation';
 import { getSession } from '@/lib/auth/session';
 import { getServerTranslations } from '@/lib/i18n/server';
 import { Container } from '@/components/ui/container';
@@ -7,8 +6,7 @@ import { getMyOffices } from '@/features/office/services/office-service';
 import { MyOfficesPanel } from '@/features/office/components/MyOfficesPanel';
 
 export default async function OfficePage() {
-  const user = await getSession();
-  if (!user) redirect('/login');
+  const user = (await getSession())!;
 
   const { t } = await getServerTranslations();
   const [offices, cities] = await Promise.all([getMyOffices(), catalogService.getCities()]);

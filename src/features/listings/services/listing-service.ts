@@ -54,6 +54,7 @@ export const listingService = {
   async search(params: ListingSearchQuery = {}) {
     const response = await serverFetch<PublicListing[]>(backendPaths.listings.search, {
       cacheProfile: 'short',
+      tags: ['listings-search'],
       searchParams: buildSearchParams(params),
     });
 
@@ -72,6 +73,7 @@ export const listingService = {
     try {
       const response = await serverFetch<PublicListingDetail>(backendPaths.listings.getById(id), {
         cacheProfile: 'short',
+        tags: ['listings', `listing-${id}`],
       });
       return response.data ?? null;
     } catch (error) {
@@ -83,7 +85,8 @@ export const listingService = {
   async getBySlug(slug: string): Promise<PublicListingDetail | null> {
     try {
       const response = await serverFetch<PublicListingDetail>(backendPaths.listings.getBySlug(slug), {
-        cacheProfile: 'none',
+        cacheProfile: 'short',
+        tags: ['listings', `listing-slug-${slug}`],
       });
       const listing = response.data ?? null;
       if (!listing) return null;
@@ -92,6 +95,7 @@ export const listingService = {
 
       const retry = await serverFetch<PublicListingDetail>(backendPaths.listings.getBySlug(slug), {
         cacheProfile: 'none',
+        tags: ['listings', `listing-slug-${slug}`],
         headers: { 'Cache-Control': 'no-cache' },
       });
       const retried = retry.data ?? null;

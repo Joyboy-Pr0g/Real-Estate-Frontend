@@ -1,7 +1,7 @@
 import { NextRequest } from 'next/server';
-import { proxyToBackend } from '@/lib/api/route-handler';
+import { proxyListingMutation } from '@/lib/api/listing-mutation-route';
 import { backendPaths } from '@/lib/api/endpoints';
 
 export async function POST(request: NextRequest) {
-  return proxyToBackend(request, { path: backendPaths.listings.create, method: 'POST' });
+  return proxyListingMutation(request, { path: backendPaths.listings.create, method: 'POST' });
 }

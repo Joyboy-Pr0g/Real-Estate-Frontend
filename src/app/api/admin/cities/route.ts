@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { proxyCatalogMutation } from '@/lib/api/catalog-mutation-route';
 import { proxyToBackend } from '@/lib/api/route-handler';
 import { backendPaths } from '@/lib/api/endpoints';
 import { citiesSearchSchema } from '@/features/admin/schemas/locations-schemas';
@@ -25,7 +26,7 @@ export async function GET(request: NextRequest) {
 }
 
 export async function POST(request: NextRequest) {
-  return proxyToBackend(request, {
+  return proxyCatalogMutation(request, {
     path: backendPaths.cities.admin,
     method: 'POST',
   });

@@ -141,25 +141,37 @@ export function ListingsFilterBar({
     return Object.values(selectedSubtype.spec_schema.fields).some((field) => field.filterable);
   }, [selectedSubtype]);
 
-  const pushParams = useCallback(
-    (updates: Record<string, string | null>, options?: { clearSpec?: boolean }) => {
+  const navigateHref = useCallback(
+    (href: string, mode: 'push' | 'replace' = 'push') => {
       startTransition(() => {
-        router.push(buildListingsHref(searchParams, updates, { ...options, basePath }));
-        router.refresh();
+        if (mode === 'replace') {
+          router.replace(href);
+        } else {
+          router.push(href);
+        }
       });
     },
-    [router, basePath, searchParams],
+    [router],
+  );
+
+  const pushParams = useCallback(
+    (
+      updates: Record<string, string | null>,
+      options?: { clearSpec?: boolean; mode?: 'push' | 'replace' },
+    ) => {
+      const href = buildListingsHref(searchParams, updates, { ...options, basePath });
+      navigateHref(href, options?.mode ?? 'push');
+    },
+    [navigateHref, basePath, searchParams],
   );
 
   const applySearchParams = useCallback(
     (next: URLSearchParams) => {
-      startTransition(() => {
-        const query = next.toString();
-        router.push(query ? `${basePath}?${query}` : basePath);
-        router.refresh();
-      });
+      const query = next.toString();
+      const href = query ? `${basePath}?${query}` : basePath;
+      navigateHref(href, 'replace');
     },
-    [router, basePath],
+    [navigateHref, basePath],
   );
 
   const togglePanel = (id: PanelId) => {
@@ -200,10 +212,13 @@ export function ListingsFilterBar({
     const maxMatches = debouncedMaxPrice === maxPriceParam;
     if (minMatches && maxMatches) return;
 
-    pushParams({
-      [LISTING_URL_PARAMS.minPrice]: debouncedMinPrice || null,
-      [LISTING_URL_PARAMS.maxPrice]: debouncedMaxPrice || null,
-    });
+    pushParams(
+      {
+        [LISTING_URL_PARAMS.minPrice]: debouncedMinPrice || null,
+        [LISTING_URL_PARAMS.maxPrice]: debouncedMaxPrice || null,
+      },
+      { mode: 'replace' },
+    );
   }, [debouncedMinPrice, debouncedMaxPrice, minPriceParam, maxPriceParam, pushParams]);
 
   useEffect(() => {
@@ -430,10 +445,13 @@ export function ListingsFilterBar({
                 priceFocusedRef.current = false;
                 setMinPriceInput('');
                 setMaxPriceInput('');
-                pushParams({
-                  [LISTING_URL_PARAMS.minPrice]: null,
-                  [LISTING_URL_PARAMS.maxPrice]: null,
-                });
+                pushParams(
+                  {
+                    [LISTING_URL_PARAMS.minPrice]: null,
+                    [LISTING_URL_PARAMS.maxPrice]: null,
+                  },
+                  { mode: 'replace' },
+                );
               }}
             />
           ) : null}

@@ -1,5 +1,3 @@
-import { redirect } from 'next/navigation';
-import { getSession } from '@/lib/auth/session';
 import { getServerTranslations } from '@/lib/i18n/server';
 import { Container } from '@/components/ui/container';
 import { getMyOffices } from '@/features/office/services/office-service';
@@ -20,9 +18,6 @@ interface OfficeListingsPageProps {
 }
 
 export default async function OfficeListingsPage({ searchParams }: OfficeListingsPageProps) {
-  const user = await getSession();
-  if (!user) redirect('/login');
-
   const { t } = await getServerTranslations();
   const offices = await getMyOffices();
   const primaryOffice = offices[0] ?? null;

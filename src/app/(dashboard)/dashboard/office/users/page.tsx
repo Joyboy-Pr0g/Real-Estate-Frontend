@@ -19,8 +19,7 @@ const VALID_PERIODS: OfficeAnalyticsPeriod[] = [
 ];
 
 export default async function OfficeUsersPage({ searchParams }: OfficeUsersPageProps) {
-  const user = await getSession();
-  if (!user) redirect('/login');
+  const user = (await getSession())!;
   if (user.role !== 'office') redirect('/dashboard');
 
   const { t } = await getServerTranslations();

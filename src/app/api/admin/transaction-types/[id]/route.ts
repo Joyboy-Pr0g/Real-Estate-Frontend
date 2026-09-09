@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { proxyToBackend } from '@/lib/api/route-handler';
+import { proxyCatalogMutation } from '@/lib/api/catalog-mutation-route';
 import { backendPaths } from '@/lib/api/endpoints';
 import { transactionTypeUpdateBodySchema } from '@/features/admin/schemas/catalog-schemas';
 
@@ -19,7 +19,7 @@ export async function PUT(request: NextRequest, context: RouteContext) {
       );
     }
 
-    return proxyToBackend(
+    return proxyCatalogMutation(
       new NextRequest(request.url, {
         method: 'PUT',
         headers: request.headers,
@@ -34,7 +34,7 @@ export async function PUT(request: NextRequest, context: RouteContext) {
 
 export async function DELETE(request: NextRequest, context: RouteContext) {
   const { id } = await context.params;
-  return proxyToBackend(request, {
+  return proxyCatalogMutation(request, {
     path: backendPaths.transactionTypes.adminById(id),
     method: 'DELETE',
   });

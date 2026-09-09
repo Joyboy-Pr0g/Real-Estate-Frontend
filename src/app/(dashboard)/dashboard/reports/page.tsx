@@ -1,14 +1,9 @@
-import { redirect } from 'next/navigation';
-import { getSession } from '@/lib/auth/session';
 import { getServerTranslations } from '@/lib/i18n/server';
 import { Container } from '@/components/ui/container';
 import { listingService } from '@/features/listings/services/listing-service';
 import { MyReportsList } from '@/features/listings/components/MyReportsList';
 
 export default async function DashboardReportsPage() {
-  const user = await getSession();
-  if (!user) redirect('/login');
-
   const { t } = await getServerTranslations();
   const { items, next_cursor, has_more } = await listingService.getMyReports({ limit: 24 });
 

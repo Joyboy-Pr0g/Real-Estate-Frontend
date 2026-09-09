@@ -1,5 +1,4 @@
-import { notFound, redirect } from 'next/navigation';
-import { getSession } from '@/lib/auth/session';
+import { notFound } from 'next/navigation';
 import { getServerTranslations } from '@/lib/i18n/server';
 import { Container } from '@/components/ui/container';
 import { catalogService } from '@/features/catalog/services/catalog-service';
@@ -11,9 +10,6 @@ interface EditListingPageProps {
 }
 
 export default async function EditListingPage({ params }: EditListingPageProps) {
-  const user = await getSession();
-  if (!user) redirect('/login');
-
   const { id } = await params;
   const { t } = await getServerTranslations();
 

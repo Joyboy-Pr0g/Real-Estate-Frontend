@@ -1,5 +1,3 @@
-import { redirect } from 'next/navigation';
-import { getSession } from '@/lib/auth/session';
 import { getServerTranslations } from '@/lib/i18n/server';
 import { Container } from '@/components/ui/container';
 import { catalogService } from '@/features/catalog/services/catalog-service';
@@ -9,9 +7,6 @@ import { ListingCreationBlocked } from '@/features/listings/components/dashboard
 import { VerificationStatusBanner } from '@/features/dashboard/components/VerificationStatusBanner';
 
 export default async function NewOfficeListingPage() {
-  const user = await getSession();
-  if (!user) redirect('/login');
-
   const { t } = await getServerTranslations();
   const [catalog, offices] = await Promise.all([catalogService.getPublicCatalog(), getMyOffices()]);
   const verifiedOffices = offices.filter((office) => office.verification_status === 'verified');

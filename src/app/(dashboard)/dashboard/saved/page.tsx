@@ -1,5 +1,3 @@
-import { redirect } from 'next/navigation';
-import { getSession } from '@/lib/auth/session';
 import { getServerTranslations } from '@/lib/i18n/server';
 import { Container } from '@/components/ui/container';
 import { listingService } from '@/features/listings/services/listing-service';
@@ -7,9 +5,6 @@ import { ListingCursorGrid } from '@/features/listings/components/ListingCursorG
 import { bffPaths } from '@/lib/api/endpoints';
 
 export default async function DashboardSavedPage() {
-  const user = await getSession();
-  if (!user) redirect('/login');
-
   const { t } = await getServerTranslations();
   const { items, next_cursor, has_more } = await listingService.getMySaved({ limit: 24 });
 

@@ -1,5 +1,3 @@
-import { redirect } from 'next/navigation';
-import { getSession } from '@/lib/auth/session';
 import { getServerTranslations } from '@/lib/i18n/server';
 import { Container } from '@/components/ui/container';
 import { getMyIndividualListerProfile } from '@/features/individual-lister/services/individual-lister-service';
@@ -19,9 +17,6 @@ interface MyListingsPageProps {
 }
 
 export default async function MyListingsPage({ searchParams }: MyListingsPageProps) {
-  const user = await getSession();
-  if (!user) redirect('/login');
-
   const { t } = await getServerTranslations();
   const individualProfile = await getMyIndividualListerProfile();
 

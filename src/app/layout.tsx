@@ -5,6 +5,7 @@ import { Tajawal } from 'next/font/google';
 import { getServerLocale } from '@/lib/i18n/server';
 import { LocaleProvider } from '@/lib/i18n/locale-provider';
 import { Toaster } from '@/components/ui/toaster';
+import { QueryProvider } from '@/lib/query/provider';
 import './globals.css';
 
 const tajawal = Tajawal({
@@ -37,8 +38,10 @@ export default async function RootLayout({ children }: LayoutProps<'/'>) {
       <body className="min-h-full flex flex-col font-sans">
         <JsonLdScript data={organizationSchema} />
         <LocaleProvider locale={locale}>
-          {children}
-          <Toaster />
+          <QueryProvider>
+            {children}
+            <Toaster />
+          </QueryProvider>
         </LocaleProvider>
       </body>
     </html>
