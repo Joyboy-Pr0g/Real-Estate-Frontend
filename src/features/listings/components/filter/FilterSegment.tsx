@@ -251,6 +251,46 @@ interface DrillDownBackProps {
   onClick: () => void;
 }
 
+interface FilterOptionsSkeletonProps {
+  variant?: 'list' | 'chips';
+  count?: number;
+  className?: string;
+}
+
+export function FilterOptionsSkeleton({
+  variant = 'list',
+  count = variant === 'chips' ? 6 : 5,
+  className,
+}: FilterOptionsSkeletonProps) {
+  if (variant === 'chips') {
+    return (
+      <div className={cn('flex flex-wrap gap-1.5', className)}>
+        {Array.from({ length: count }).map((_, index) => (
+          <div
+            key={index}
+            className="h-8 animate-pulse rounded-lg bg-gray-100"
+            style={{ width: `${4.5 + (index % 3) * 1.25}rem` }}
+          />
+        ))}
+      </div>
+    );
+  }
+
+  return (
+    <div className={cn('space-y-2', className)}>
+      {Array.from({ length: count }).map((_, index) => (
+        <div key={index} className="flex items-center gap-2.5 rounded-lg px-2 py-1.5">
+          <div className="h-8 w-8 shrink-0 animate-pulse rounded-lg bg-gray-100" />
+          <div
+            className="h-3.5 animate-pulse rounded-md bg-gray-100"
+            style={{ width: `${55 + (index % 3) * 12}%` }}
+          />
+        </div>
+      ))}
+    </div>
+  );
+}
+
 export function DrillDownBack({ label, onClick }: DrillDownBackProps) {
   const { dir } = useLocale();
   const BackIcon = dir === 'rtl' ? ChevronRight : ChevronLeft;

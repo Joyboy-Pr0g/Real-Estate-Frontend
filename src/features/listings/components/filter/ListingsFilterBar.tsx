@@ -17,7 +17,7 @@ import { AnimatePresence, motion } from 'framer-motion';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useCallback, useEffect, useMemo, useRef, useState, useTransition } from 'react';
-import { PublicCatalog } from '@/features/catalog/types/catalog';
+import { PublicCatalog, PublicCity, PublicPropertyType } from '@/features/catalog/types/catalog';
 import { PublicNeighborhood } from '@/features/catalog/types/neighborhood';
 import { PublicPropertySubtype } from '@/features/catalog/types/property-subtype';
 import { CityPanel } from '@/features/home/components/search/CityPanel';
@@ -29,6 +29,7 @@ import {
   DrillDownBack,
   FilterChip,
   FilterExpandPanel,
+  FilterOptionsSkeleton,
   FilterSegment,
   SubtypeChip,
 } from '@/features/listings/components/filter/FilterSegment';
@@ -117,6 +118,10 @@ export function ListingsFilterBar({
     useState<PublicPropertySubtype[]>(initialPropertySubtypes);
   const [loadingNeighborhoods, setLoadingNeighborhoods] = useState(false);
   const [loadingSubtypes, setLoadingSubtypes] = useState(false);
+  const [pendingCity, setPendingCity] = useState<PublicCity | null>(null);
+  const [pendingPropertyType, setPendingPropertyType] = useState<PublicPropertyType | null>(null);
+  const neighborhoodsCityIdRef = useRef<string | null>(null);
+  const subtypesPropertyTypeIdRef = useRef<string | null>(null);
 
   const [minPriceInput, setMinPriceInput] = useState(minPriceParam);
   const [maxPriceInput, setMaxPriceInput] = useState(maxPriceParam);
@@ -178,8 +183,11 @@ export function ListingsFilterBar({
     setActivePanel((current) => (current === id ? null : id));
   };
 
-  const locationStep: LocationStep = locationStepOverride ?? (selectedCity ? 'neighborhood' : 'city');
-  const propertyStep: PropertyStep = propertyStepOverride ?? (selectedPropertyType ? 'subtype' : 'type');
+  const displayCity = pendingCity ?? selectedCity;
+  const displayPropertyType = pendingPropertyType ?? selectedPropertyType;
+
+  const locationStep: LocationStep = locationStepOverride ?? (displayCity ? 'neighborhood' : 'city');
+  const propertyStep: PropertyStep = propertyStepOverride ?? (displayPropertyType ? 'subtype' : 'type');
 
   useEffect(() => {
     if (activePanel !== 'location') setLocationStepOverride(null);
@@ -222,12 +230,36 @@ export function ListingsFilterBar({
   }, [debouncedMinPrice, debouncedMaxPrice, minPriceParam, maxPriceParam, pushParams]);
 
   useEffect(() => {
+    if (pendingCity && selectedCity?.id === pendingCity.id) {
+      setPendingCity(null);
+    }
+  }, [pendingCity, selectedCity?.id]);
+
+  useEffect(() => {
+    if (pendingPropertyType && selectedPropertyType?.id === pendingPropertyType.id) {
+      setPendingPropertyType(null);
+    }
+  }, [pendingPropertyType, selectedPropertyType?.id]);
+
+  useEffect(() => {
     if (!selectedCity) {
       setNeighborhoods([]);
+      setLoadingNeighborhoods(false);
+      neighborhoodsCityIdRef.current = null;
+      return;
+    }
+
+    if (neighborhoodsCityIdRef.current === selectedCity.id) {
+      return;
+    }
+
+    if (neighborhoodsCityIdRef.current === null && neighborhoods.length > 0) {
+      neighborhoodsCityIdRef.current = selectedCity.id;
       return;
     }
 
     let cancelled = false;
+    setNeighborhoods([]);
     setLoadingNeighborhoods(true);
 
     clientFetch<PublicNeighborhood[]>(bffPaths.neighborhoods.public, {
@@ -238,6 +270,7 @@ export function ListingsFilterBar({
           setNeighborhoods(
             normalizePublicNeighborhoods(res.data as Array<PublicNeighborhood & Record<string, unknown>>),
           );
+          neighborhoodsCityIdRef.current = selectedCity.id;
         }
       })
       .catch(() => {
@@ -250,22 +283,37 @@ export function ListingsFilterBar({
     return () => {
       cancelled = true;
     };
-  }, [selectedCity?.id]);
+  }, [neighborhoods.length, selectedCity]);
 
   useEffect(() => {
     if (!selectedPropertyType) {
       setPropertySubtypes([]);
+      setLoadingSubtypes(false);
+      subtypesPropertyTypeIdRef.current = null;
+      return;
+    }
+
+    if (subtypesPropertyTypeIdRef.current === selectedPropertyType.id) {
+      return;
+    }
+
+    if (subtypesPropertyTypeIdRef.current === null && propertySubtypes.length > 0) {
+      subtypesPropertyTypeIdRef.current = selectedPropertyType.id;
       return;
     }
 
     let cancelled = false;
+    setPropertySubtypes([]);
     setLoadingSubtypes(true);
 
     clientFetch<PublicPropertySubtype[]>(
       bffPaths.propertySubtypes.byPropertyType(selectedPropertyType.id),
     )
       .then((res) => {
-        if (!cancelled) setPropertySubtypes(res.data ?? []);
+        if (!cancelled) {
+          setPropertySubtypes(res.data ?? []);
+          subtypesPropertyTypeIdRef.current = selectedPropertyType.id;
+        }
       })
       .catch(() => {
         if (!cancelled) setPropertySubtypes([]);
@@ -277,7 +325,7 @@ export function ListingsFilterBar({
     return () => {
       cancelled = true;
     };
-  }, [selectedPropertyType?.id]);
+  }, [propertySubtypes.length, selectedPropertyType]);
 
   const clearAll = () => {
     suppressPriceSyncRef.current = true;
@@ -525,6 +573,10 @@ export function ListingsFilterBar({
             cities={catalog.cities}
             selectedId={selectedCity?.id ?? null}
             onSelect={(city) => {
+              neighborhoodsCityIdRef.current = null;
+              setNeighborhoods([]);
+              setLoadingNeighborhoods(true);
+              setPendingCity(city);
               pushParams({
                 [LISTING_URL_PARAMS.city]: city.pcode,
                 [LISTING_URL_PARAMS.neighborhood]: null,
@@ -535,8 +587,11 @@ export function ListingsFilterBar({
         ) : (
           <div>
             <DrillDownBack
-              label={`${t('filters.changeCity')} · ${selectedCity?.name ?? ''}`}
-              onClick={() => setLocationStepOverride('city')}
+              label={`${t('filters.changeCity')} · ${displayCity?.name ?? ''}`}
+              onClick={() => {
+                setPendingCity(null);
+                setLocationStepOverride('city');
+              }}
             />
             <NeighborhoodPanel
               compact
@@ -560,6 +615,10 @@ export function ListingsFilterBar({
             propertyTypes={catalog.propertyTypes}
             selectedId={selectedPropertyType?.id ?? null}
             onSelect={(type) => {
+              subtypesPropertyTypeIdRef.current = null;
+              setPropertySubtypes([]);
+              setLoadingSubtypes(true);
+              setPendingPropertyType(type);
               pushParams(
                 {
                   [LISTING_URL_PARAMS.propertyType]: type.slug,
@@ -573,40 +632,52 @@ export function ListingsFilterBar({
         ) : (
           <div>
             <DrillDownBack
-              label={`${t('filters.changePropertyType')} · ${selectedPropertyType?.name ?? ''}`}
-              onClick={() => setPropertyStepOverride('type')}
+              label={`${t('filters.changePropertyType')} · ${displayPropertyType?.name ?? ''}`}
+              onClick={() => {
+                setPendingPropertyType(null);
+                setPropertyStepOverride('type');
+              }}
             />
             <div className="mb-2 flex items-center justify-between gap-2">
               <p className="text-xs font-semibold text-primary-dark">{t('filters.propertySubtype')}</p>
-              {loadingSubtypes ? <Loader2 className="h-4 w-4 animate-spin text-gray-400" /> : null}
+              {loadingSubtypes ? (
+                <span className="inline-flex items-center gap-1.5 text-[11px] text-gray-500">
+                  <Loader2 className="h-3.5 w-3.5 animate-spin text-brand" aria-hidden />
+                  {t('search.loading')}
+                </span>
+              ) : null}
             </div>
-            <div className="flex flex-wrap gap-1.5">
-              <SubtypeChip
-                label={t('filters.allSubtypes')}
-                selected={!currentPropertySubtype}
-                onClick={() => {
-                  const next = new URLSearchParams(searchParams.toString());
-                  next.delete(LISTING_URL_PARAMS.propertySubtype);
-                  clearSpecFromSearchParams(next);
-                  next.delete(LISTING_URL_PARAMS.cursor);
-                  applySearchParams(next);
-                }}
-              />
-              {propertySubtypes.map((subtype) => (
+            {loadingSubtypes ? (
+              <FilterOptionsSkeleton variant="chips" count={6} />
+            ) : (
+              <div className="flex flex-wrap gap-1.5">
                 <SubtypeChip
-                  key={subtype.id}
-                  label={subtype.name}
-                  selected={currentPropertySubtype === subtype.slug}
+                  label={t('filters.allSubtypes')}
+                  selected={!currentPropertySubtype}
                   onClick={() => {
                     const next = new URLSearchParams(searchParams.toString());
-                    next.set(LISTING_URL_PARAMS.propertySubtype, subtype.slug);
+                    next.delete(LISTING_URL_PARAMS.propertySubtype);
                     clearSpecFromSearchParams(next);
                     next.delete(LISTING_URL_PARAMS.cursor);
                     applySearchParams(next);
                   }}
                 />
-              ))}
-            </div>
+                {propertySubtypes.map((subtype) => (
+                  <SubtypeChip
+                    key={subtype.id}
+                    label={subtype.name}
+                    selected={currentPropertySubtype === subtype.slug}
+                    onClick={() => {
+                      const next = new URLSearchParams(searchParams.toString());
+                      next.set(LISTING_URL_PARAMS.propertySubtype, subtype.slug);
+                      clearSpecFromSearchParams(next);
+                      next.delete(LISTING_URL_PARAMS.cursor);
+                      applySearchParams(next);
+                    }}
+                  />
+                ))}
+              </div>
+            )}
           </div>
         )}
       </FilterExpandPanel>
