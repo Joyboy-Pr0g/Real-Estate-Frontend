@@ -3,7 +3,6 @@
 import { useState } from 'react';
 import { ImagePlus, Send } from 'lucide-react';
 import { useLocale } from '@/lib/i18n/locale-provider';
-import { getErrorMessage } from '@/lib/api/client';
 import { ListingImagePickerModal } from '@/features/messaging/components/ListingImagePickerModal';
 
 interface ChatComposerProps {
@@ -27,8 +26,8 @@ export function ChatComposer({ disabled, listingId, onSendText, onSendImage }: C
     try {
       await onSendText(trimmed);
       setValue('');
-    } catch (err) {
-      console.error(getErrorMessage(err));
+    } catch {
+      // send errors surface via parent handlers / socket state
     } finally {
       setSending(false);
     }
@@ -52,8 +51,8 @@ export function ChatComposer({ disabled, listingId, onSendText, onSendImage }: C
         public_id: imagePreview.public_id,
       });
       setImagePreview(null);
-    } catch (err) {
-      console.error(getErrorMessage(err));
+    } catch {
+      // send errors surface via parent handlers / socket state
     } finally {
       setSending(false);
     }

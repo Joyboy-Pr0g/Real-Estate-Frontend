@@ -5,7 +5,6 @@ import { useRouter } from 'next/navigation';
 import { MessageCircle } from 'lucide-react';
 import { createConversation } from '@/features/messaging/services/messaging-client';
 import { useLocale } from '@/lib/i18n/locale-provider';
-import { getErrorMessage } from '@/lib/api/client';
 import { cn } from '@/lib/utils/cn';
 
 interface MessageListingButtonProps {
@@ -41,8 +40,8 @@ export function MessageListingButton({
       if (response.data?.id) {
         router.push(`/dashboard/messages/${response.data.id}`);
       }
-    } catch (err) {
-      console.error(getErrorMessage(err));
+    } catch {
+      // navigation errors are non-blocking for the listing page
     } finally {
       setLoading(false);
     }

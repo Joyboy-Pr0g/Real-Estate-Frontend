@@ -3,8 +3,6 @@
 import { useRef, useState } from 'react';
 import { ImagePlus, Send } from 'lucide-react';
 import { useLocale } from '@/lib/i18n/locale-provider';
-import { getErrorMessage } from '@/lib/api/client';
-
 interface SupportTicketComposerProps {
   disabled?: boolean;
   onSendText: (content: string) => Promise<void>;
@@ -30,8 +28,8 @@ export function SupportTicketComposer({ disabled, onSendText, onSendImage }: Sup
     try {
       await onSendText(trimmed);
       setValue('');
-    } catch (err) {
-      console.error(getErrorMessage(err));
+    } catch {
+      // send errors surface via parent ticket panel
     } finally {
       setSending(false);
     }
@@ -43,8 +41,8 @@ export function SupportTicketComposer({ disabled, onSendText, onSendImage }: Sup
     try {
       await onSendImage(imagePreview.file);
       clearImagePreview();
-    } catch (err) {
-      console.error(getErrorMessage(err));
+    } catch {
+      // send errors surface via parent ticket panel
     } finally {
       setSending(false);
     }

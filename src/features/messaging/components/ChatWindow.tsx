@@ -221,7 +221,7 @@ export function ChatWindow({ conversation, user }: ChatWindowProps) {
         ),
       );
     } catch (err) {
-      console.error(getErrorMessage(err));
+      toast.error(getErrorMessage(err));
     }
   };
 

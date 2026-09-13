@@ -1,36 +1,146 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Real Estate Marketplace — Frontend
 
-## Getting Started
+Arabic-first (RTL) web application for **اليمن للعقارات**. Public marketplace, buyer/office dashboard, and admin console. All backend access goes through a Next.js **backend-for-frontend (BFF)** — the browser never calls the Express API directly.
 
-First, run the development server:
+## Stack
+
+| Layer | Technology |
+|-------|------------|
+| Framework | Next.js 16 (App Router) |
+| UI | React 19, Tailwind CSS v4 |
+| Language | TypeScript strict |
+| Forms | react-hook-form + zod |
+| Client data | TanStack React Query v5 |
+| Maps | Google Maps (`@react-google-maps/api`) |
+| Realtime | socket.io-client |
+| Push | Firebase (client SDK) |
+| Font | Tajawal (Arabic + Latin) |
+
+## Prerequisites
+
+- Node.js 20+
+- Backend API running on port **3000**
+- Copy `.env.example` → `.env.local`
+
+## Quick start
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+cd D:\Frontend\Next.js\real-estate-frontend
+npm install
+cp .env.example .env.local   # set BACKEND_URL and public keys
+
+npm run dev                  # http://localhost:3001
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Backend must be running separately:
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+```bash
+cd D:\Backend\Node.js\Real-Estate
+npm run dev                  # http://localhost:3000
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Scripts
 
-## Learn More
+| Command | Purpose |
+|---------|---------|
+| `npm run dev` | Dev server on port 3001 (webpack) |
+| `npm run dev:turbo` | Dev server with Turbopack |
+| `npm run build` | Production build |
+| `npm start` | Run production server |
+| `npm run lint` | ESLint |
+| `npm run process:yemen-geo` | Process Yemen GeoJSON boundary data |
 
-To learn more about Next.js, take a look at the following resources:
+## Environment variables
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+Server-only (never exposed to the browser):
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+| Variable | Example | Purpose |
+|----------|---------|---------|
+| `BACKEND_URL` | `http://localhost:3000/api` | BFF proxy target |
+| `APP_URL` | `http://localhost:3001` | App origin |
+| `SITE_URL` | `http://localhost:3001` | SEO / canonical URLs |
+| `SOCKET_URL` | `http://localhost:3000` | Realtime messaging (defaults from backend host) |
 
-## Deploy on Vercel
+Public (client):
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+| Variable | Purpose |
+|----------|---------|
+| `NEXT_PUBLIC_GOOGLE_MAPS_KEY` | Listing detail map |
+| `NEXT_PUBLIC_FIREBASE_*` | Web push notifications |
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+See `.env.example` for all keys.
+
+## Project structure
+
+```
+src/
+├── app/
+│   ├── (marketplace)/     # Public site: listings, map, offices
+│   ├── (dashboard)/       # Buyer & office user dashboard
+│   ├── (admin)/           # Platform admin + sub-admin
+│   ├── (auth)/            # Login, register, verify-email
+│   └── api/               # BFF route handlers (~160 routes)
+├── components/ui/         # Shared UI primitives
+├── features/            # Domain modules (listings, messaging, admin, …)
+└── lib/
+    ├── api/               # serverFetch, clientFetch, endpoints
+    ├── auth/              # Session, cookies, guards
+    ├── query/             # React Query provider + keys
+    └── marketplace/       # Cache tags + revalidation
+```
+
+Feature module shape:
+
+```
+src/features/<domain>/
+├── components/
+├── services/              # server + client fetch helpers
+├── hooks/
+├── types/
+└── schemas/               # zod for forms + BFF validation
+```
+
+## Route groups
+
+| Area | Paths |
+|------|-------|
+| Marketplace | `/`, `/listings`, `/listings/map`, `/listings/[slug]`, `/offices` |
+| Auth | `/login`, `/register`, `/verify-email`, `/forgot-password` |
+| Dashboard | `/dashboard`, `/dashboard/messages`, `/dashboard/office`, … |
+| Admin | `/admin`, `/admin/users`, `/admin/listings`, … |
+| BFF | `/api/auth/*`, `/api/listings/*`, `/api/admin/*`, … |
+
+## Architecture notes
+
+### Authentication
+
+- JWT stored in httpOnly `auth_token` cookie via BFF login route
+- `getSession()` (React `cache()`) deduplicates server-side session reads
+- Sub-admin permissions cached in a separate httpOnly cookie
+
+### Data fetching
+
+- **SSR first paint:** server components fetch via `serverFetch` with cache tags
+- **Interactive listings:** TanStack `useInfiniteQuery` refetches on URL filter changes (no full page reload)
+- **Mutations:** client → BFF → backend; BFF triggers `revalidateTag` + React Query invalidation
+
+### Security
+
+- `BACKEND_URL` is server-only — never use `NEXT_PUBLIC_` for the API base
+- Bearer tokens attached server-side in BFF handlers only
+
+## Backend
+
+- Repo: `D:\Backend\Node.js\Real-Estate`
+- Default dev URL: `http://localhost:3000/api`
+- Set backend `CORS_ORIGIN=http://localhost:3001`
+
+## Documentation
+
+Full system overview (architecture, workflows, DB schema):
+
+- `D:\Backend\Node.js\Real-Estate\REAL_ESTATE_SYSTEM_OVERVIEW_FOR_CLAUDE.md`
+
+Cursor skills (conventions, architecture, security):
+
+- `.cursor/SKILL_FILES/`

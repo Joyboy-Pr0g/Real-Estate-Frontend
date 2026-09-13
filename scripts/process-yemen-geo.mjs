@@ -164,10 +164,7 @@ function main() {
       JSON.stringify({ type: 'FeatureCollection', features: districts }),
     );
 
-    console.log(`${pcode}: ${districts.length} districts`);
   }
-
-  console.log(`Wrote ${cityFeatures.length} city boundaries to yemen-cities.geojson`);
 }
 
 main();

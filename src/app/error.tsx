@@ -1,6 +1,5 @@
 'use client';
 
-import { useEffect } from 'react';
 import { StatusPage } from '@/features/shared/components/StatusPage';
 import { useLocale } from '@/lib/i18n/locale-provider';
 
@@ -9,12 +8,8 @@ interface ErrorPageProps {
   reset: () => void;
 }
 
-export default function ErrorPage({ error, reset }: ErrorPageProps) {
+export default function ErrorPage({ reset }: ErrorPageProps) {
   const { t } = useLocale();
-
-  useEffect(() => {
-    console.error(error);
-  }, [error]);
 
   return (
     <StatusPage
