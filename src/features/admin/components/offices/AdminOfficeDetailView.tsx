@@ -22,6 +22,7 @@ import { OfficeUserAvatar } from '@/features/office/components/OfficeUserAvatar'
 import { OfficeDetail } from '@/features/office/types/office';
 import { formatDateTime } from '@/lib/utils/format';
 import { getErrorMessage } from '@/lib/errors/api-error';
+import { usePermissions } from '@/features/admin/providers/permissions-provider';
 import { useLocale } from '@/lib/i18n/locale-provider';
 import { cn } from '@/lib/utils/cn';
 import type { TranslationKey } from '@/lib/i18n/ar';
@@ -39,6 +40,7 @@ interface AdminOfficeDetailViewProps {
 
 export function AdminOfficeDetailView({ office }: AdminOfficeDetailViewProps) {
   const { t } = useLocale();
+  const { hasPermission } = usePermissions();
   const router = useRouter();
   const [submitting, setSubmitting] = useState(false);
   const [removingUserId, setRemovingUserId] = useState<string | null>(null);
@@ -118,7 +120,8 @@ export function AdminOfficeDetailView({ office }: AdminOfficeDetailViewProps) {
         <div className="flex flex-wrap gap-2">
           {!deletedAt ? (
             <>
-              {(office.verification_status === 'pending' || office.verification_status === 'rejected') ? (
+              {(office.verification_status === 'pending' || office.verification_status === 'rejected') &&
+              hasPermission('offices.verify') ? (
                 <Button
                   type="button"
                   disabled={submitting}
@@ -128,13 +131,13 @@ export function AdminOfficeDetailView({ office }: AdminOfficeDetailViewProps) {
                 </Button>
               ) : null}
 
-              {office.verification_status === 'pending' ? (
+              {office.verification_status === 'pending' && hasPermission('offices.reject') ? (
                 <Button type="button" variant="dangerOutline" disabled={submitting} onClick={() => setRejectOpen(true)}>
                   {t('admin.reject')}
                 </Button>
               ) : null}
 
-              {office.verification_status === 'verified' ? (
+              {office.verification_status === 'verified' && hasPermission('offices.suspend') ? (
                 <Button
                   type="button"
                   variant="outline"
@@ -145,7 +148,7 @@ export function AdminOfficeDetailView({ office }: AdminOfficeDetailViewProps) {
                 </Button>
               ) : null}
 
-              {office.verification_status === 'suspended' ? (
+              {office.verification_status === 'suspended' && hasPermission('offices.unsuspend') ? (
                 <Button
                   type="button"
                   variant="outline"
@@ -156,23 +159,29 @@ export function AdminOfficeDetailView({ office }: AdminOfficeDetailViewProps) {
                 </Button>
               ) : null}
 
-              <Button type="button" variant="dangerOutline" disabled={submitting} onClick={() => setConfirmAction('soft_delete')}>
-                {t('admin.softDelete')}
-              </Button>
+              {hasPermission('offices.bulk_delete') ? (
+                <Button type="button" variant="dangerOutline" disabled={submitting} onClick={() => setConfirmAction('soft_delete')}>
+                  {t('admin.softDelete')}
+                </Button>
+              ) : null}
             </>
           ) : (
             <>
-              <Button
-                type="button"
-                variant="outline"
-                disabled={submitting}
-                onClick={() => void runAction(() => restoreOffice(office.id), t('admin.officeRestored'))}
-              >
-                {t('admin.restore')}
-              </Button>
-              <Button type="button" variant="danger" disabled={submitting} onClick={() => setConfirmAction('hard_delete')}>
-                {t('admin.hardDelete')}
-              </Button>
+              {hasPermission('offices.bulk_delete') ? (
+                <>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    disabled={submitting}
+                    onClick={() => void runAction(() => restoreOffice(office.id), t('admin.officeRestored'))}
+                  >
+                    {t('admin.restore')}
+                  </Button>
+                  <Button type="button" variant="danger" disabled={submitting} onClick={() => setConfirmAction('hard_delete')}>
+                    {t('admin.hardDelete')}
+                  </Button>
+                </>
+              ) : null}
             </>
           )}
         </div>
@@ -248,7 +257,7 @@ export function AdminOfficeDetailView({ office }: AdminOfficeDetailViewProps) {
                   >
                     {t(`dashboard.office.role.${member.role.replace('office_', '')}` as TranslationKey)}
                   </span>
-                  {member.role !== 'office_admin' ? (
+                  {member.role !== 'office_admin' && hasPermission('offices.bulk_delete') ? (
                     <Button
                       type="button"
                       variant="dangerOutline"

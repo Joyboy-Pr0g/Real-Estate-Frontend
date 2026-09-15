@@ -18,6 +18,7 @@ import { ConfirmModal } from '@/components/ui/confirm-modal';
 import { Button } from '@/components/ui/button';
 import { useLocale } from '@/lib/i18n/locale-provider';
 import { getErrorMessage } from '@/lib/errors/api-error';
+import { usePermissions } from '@/features/admin/providers/permissions-provider';
 import { toast } from '@/components/ui/toaster';
 
 const PAGE_SIZE = '50';
@@ -50,6 +51,8 @@ export function AdminSupportTicketChatWindow({
   onStatusUpdated,
 }: AdminSupportTicketChatWindowProps) {
   const { t } = useLocale();
+  const { hasPermission } = usePermissions();
+  const canEdit = hasPermission('support_tickets.edit');
   const router = useRouter();
   const [messages, setMessages] = useState<SupportTicketMessageItem[]>([]);
   const [loading, setLoading] = useState(true);
@@ -64,7 +67,7 @@ export function AdminSupportTicketChatWindow({
   const stickToBottomRef = useRef(true);
   const loadingOlderRef = useRef(false);
 
-  const composerDisabled = status === 'closed';
+  const composerDisabled = status === 'closed' || !canEdit;
 
   useEffect(() => {
     setStatus(ticket.status);
@@ -187,24 +190,30 @@ export function AdminSupportTicketChatWindow({
             </p>
           ) : null}
         </div>
-        <div className="flex flex-wrap items-center gap-2">
-          <select
-            value={status}
-            onChange={(e) => void handleStatusChange(e.target.value as SupportTicketStatus)}
-            disabled={updatingStatus}
-            className="h-9 rounded-xl border border-gray-200 px-2 text-xs outline-none focus:border-brand"
-          >
-            {STATUSES.map((item) => (
-              <option key={item} value={item}>
-                {t(formatTicketStatusKey(item))}
-              </option>
-            ))}
-          </select>
-          <Button type="button" variant="dangerOutline" size="sm" onClick={() => setDeleteOpen(true)} className="rounded-xl">
-            <Trash2 className="h-4 w-4" />
-            {t('admin.delete')}
-          </Button>
-        </div>
+        {canEdit ? (
+          <div className="flex flex-wrap items-center gap-2">
+            <select
+              value={status}
+              onChange={(e) => void handleStatusChange(e.target.value as SupportTicketStatus)}
+              disabled={updatingStatus}
+              className="h-9 rounded-xl border border-gray-200 px-2 text-xs outline-none focus:border-brand"
+            >
+              {STATUSES.map((item) => (
+                <option key={item} value={item}>
+                  {t(formatTicketStatusKey(item))}
+                </option>
+              ))}
+            </select>
+            <Button type="button" variant="dangerOutline" size="sm" onClick={() => setDeleteOpen(true)} className="rounded-xl">
+              <Trash2 className="h-4 w-4" />
+              {t('admin.delete')}
+            </Button>
+          </div>
+        ) : (
+          <span className="rounded-full bg-gray-100 px-2.5 py-1 text-xs font-semibold text-gray-600">
+            {t(formatTicketStatusKey(status))}
+          </span>
+        )}
       </div>
 
       {composerDisabled ? (

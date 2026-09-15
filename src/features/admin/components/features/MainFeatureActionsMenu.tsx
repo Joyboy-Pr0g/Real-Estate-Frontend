@@ -7,6 +7,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import { usePermissions } from '@/features/admin/providers/permissions-provider';
 import { AdminMainFeature } from '@/features/admin/types/features';
 import { useLocale } from '@/lib/i18n/locale-provider';
 
@@ -24,6 +25,7 @@ export function MainFeatureActionsMenu({
   onDelete,
 }: MainFeatureActionsMenuProps) {
   const { t } = useLocale();
+  const { hasPermission } = usePermissions();
   const hasSubFeatures = (item.sub_features?.length ?? 0) > 0;
 
   return (
@@ -35,16 +37,20 @@ export function MainFeatureActionsMenu({
         <MoreHorizontal size={16} />
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-48">
-        <DropdownMenuItem className="cursor-pointer" onClick={onEdit}>
-          {t('admin.edit')}
-        </DropdownMenuItem>
-        <DropdownMenuItem
-          className="cursor-pointer text-red-600 focus:text-red-700"
-          disabled={hasSubFeatures}
-          onClick={onDelete}
-        >
-          {t('admin.delete')}
-        </DropdownMenuItem>
+        {hasPermission('main_features.edit') ? (
+          <DropdownMenuItem className="cursor-pointer" onClick={onEdit}>
+            {t('admin.edit')}
+          </DropdownMenuItem>
+        ) : null}
+        {hasPermission('main_features.delete') ? (
+          <DropdownMenuItem
+            className="cursor-pointer text-red-600 focus:text-red-700"
+            disabled={hasSubFeatures}
+            onClick={onDelete}
+          >
+            {t('admin.delete')}
+          </DropdownMenuItem>
+        ) : null}
       </DropdownMenuContent>
     </DropdownMenu>
   );

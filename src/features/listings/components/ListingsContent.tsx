@@ -2,6 +2,7 @@ import { Container } from '@/components/ui/container';
 import { catalogService } from '@/features/catalog/services/catalog-service';
 import { ListingsPageView } from '@/features/listings/components/ListingsPageView';
 import { listingService } from '@/features/listings/services/listing-service';
+import { listingSearchParamsToQueryKey } from '@/features/listings/lib/listing-search-query-key';
 import { resolveListingSearchParams } from '@/features/listings/services/resolve-listing-search';
 import { ListingSearchUrlParams } from '@/features/listings/types/listing-search-url';
 import { getServerTranslations } from '@/lib/i18n/server';
@@ -22,20 +23,6 @@ export async function ListingsContent({ searchParams }: ListingsContentProps) {
   let nextCursor: string | null = null;
   let hasMore = false;
   let error = false;
-
-  const selectedCity = params.city
-    ? catalog.cities.find((city) => city.pcode === params.city)
-    : undefined;
-  const selectedPropertyType = params.property_type
-    ? catalog.propertyTypes.find((type) => type.slug === params.property_type)
-    : undefined;
-
-  const [initialNeighborhoods, initialPropertySubtypes] = await Promise.all([
-    selectedCity ? catalogService.getNeighborhoodsByCity(selectedCity.id) : Promise.resolve([]),
-    selectedPropertyType
-      ? catalogService.getPropertySubtypes(selectedPropertyType.id)
-      : Promise.resolve([]),
-  ]);
 
   try {
     const filters = await resolveListingSearchParams(params);
@@ -59,6 +46,8 @@ export async function ListingsContent({ searchParams }: ListingsContentProps) {
     );
   }
 
+  const initialSearchKey = listingSearchParamsToQueryKey(params);
+
   return (
     <Container className="py-10 md:py-14">
       <ListingsPageView
@@ -66,8 +55,7 @@ export async function ListingsContent({ searchParams }: ListingsContentProps) {
         listings={listings}
         nextCursor={nextCursor}
         hasMore={hasMore}
-        initialNeighborhoods={initialNeighborhoods}
-        initialPropertySubtypes={initialPropertySubtypes}
+        initialSearchKey={initialSearchKey}
         isAuthenticated={Boolean(session)}
       />
     </Container>

@@ -3,6 +3,7 @@ import { ListingsMapPageView } from '@/features/listings/components/ListingsMapP
 import { MapViewLevel } from '@/features/listings/components/map/ListingsDiscoveryMap';
 import { MAP_LISTINGS_PAGE_SIZE } from '@/features/listings/constants/map-config';
 import { listingService } from '@/features/listings/services/listing-service';
+import { listingSearchParamsToQueryKey } from '@/features/listings/lib/listing-search-query-key';
 import { resolveListingSearchParams } from '@/features/listings/services/resolve-listing-search';
 import { ListingSearchQuery } from '@/features/listings/schemas/search-schema';
 import { ListingSearchUrlParams } from '@/features/listings/types/listing-search-url';
@@ -28,20 +29,6 @@ export async function ListingsMapContent({ searchParams }: ListingsMapContentPro
   const session = await getSession();
   const catalog = await catalogService.getPublicCatalog();
   const viewLevel = resolveViewLevel(params);
-
-  const selectedCity = params.city
-    ? catalog.cities.find((city) => city.pcode === params.city)
-    : undefined;
-  const selectedPropertyType = params.property_type
-    ? catalog.propertyTypes.find((type) => type.slug === params.property_type)
-    : undefined;
-
-  const [initialNeighborhoods, initialPropertySubtypes] = await Promise.all([
-    selectedCity ? catalogService.getNeighborhoodsByCity(selectedCity.id) : Promise.resolve([]),
-    selectedPropertyType
-      ? catalogService.getPropertySubtypes(selectedPropertyType.id)
-      : Promise.resolve([]),
-  ]);
 
   let listings: Awaited<ReturnType<typeof listingService.search>>['items'] = [];
   let nextCursor: string | null = null;
@@ -74,14 +61,15 @@ export async function ListingsMapContent({ searchParams }: ListingsMapContentPro
     );
   }
 
+  const initialSearchKey = listingSearchParamsToQueryKey(params);
+
   return (
     <ListingsMapPageView
       catalog={catalog}
       listings={listings}
       nextCursor={nextCursor}
       hasMore={hasMore}
-      initialNeighborhoods={initialNeighborhoods}
-      initialPropertySubtypes={initialPropertySubtypes}
+      initialSearchKey={initialSearchKey}
       isAuthenticated={Boolean(session)}
     />
   );

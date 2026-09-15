@@ -7,6 +7,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import { usePermissions } from '@/features/admin/providers/permissions-provider';
 import { AdminPropertyType } from '@/features/admin/types/catalog';
 import { useLocale } from '@/lib/i18n/locale-provider';
 
@@ -28,6 +29,7 @@ export function PropertyTypeActionsMenu({
   onDelete,
 }: PropertyTypeActionsMenuProps) {
   const { t } = useLocale();
+  const { hasPermission } = usePermissions();
 
   return (
     <DropdownMenu>
@@ -38,21 +40,29 @@ export function PropertyTypeActionsMenu({
         <MoreHorizontal size={16} />
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-48">
-        <DropdownMenuItem className="cursor-pointer" onClick={onEdit}>
-          {t('admin.edit')}
-        </DropdownMenuItem>
+        {hasPermission('property_types.edit') ? (
+          <DropdownMenuItem className="cursor-pointer" onClick={onEdit}>
+            {t('admin.edit')}
+          </DropdownMenuItem>
+        ) : null}
         {item.status === 'active' ? (
-          <DropdownMenuItem className="cursor-pointer" onClick={onDeactivate}>
-            {t('admin.deactivateUser')}
-          </DropdownMenuItem>
+          hasPermission('property_types.deactivate') ? (
+            <DropdownMenuItem className="cursor-pointer" onClick={onDeactivate}>
+              {t('admin.deactivateUser')}
+            </DropdownMenuItem>
+          ) : null
         ) : (
-          <DropdownMenuItem className="cursor-pointer" onClick={onActivate}>
-            {t('admin.activateUser')}
-          </DropdownMenuItem>
+          hasPermission('property_types.activate') ? (
+            <DropdownMenuItem className="cursor-pointer" onClick={onActivate}>
+              {t('admin.activateUser')}
+            </DropdownMenuItem>
+          ) : null
         )}
-        <DropdownMenuItem className="cursor-pointer text-red-600 focus:text-red-700" onClick={onDelete}>
-          {t('admin.delete')}
-        </DropdownMenuItem>
+        {hasPermission('property_types.delete') ? (
+          <DropdownMenuItem className="cursor-pointer text-red-600 focus:text-red-700" onClick={onDelete}>
+            {t('admin.delete')}
+          </DropdownMenuItem>
+        ) : null}
       </DropdownMenuContent>
     </DropdownMenu>
   );

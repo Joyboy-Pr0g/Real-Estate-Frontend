@@ -20,6 +20,7 @@ import {
 import { formatDateTime } from '@/lib/utils/format';
 import { formatPriceYER } from '@/lib/utils/currency';
 import { getErrorMessage } from '@/lib/errors/api-error';
+import { usePermissions } from '@/features/admin/providers/permissions-provider';
 import { useLocale } from '@/lib/i18n/locale-provider';
 import { cn } from '@/lib/utils/cn';
 import type { TranslationKey } from '@/lib/i18n/ar';
@@ -43,6 +44,7 @@ export function AdminListingDetailView({
   initialOfficeLogs,
 }: AdminListingDetailViewProps) {
   const { t } = useLocale();
+  const { hasPermission } = usePermissions();
   const router = useRouter();
   const [submitting, setSubmitting] = useState(false);
   const [confirmAction, setConfirmAction] = useState<'soft_delete' | 'hard_delete' | null>(null);
@@ -85,7 +87,7 @@ export function AdminListingDetailView({
         </div>
 
         <div className="flex flex-wrap gap-2">
-          {!deletedAt && listing.status === 'published' ? (
+          {!deletedAt && listing.status === 'published' && hasPermission('listings.edit') ? (
             <Button
               type="button"
               variant="outline"
@@ -97,22 +99,28 @@ export function AdminListingDetailView({
           ) : null}
 
           {!deletedAt ? (
-            <Button type="button" variant="dangerOutline" disabled={submitting} onClick={() => setConfirmAction('soft_delete')}>
-              {t('admin.softDelete')}
-            </Button>
+            hasPermission('listings.soft_delete') ? (
+              <Button type="button" variant="dangerOutline" disabled={submitting} onClick={() => setConfirmAction('soft_delete')}>
+                {t('admin.softDelete')}
+              </Button>
+            ) : null
           ) : (
             <>
-              <Button
-                type="button"
-                variant="outline"
-                disabled={submitting}
-                onClick={() => void runAction(() => restoreListing(listing.id), t('admin.listingRestored'))}
-              >
-                {t('admin.restore')}
-              </Button>
-              <Button type="button" variant="danger" disabled={submitting} onClick={() => setConfirmAction('hard_delete')}>
-                {t('admin.hardDelete')}
-              </Button>
+              {hasPermission('listings.restore') ? (
+                <Button
+                  type="button"
+                  variant="outline"
+                  disabled={submitting}
+                  onClick={() => void runAction(() => restoreListing(listing.id), t('admin.listingRestored'))}
+                >
+                  {t('admin.restore')}
+                </Button>
+              ) : null}
+              {hasPermission('listings.delete') ? (
+                <Button type="button" variant="danger" disabled={submitting} onClick={() => setConfirmAction('hard_delete')}>
+                  {t('admin.hardDelete')}
+                </Button>
+              ) : null}
             </>
           )}
         </div>

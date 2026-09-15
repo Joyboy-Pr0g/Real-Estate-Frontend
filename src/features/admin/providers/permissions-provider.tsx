@@ -3,7 +3,11 @@
 import { createContext, useContext, useMemo } from 'react';
 import { UserPermissionAccess } from '@/features/admin/types/permission';
 import { AuthUser } from '@/features/auth/types/user';
-import { hasPermissionName } from '@/lib/auth/admin-route-permissions';
+import {
+  ADMIN_ROUTE_VIEW_PERMISSION,
+  canAccessAdminPath,
+  hasPermissionName,
+} from '@/lib/auth/admin-route-permissions';
 
 interface PermissionsContextValue {
   user: AuthUser;
@@ -56,7 +60,9 @@ export function PermissionsProvider({ user, permissions, children }: Permissions
             '/admin/website-settings',
             '/admin/system-status',
           ]
-        : permissions.map((p) => p.path.replace(/\/+$/, '') || '/admin'),
+        : Object.keys(ADMIN_ROUTE_VIEW_PERMISSION).filter((path) =>
+            canAccessAdminPath(path, permissions),
+          ),
     );
 
     return {

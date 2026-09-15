@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { SearchableSelect } from '@/components/ui/searchable-select';
+import { usePermissions } from '@/features/admin/providers/permissions-provider';
 import { toast } from '@/components/ui/toaster';
 import { ActionLogTimeline } from '@/features/admin/components/audit/ActionLogTimeline';
 import {
@@ -30,6 +31,7 @@ export function AdminOfficeActionLogsPanel({
   initialOfficeLabel = '',
 }: AdminOfficeActionLogsPanelProps) {
   const { t } = useLocale();
+  const { hasPermission } = usePermissions();
   const router = useRouter();
   const searchParams = useSearchParams();
   const [isPending, startTransition] = useTransition();
@@ -127,22 +129,24 @@ export function AdminOfficeActionLogsPanel({
           />
         </div>
 
-        {!canSelect ? (
-          <Button type="button" variant="outline" onClick={() => setCanSelect(true)} className="hidden sm:block rounded-xl">
-            {t('admin.select')}
-          </Button>
-        ) : (
-          <Button type="button" variant="outline" onClick={() => setCanSelect(false)} className="hidden sm:block rounded-xl">
-            {t('admin.unSelect')}
-          </Button>
-        )}
+        {hasPermission('office_action_logs.bulk_delete') ? (
+          !canSelect ? (
+            <Button type="button" variant="outline" onClick={() => setCanSelect(true)} className="hidden sm:block rounded-xl">
+              {t('admin.select')}
+            </Button>
+          ) : (
+            <Button type="button" variant="outline" onClick={() => setCanSelect(false)} className="hidden sm:block rounded-xl">
+              {t('admin.unSelect')}
+            </Button>
+          )
+        ) : null}
       </div>
 
-      {selected.size > 0 && (
+      {selected.size > 0 && hasPermission('office_action_logs.bulk_delete') ? (
         <Button variant="dangerOutline" onClick={() => void handleBulkDelete()} className="rounded-xl">
           {t('admin.deleteSelected').replace('{count}', String(selected.size))}
         </Button>
-      )}
+      ) : null}
 
       {items.length === 0 ? (
         <div className="rounded-2xl border border-dashed border-gray-200 bg-white px-6 py-16 text-center">

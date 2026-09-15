@@ -17,6 +17,7 @@ import { AdminCity, AdminLocationsPage } from '@/features/admin/types/locations'
 import { useDebounce } from '@/lib/hooks/use-debounce';
 import { useLocale } from '@/lib/i18n/locale-provider';
 import { cn } from '@/lib/utils/cn';
+import { usePermissions } from '@/features/admin/providers/permissions-provider';
 import { toast } from '@/components/ui/toaster';
 import { getErrorMessage } from '@/lib/errors/api-error';
 
@@ -29,6 +30,7 @@ export function AdminCitiesPanel({ initial, initialSearch = '' }: AdminCitiesPan
   const router = useRouter();
   const pathname = usePathname();
   const { t } = useLocale();
+  const { hasPermission } = usePermissions();
   const [isPending, startTransition] = useTransition();
   const isInitialRender = useRef(true);
 
@@ -128,10 +130,12 @@ export function AdminCitiesPanel({ initial, initialSearch = '' }: AdminCitiesPan
                 className="h-11 w-full rounded-xl border border-gray-200 bg-gray-50 ps-9 pe-3 text-sm outline-none focus:border-brand/40 focus:bg-white"
               />
             </div>
-            <Button onClick={() => { setEditItem(null); setFormOpen(true); }} className="rounded-xl">
-              <Plus size={16} />
-              {t('admin.addCity')}
-            </Button>
+            {hasPermission('cities.create') ? (
+              <Button onClick={() => { setEditItem(null); setFormOpen(true); }} className="rounded-xl">
+                <Plus size={16} />
+                {t('admin.addCity')}
+              </Button>
+            ) : null}
           </div>
         }
       />

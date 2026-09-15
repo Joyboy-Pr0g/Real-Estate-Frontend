@@ -12,7 +12,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
   if (!user) redirect('/login');
   if (user.role !== 'platform_admin' && user.role !== 'sub_admin') redirect('/');
 
-  const permissions = await getSubAdminPermissions(user);
+  const permissions = await getSubAdminPermissions();
 
   return (
     <PermissionsProvider user={user} permissions={permissions}>

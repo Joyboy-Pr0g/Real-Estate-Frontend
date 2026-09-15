@@ -10,6 +10,7 @@ import {
   fetchAdminListingReports,
   updateListingReport,
 } from '@/features/admin/services/admin-listing-reports-client';
+import { usePermissions } from '@/features/admin/providers/permissions-provider';
 import { getErrorMessage } from '@/lib/errors/api-error';
 import { useLocale } from '@/lib/i18n/locale-provider';
 import { formatDateTime } from '@/lib/utils/format';
@@ -46,6 +47,7 @@ export function AdminListingReportsPanel({
   pendingReports,
 }: AdminListingReportsPanelProps) {
   const { t } = useLocale();
+  const { hasPermission } = usePermissions();
   const router = useRouter();
   const searchParams = useSearchParams();
   const sentinelRef = useRef<HTMLDivElement>(null);
@@ -201,9 +203,11 @@ export function AdminListingReportsPanel({
                   <span className={cn('rounded-full px-2.5 py-1 text-xs font-semibold', STATUS_STYLES[report.status])}>
                     {t(`dashboard.report.status.${report.status}` as TranslationKey)}
                   </span>
-                  <Button type="button" variant="outline" size="sm" onClick={() => openAnswerModal(report)}>
-                    {t('admin.listingReports.answer')}
-                  </Button>
+                  {hasPermission('listing_reports.edit') ? (
+                    <Button type="button" variant="outline" size="sm" onClick={() => openAnswerModal(report)}>
+                      {t('admin.listingReports.answer')}
+                    </Button>
+                  ) : null}
                 </div>
               </div>
               <p className="mt-3 text-xs text-gray-400">{formatDateTime(report.created_at)}</p>

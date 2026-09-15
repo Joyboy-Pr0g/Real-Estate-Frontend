@@ -10,6 +10,7 @@ import {
   updateAdminConversationReport,
 } from '@/features/admin/services/admin-messaging-client';
 import type { ConversationReportItem, ConversationReportStatus } from '@/features/messaging/types/messaging';
+import { usePermissions } from '@/features/admin/providers/permissions-provider';
 import { getErrorMessage } from '@/lib/errors/api-error';
 import { useLocale } from '@/lib/i18n/locale-provider';
 import { formatDateTime } from '@/lib/utils/format';
@@ -52,6 +53,7 @@ export function AdminConversationReportsPanel({
   pendingReports,
 }: AdminConversationReportsPanelProps) {
   const { t } = useLocale();
+  const { hasPermission } = usePermissions();
   const router = useRouter();
   const searchParams = useSearchParams();
   const sentinelRef = useRef<HTMLDivElement>(null);
@@ -216,9 +218,11 @@ export function AdminConversationReportsPanel({
                     >
                       {t('admin.messaging.viewConversation')}
                     </Link>
-                    <Button type="button" variant="outline" size="sm" onClick={() => openAnswerModal(report)}>
-                      {t('admin.listingReports.answer')}
-                    </Button>
+                    {hasPermission('messaging.edit') ? (
+                      <Button type="button" variant="outline" size="sm" onClick={() => openAnswerModal(report)}>
+                        {t('admin.listingReports.answer')}
+                      </Button>
+                    ) : null}
                   </div>
                 </div>
               </div>

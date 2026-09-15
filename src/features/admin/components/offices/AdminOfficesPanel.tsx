@@ -25,6 +25,7 @@ import { AdminOfficesPage, OfficeDetail, OfficeVerificationStatus } from '@/feat
 import { useDebounce } from '@/lib/hooks/use-debounce';
 import { useLocale } from '@/lib/i18n/locale-provider';
 import { cn } from '@/lib/utils/cn';
+import { usePermissions } from '@/features/admin/providers/permissions-provider';
 import { toast } from '@/components/ui/toaster';
 import { getErrorMessage } from '@/lib/errors/api-error';
 
@@ -51,6 +52,7 @@ export function AdminOfficesPanel({
   const router = useRouter();
   const pathname = usePathname();
   const { t } = useLocale();
+  const { hasPermission } = usePermissions();
   const [isPending, startTransition] = useTransition();
   const isInitialRender = useRef(true);
 
@@ -258,25 +260,27 @@ export function AdminOfficesPanel({
                 icon={<Archive size={15} />}
               />
 
-              {!canSelect ? (
-                <Button type="button" variant="outline" onClick={() => setCanSelect(true)} className="hidden sm:block rounded-xl">
-                  {t('admin.select')}
-                </Button>
-              ) : (
-                <Button type="button" variant="outline" onClick={() => setCanSelect(false)} className="hidden sm:block rounded-xl">
-                  {t('admin.unSelect')}
-                </Button>
-              )}
+              {hasPermission('offices.bulk_delete') ? (
+                !canSelect ? (
+                  <Button type="button" variant="outline" onClick={() => setCanSelect(true)} className="hidden sm:block rounded-xl">
+                    {t('admin.select')}
+                  </Button>
+                ) : (
+                  <Button type="button" variant="outline" onClick={() => setCanSelect(false)} className="hidden sm:block rounded-xl">
+                    {t('admin.unSelect')}
+                  </Button>
+                )
+              ) : null}
             </div>
           </div>
         }
       />
 
-      {selected.size > 0 && (
+      {selected.size > 0 && hasPermission('offices.bulk_delete') ? (
         <Button variant="dangerOutline" onClick={() => void handleBulkDelete()} className="rounded-xl">
           {t('admin.deleteSelected').replace('{count}', String(selected.size))}
         </Button>
-      )}
+      ) : null}
 
       {offices.length === 0 ? (
         <div className="rounded-2xl border border-gray-200 bg-white p-12 text-center shadow-var(--shadow-soft)">

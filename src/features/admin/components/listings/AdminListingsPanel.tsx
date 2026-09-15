@@ -25,6 +25,7 @@ import { bffPaths } from '@/lib/api/endpoints';
 import { useDebounce } from '@/lib/hooks/use-debounce';
 import { useLocale } from '@/lib/i18n/locale-provider';
 import { cn } from '@/lib/utils/cn';
+import { usePermissions } from '@/features/admin/providers/permissions-provider';
 import { toast } from '@/components/ui/toaster';
 import { getErrorMessage } from '@/lib/errors/api-error';
 import type { TranslationKey } from '@/lib/i18n/ar';
@@ -106,6 +107,7 @@ export function AdminListingsPanel({
   const router = useRouter();
   const pathname = usePathname();
   const { t } = useLocale();
+  const { hasPermission } = usePermissions();
   const [isPending, startTransition] = useTransition();
   const isInitialRender = useRef(true);
 
@@ -429,25 +431,27 @@ export function AdminListingsPanel({
                   icon={<Archive size={15} />}
                 />
 
-                {!canSelect ? (
-                  <Button
-                    type="button"
-                    variant="outline"
-                    onClick={() => setCanSelect(true)}
-                    className="hidden shrink-0 rounded-xl sm:inline-flex"
-                  >
-                    {t('admin.select')}
-                  </Button>
-                ) : (
-                  <Button
-                    type="button"
-                    variant="outline"
-                    onClick={() => setCanSelect(false)}
-                    className="hidden shrink-0 rounded-xl sm:inline-flex"
-                  >
-                    {t('admin.unSelect')}
-                  </Button>
-                )}
+                {hasPermission('listings.bulk_delete') ? (
+                  !canSelect ? (
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={() => setCanSelect(true)}
+                      className="hidden shrink-0 rounded-xl sm:inline-flex"
+                    >
+                      {t('admin.select')}
+                    </Button>
+                  ) : (
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={() => setCanSelect(false)}
+                      className="hidden shrink-0 rounded-xl sm:inline-flex"
+                    >
+                      {t('admin.unSelect')}
+                    </Button>
+                  )
+                ) : null}
               </div>
             </div>
 
@@ -565,11 +569,11 @@ export function AdminListingsPanel({
         }
       />
 
-      {selected.size > 0 && (
+      {selected.size > 0 && hasPermission('listings.bulk_delete') ? (
         <Button variant="dangerOutline" onClick={() => void handleBulkDelete()} className="rounded-xl">
           {t('admin.deleteSelected').replace('{count}', String(selected.size))}
         </Button>
-      )}
+      ) : null}
 
       {listings.length === 0 ? (
         <div className="rounded-2xl border border-gray-200 bg-white p-12 text-center shadow-var(--shadow-soft)">

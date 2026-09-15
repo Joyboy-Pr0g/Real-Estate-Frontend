@@ -3,7 +3,6 @@ import {
   AUTH_COOKIE_NAME,
   decodeTokenRole,
   isAdminPanelRole,
-  isPlatformAdminRole,
   isSubAdminRole,
 } from '@/lib/auth/constants';
 import {

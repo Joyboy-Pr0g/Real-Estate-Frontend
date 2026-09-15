@@ -9,6 +9,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import { usePermissions } from '@/features/admin/providers/permissions-provider';
 import { OfficeDetail } from '@/features/office/types/office';
 import { useLocale } from '@/lib/i18n/locale-provider';
 
@@ -36,6 +37,7 @@ export function OfficeActionsMenu({
   onHardDelete,
 }: OfficeActionsMenuProps) {
   const { t } = useLocale();
+  const { hasPermission } = usePermissions();
 
   return (
     <DropdownMenu>
@@ -48,50 +50,67 @@ export function OfficeActionsMenu({
       <DropdownMenuContent align="end" className="w-52">
         {!office.deleted_at ? (
           <>
-            <DropdownMenuItem asChild>
-              <Link href={`/admin/offices/${office.id}`} className="cursor-pointer">
-                {t('admin.viewDetails')}
-              </Link>
-            </DropdownMenuItem>
+            {hasPermission('offices.view') ? (
+              <DropdownMenuItem asChild>
+                <Link href={`/admin/offices/${office.id}`} className="cursor-pointer">
+                  {t('admin.viewDetails')}
+                </Link>
+              </DropdownMenuItem>
+            ) : null}
 
             {office.verification_status === 'pending' || office.verification_status === 'rejected' ? (
-              <DropdownMenuItem className="cursor-pointer" onClick={onVerify}>
-                {t('admin.verify')}
-              </DropdownMenuItem>
+              hasPermission('offices.verify') ? (
+                <DropdownMenuItem className="cursor-pointer" onClick={onVerify}>
+                  {t('admin.verify')}
+                </DropdownMenuItem>
+              ) : null
             ) : null}
 
             {office.verification_status === 'pending' ? (
-              <DropdownMenuItem className="cursor-pointer" onClick={onReject}>
-                {t('admin.reject')}
-              </DropdownMenuItem>
+              hasPermission('offices.reject') ? (
+                <DropdownMenuItem className="cursor-pointer" onClick={onReject}>
+                  {t('admin.reject')}
+                </DropdownMenuItem>
+              ) : null
             ) : null}
 
             {office.verification_status === 'verified' ? (
-              <DropdownMenuItem className="cursor-pointer" onClick={onSuspend}>
-                {t('admin.suspend')}
-              </DropdownMenuItem>
+              hasPermission('offices.suspend') ? (
+                <DropdownMenuItem className="cursor-pointer" onClick={onSuspend}>
+                  {t('admin.suspend')}
+                </DropdownMenuItem>
+              ) : null
             ) : null}
 
             {office.verification_status === 'suspended' ? (
-              <DropdownMenuItem className="cursor-pointer" onClick={onUnsuspend}>
-                {t('admin.unsuspend')}
-              </DropdownMenuItem>
+              hasPermission('offices.unsuspend') ? (
+                <DropdownMenuItem className="cursor-pointer" onClick={onUnsuspend}>
+                  {t('admin.unsuspend')}
+                </DropdownMenuItem>
+              ) : null
             ) : null}
 
-            <DropdownMenuSeparator />
-
-            <DropdownMenuItem className="cursor-pointer text-amber-700 focus:text-amber-800" onClick={onSoftDelete}>
-              {t('admin.softDelete')}
-            </DropdownMenuItem>
+            {hasPermission('offices.bulk_delete') ? (
+              <>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem className="cursor-pointer text-amber-700 focus:text-amber-800" onClick={onSoftDelete}>
+                  {t('admin.softDelete')}
+                </DropdownMenuItem>
+              </>
+            ) : null}
           </>
         ) : (
           <>
-            <DropdownMenuItem className="cursor-pointer" onClick={onRestore}>
-              {t('admin.restore')}
-            </DropdownMenuItem>
-            <DropdownMenuItem className="cursor-pointer text-red-600 focus:text-red-700" onClick={onHardDelete}>
-              {t('admin.hardDelete')}
-            </DropdownMenuItem>
+            {hasPermission('offices.bulk_delete') ? (
+              <>
+                <DropdownMenuItem className="cursor-pointer" onClick={onRestore}>
+                  {t('admin.restore')}
+                </DropdownMenuItem>
+                <DropdownMenuItem className="cursor-pointer text-red-600 focus:text-red-700" onClick={onHardDelete}>
+                  {t('admin.hardDelete')}
+                </DropdownMenuItem>
+              </>
+            ) : null}
           </>
         )}
       </DropdownMenuContent>

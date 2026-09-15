@@ -6,18 +6,19 @@ import { useMarketplaceListingsInfinite } from '@/features/listings/hooks/use-ma
 import { PublicListing } from '@/features/listings/types/listing';
 import { useLocale } from '@/lib/i18n/locale-provider';
 import { CarouselSkeleton, ListingGridSkeleton } from '@/features/shared/components/LoadingSkeletons';
-import { cn } from '@/lib/utils/cn';
 
 interface ListingsInfiniteGridProps {
   initialListings: PublicListing[];
   initialCursor: string | null;
   initialHasMore: boolean;
+  initialSearchKey: string;
 }
 
 export function ListingsInfiniteGrid({
   initialListings,
   initialCursor,
   initialHasMore,
+  initialSearchKey,
 }: ListingsInfiniteGridProps) {
   const { t } = useLocale();
   const sentinelRef = useRef<HTMLDivElement>(null);
@@ -36,6 +37,7 @@ export function ListingsInfiniteGrid({
     initialListings,
     initialCursor,
     initialHasMore,
+    initialSearchKey,
   });
 
   useEffect(() => {
@@ -82,22 +84,7 @@ export function ListingsInfiniteGrid({
 
   return (
     <div className="space-y-8">
-      <div className="relative">
-        <div
-          className={cn(
-            'transition-opacity duration-200',
-            filterLoading && 'pointer-events-none opacity-45',
-          )}
-        >
-          <ListingGrid listings={listings} />
-        </div>
-
-        {filterLoading ? (
-          <div className="absolute inset-0 flex items-start justify-center pt-8">
-            <ListingGridSkeleton count={4} />
-          </div>
-        ) : null}
-      </div>
+      <ListingGrid listings={listings} />
 
       {filterError ? (
         <div className="text-center">

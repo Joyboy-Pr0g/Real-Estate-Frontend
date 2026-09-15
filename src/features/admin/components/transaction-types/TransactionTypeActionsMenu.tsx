@@ -7,6 +7,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import { usePermissions } from '@/features/admin/providers/permissions-provider';
 import { useLocale } from '@/lib/i18n/locale-provider';
 
 interface TransactionTypeActionsMenuProps {
@@ -21,6 +22,7 @@ export function TransactionTypeActionsMenu({
   onDelete,
 }: TransactionTypeActionsMenuProps) {
   const { t } = useLocale();
+  const { hasPermission } = usePermissions();
 
   return (
     <DropdownMenu>
@@ -31,12 +33,16 @@ export function TransactionTypeActionsMenu({
         <MoreHorizontal size={16} />
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-48">
-        <DropdownMenuItem className="cursor-pointer" onClick={onEdit}>
-          {t('admin.edit')}
-        </DropdownMenuItem>
-        <DropdownMenuItem className="cursor-pointer text-red-600 focus:text-red-700" onClick={onDelete}>
-          {t('admin.delete')}
-        </DropdownMenuItem>
+        {hasPermission('transaction_types.edit') ? (
+          <DropdownMenuItem className="cursor-pointer" onClick={onEdit}>
+            {t('admin.edit')}
+          </DropdownMenuItem>
+        ) : null}
+        {hasPermission('transaction_types.delete') ? (
+          <DropdownMenuItem className="cursor-pointer text-red-600 focus:text-red-700" onClick={onDelete}>
+            {t('admin.delete')}
+          </DropdownMenuItem>
+        ) : null}
       </DropdownMenuContent>
     </DropdownMenu>
   );

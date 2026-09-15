@@ -27,6 +27,7 @@ import {
   createWebsiteSettingsSchema,
   type WebsiteSettingsFormValues,
 } from '@/features/admin/schemas/website-settings-schema';
+import { usePermissions } from '@/features/admin/providers/permissions-provider';
 import { updateAdminWebsiteSettings } from '@/features/admin/services/admin-website-settings-client';
 
 interface AdminWebsiteSettingsPanelProps {
@@ -88,6 +89,8 @@ type RemoveField =
 
 export function AdminWebsiteSettingsPanel({ initialSettings }: AdminWebsiteSettingsPanelProps) {
   const { t } = useLocale();
+  const { hasPermission } = usePermissions();
+  const canEdit = hasPermission('website_settings.edit');
   const router = useRouter();
   const [settings, setSettings] = useState(initialSettings);
   const [headerFile, setHeaderFile] = useState<File | null>(null);
@@ -308,6 +311,7 @@ export function AdminWebsiteSettingsPanel({ initialSettings }: AdminWebsiteSetti
       />
 
       <form onSubmit={handleSubmit(onSubmit)} className="max-w-7xl space-y-6">
+        <fieldset disabled={!canEdit} className="space-y-6 disabled:opacity-80">
         <section className={sectionClass}>
           <div className="flex items-center gap-2">
             <Store className="h-4 w-4 text-brand" />
@@ -599,11 +603,15 @@ export function AdminWebsiteSettingsPanel({ initialSettings }: AdminWebsiteSetti
           </div>
         </section>
 
-        <div className="flex justify-end">
-          <Button type="submit" disabled={submitting} className="rounded-xl">
-            {submitting ? t('admin.websiteSettings.saving') : t('admin.websiteSettings.save')}
-          </Button>
-        </div>
+        </fieldset>
+
+        {canEdit ? (
+          <div className="flex justify-end">
+            <Button type="submit" disabled={submitting} className="rounded-xl">
+              {submitting ? t('admin.websiteSettings.saving') : t('admin.websiteSettings.save')}
+            </Button>
+          </div>
+        ) : null}
       </form>
     </div>
   );

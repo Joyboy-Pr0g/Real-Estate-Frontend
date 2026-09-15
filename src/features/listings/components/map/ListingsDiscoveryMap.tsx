@@ -1,7 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useRouter } from 'next/navigation';
 import {
   GoogleMap,
   MarkerClustererF,
@@ -16,6 +16,7 @@ import { PublicCatalog, PublicCity } from '@/features/catalog/types/catalog';
 import { PublicNeighborhood } from '@/features/catalog/types/neighborhood';
 import { LISTING_URL_PARAMS } from '@/features/listings/constants/search-url-params';
 import { MAP_ZOOM, YEMEN_MAP_BOUNDS, YEMEN_MAP_CENTER } from '@/features/listings/constants/map-config';
+import { useListingsClientNavigation, useListingsSearchParams } from '@/features/listings/hooks/use-listings-search-params';
 import { buildListingsHref } from '@/features/listings/lib/build-listings-url';
 import {
   fetchGeoJson,
@@ -81,7 +82,8 @@ export function ListingsDiscoveryMap({
 }: ListingsDiscoveryMapProps) {
   const { t } = useLocale();
   const router = useRouter();
-  const searchParams = useSearchParams();
+  const searchParams = useListingsSearchParams();
+  const navigateListings = useListingsClientNavigation();
   const apiKey = env.NEXT_PUBLIC_GOOGLE_MAPS_KEY;
   const [mounted, setMounted] = useState(false);
 
@@ -228,7 +230,7 @@ export function ListingsDiscoveryMap({
               map.fitBounds(bounds, 56);
             }
 
-            router.push(
+            navigateListings(
               buildListingsHref(
                 searchParams,
                 {
@@ -242,7 +244,7 @@ export function ListingsDiscoveryMap({
         ),
       );
     },
-    [applyDefaultStyles, catalog.cities, clearMapLayer, fitGeoCollection, router, searchParams],
+    [applyDefaultStyles, catalog.cities, clearMapLayer, fitGeoCollection, navigateListings, searchParams],
   );
 
   const loadCityLayer = useCallback(
@@ -286,7 +288,7 @@ export function ListingsDiscoveryMap({
 
             const matches = findNeighborhoodsInFeature(districtFeature, neighborhoods);
             if (matches.length === 1) {
-              router.push(
+              navigateListings(
                 buildListingsHref(
                   searchParams,
                   {
@@ -306,7 +308,7 @@ export function ListingsDiscoveryMap({
       clearMapLayer,
       fitGeoCollection,
       neighborhoods,
-      router,
+      navigateListings,
       searchParams,
       selectedCity,
     ],
@@ -361,7 +363,7 @@ export function ListingsDiscoveryMap({
 
   const handleBack = () => {
     if (viewLevel === 'listings') {
-      router.push(
+      navigateListings(
         buildListingsHref(
           searchParams,
           { [LISTING_URL_PARAMS.neighborhood]: null },
@@ -372,7 +374,7 @@ export function ListingsDiscoveryMap({
     }
 
     if (viewLevel === 'city') {
-      router.push(
+      navigateListings(
         buildListingsHref(
           searchParams,
           {

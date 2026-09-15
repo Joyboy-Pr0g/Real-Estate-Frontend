@@ -108,8 +108,12 @@ export const getSession = cache(async (): Promise<AuthUser | null> => {
   }
 });
 
-/** Sub-admin permissions for RSC (layout/provider). Does not mutate cookies. */
-export async function getSubAdminPermissions(user: AuthUser | null): Promise<UserPermissionAccess[]> {
+/**
+ * Sub-admin permissions for RSC (layout/provider).
+ * Read-only — cookie sync happens via login, BFF /permissions/me, or AdminPermissionsCookieSync.
+ */
+export const getSubAdminPermissions = cache(async (): Promise<UserPermissionAccess[]> => {
+  const user = await getSession();
   if (!user || user.role !== 'sub_admin') {
     return [];
   }
@@ -126,4 +130,4 @@ export async function getSubAdminPermissions(user: AuthUser | null): Promise<Use
   } catch {
     return [];
   }
-}
+});

@@ -1,12 +1,12 @@
 'use client';
 
 import { useMemo, useState } from 'react';
-import { useSearchParams } from 'next/navigation';
+import { useListingsSearchParams } from '@/features/listings/hooks/use-listings-search-params';
+import { normalizeSearchQueryKey } from '@/features/listings/lib/listings-client-navigation';
 import { ChevronDown, LayoutGrid, Map } from 'lucide-react';
 import Link from 'next/link';
 import { PublicCatalog } from '@/features/catalog/types/catalog';
-import { PublicNeighborhood } from '@/features/catalog/types/neighborhood';
-import { PublicPropertySubtype } from '@/features/catalog/types/property-subtype';
+import { useFilterNeighborhoods } from '@/features/catalog/hooks/use-filter-neighborhoods';
 import { ListingsFilterBar } from '@/features/listings/components/filter/ListingsFilterBar';
 import { ListingsDiscoveryMap, MapViewLevel } from '@/features/listings/components/map/ListingsDiscoveryMap';
 import { ListingsMapListingList } from '@/features/listings/components/map/ListingsMapListingList';
@@ -33,8 +33,7 @@ interface ListingsMapPageViewProps {
   listings: PublicListing[];
   nextCursor: string | null;
   hasMore: boolean;
-  initialNeighborhoods: PublicNeighborhood[];
-  initialPropertySubtypes: PublicPropertySubtype[];
+  initialSearchKey: string;
   isAuthenticated: boolean;
 }
 
@@ -43,15 +42,14 @@ export function ListingsMapPageView({
   listings,
   nextCursor,
   hasMore,
-  initialNeighborhoods,
-  initialPropertySubtypes,
+  initialSearchKey,
   isAuthenticated,
 }: ListingsMapPageViewProps) {
   const { t } = useLocale();
-  const searchParams = useSearchParams();
+  const searchParams = useListingsSearchParams();
   const [sidebarOpen, setSidebarOpen] = useState(true);
 
-  const queryKey = searchParams.toString();
+  const queryKey = normalizeSearchQueryKey(searchParams);
   const viewLevel = useMemo(() => resolveViewLevel(searchParams), [searchParams]);
 
   const {
@@ -67,6 +65,7 @@ export function ListingsMapPageView({
     initialListings: listings,
     initialCursor: nextCursor,
     initialHasMore: hasMore,
+    initialSearchKey,
     enabled: viewLevel === 'listings',
     defaultLimit: MAP_LISTINGS_PAGE_SIZE,
   });
@@ -81,9 +80,11 @@ export function ListingsMapPageView({
     [catalog.cities, cityPcode],
   );
 
+  const { neighborhoods } = useFilterNeighborhoods(selectedCity?.id ?? null);
+
   const selectedNeighborhood = useMemo(
-    () => initialNeighborhoods.find((n) => n.neighb_pcode === neighborhoodPcode) ?? null,
-    [initialNeighborhoods, neighborhoodPcode],
+    () => neighborhoods.find((n) => n.neighb_pcode === neighborhoodPcode) ?? null,
+    [neighborhoods, neighborhoodPcode],
   );
 
   const filterQuery = queryKey ? `?${queryKey}` : '';
@@ -140,8 +141,6 @@ export function ListingsMapPageView({
             <div className="shrink-0 border-b border-gray-100 px-2 py-2 md:px-3">
               <ListingsFilterBar
                 catalog={catalog}
-                initialNeighborhoods={initialNeighborhoods}
-                initialPropertySubtypes={initialPropertySubtypes}
                 isAuthenticated={isAuthenticated}
                 basePath={MAP_PATH}
                 className="shadow-none ring-0"
@@ -173,7 +172,7 @@ export function ListingsMapPageView({
       <div className="order-1 min-h-[54vh] flex-1 md:order-2 md:min-h-0">
         <ListingsDiscoveryMap
           catalog={catalog}
-          neighborhoods={initialNeighborhoods}
+          neighborhoods={neighborhoods}
           listings={displayListings}
           viewLevel={viewLevel}
           selectedCity={selectedCity}

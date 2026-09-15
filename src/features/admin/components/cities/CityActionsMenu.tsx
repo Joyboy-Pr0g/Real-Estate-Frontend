@@ -7,6 +7,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import { usePermissions } from '@/features/admin/providers/permissions-provider';
 import { AdminCity } from '@/features/admin/types/locations';
 import { useLocale } from '@/lib/i18n/locale-provider';
 
@@ -19,6 +20,7 @@ interface CityActionsMenuProps {
 
 export function CityActionsMenu({ item, disabled = false, onEdit, onDelete }: CityActionsMenuProps) {
   const { t } = useLocale();
+  const { hasPermission } = usePermissions();
 
   return (
     <DropdownMenu>
@@ -29,12 +31,16 @@ export function CityActionsMenu({ item, disabled = false, onEdit, onDelete }: Ci
         <MoreHorizontal size={16} />
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-48">
-        <DropdownMenuItem className="cursor-pointer" onClick={onEdit}>
-          {t('admin.edit')}
-        </DropdownMenuItem>
-        <DropdownMenuItem className="cursor-pointer text-red-600 focus:text-red-700" onClick={onDelete}>
-          {t('admin.delete')}
-        </DropdownMenuItem>
+        {hasPermission('cities.edit') ? (
+          <DropdownMenuItem className="cursor-pointer" onClick={onEdit}>
+            {t('admin.edit')}
+          </DropdownMenuItem>
+        ) : null}
+        {hasPermission('cities.delete') ? (
+          <DropdownMenuItem className="cursor-pointer text-red-600 focus:text-red-700" onClick={onDelete}>
+            {t('admin.delete')}
+          </DropdownMenuItem>
+        ) : null}
       </DropdownMenuContent>
     </DropdownMenu>
   );

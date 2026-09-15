@@ -15,11 +15,9 @@ import {
 } from 'lucide-react';
 import { AnimatePresence, motion } from 'framer-motion';
 import Link from 'next/link';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useRouter } from 'next/navigation';
 import { useCallback, useEffect, useMemo, useRef, useState, useTransition } from 'react';
 import { PublicCatalog, PublicCity, PublicPropertyType } from '@/features/catalog/types/catalog';
-import { PublicNeighborhood } from '@/features/catalog/types/neighborhood';
-import { PublicPropertySubtype } from '@/features/catalog/types/property-subtype';
 import { CityPanel } from '@/features/home/components/search/CityPanel';
 import { NeighborhoodPanel } from '@/features/home/components/search/NeighborhoodPanel';
 import { PropertyTypePanel } from '@/features/home/components/search/PropertyTypePanel';
@@ -35,16 +33,16 @@ import {
 } from '@/features/listings/components/filter/FilterSegment';
 import { SpecFiltersPanel } from '@/features/listings/components/filter/SpecFiltersPanel';
 import { SaveFavoriteFilterModal } from '@/features/listings/components/filter/SaveFavoriteFilterModal';
+import { useFilterNeighborhoods } from '@/features/catalog/hooks/use-filter-neighborhoods';
+import { useFilterPropertySubtypes } from '@/features/catalog/hooks/use-filter-property-subtypes';
 import { serializeListingFiltersFromSearchParams, buildListingsLoginRedirectFromSearchParams } from '@/features/listings/lib/serialize-listing-filters';
-import { normalizePublicNeighborhoods } from '@/features/catalog/lib/normalize-neighborhood';
 import { buildListingsHref } from '@/features/listings/lib/build-listings-url';
 import {
   clearSpecFromSearchParams,
   countActiveSpecFilters,
   parseSpecFromSearchParams,
 } from '@/features/listings/lib/spec-url';
-import { clientFetch } from '@/lib/api/client';
-import { bffPaths } from '@/lib/api/endpoints';
+import { useListingsClientNavigation, useListingsSearchParams } from '@/features/listings/hooks/use-listings-search-params';
 import { useDebounce } from '@/lib/hooks/use-debounce';
 import { useLocale } from '@/lib/i18n/locale-provider';
 import { cn } from '@/lib/utils/cn';
@@ -55,8 +53,6 @@ type PropertyStep = 'type' | 'subtype';
 
 interface ListingsFilterBarProps {
   catalog: PublicCatalog;
-  initialNeighborhoods?: PublicNeighborhood[];
-  initialPropertySubtypes?: PublicPropertySubtype[];
   isAuthenticated?: boolean;
   className?: string;
   basePath?: string;
@@ -64,14 +60,13 @@ interface ListingsFilterBarProps {
 
 export function ListingsFilterBar({
   catalog,
-  initialNeighborhoods = [],
-  initialPropertySubtypes = [],
   isAuthenticated = false,
   className,
   basePath = '/listings',
 }: ListingsFilterBarProps) {
   const router = useRouter();
-  const searchParams = useSearchParams();
+  const searchParams = useListingsSearchParams();
+  const navigateListings = useListingsClientNavigation();
   const barRef = useRef<HTMLDivElement>(null);
   const { t } = useLocale();
   const [pending, startTransition] = useTransition();
@@ -109,19 +104,23 @@ export function ListingsFilterBar({
     [catalog.transactionTypes, currentTransaction],
   );
 
-  const [neighborhoods, setNeighborhoods] = useState<PublicNeighborhood[]>(() =>
-    normalizePublicNeighborhoods(
-      initialNeighborhoods as Array<PublicNeighborhood & Record<string, unknown>>,
-    ),
-  );
-  const [propertySubtypes, setPropertySubtypes] =
-    useState<PublicPropertySubtype[]>(initialPropertySubtypes);
-  const [loadingNeighborhoods, setLoadingNeighborhoods] = useState(false);
-  const [loadingSubtypes, setLoadingSubtypes] = useState(false);
   const [pendingCity, setPendingCity] = useState<PublicCity | null>(null);
   const [pendingPropertyType, setPendingPropertyType] = useState<PublicPropertyType | null>(null);
-  const neighborhoodsCityIdRef = useRef<string | null>(null);
-  const subtypesPropertyTypeIdRef = useRef<string | null>(null);
+
+  const pendingCityActive =
+    pendingCity && selectedCity?.id !== pendingCity.id ? pendingCity : null;
+  const displayCity = pendingCityActive ?? selectedCity;
+  const cityIdForFetch = displayCity?.id ?? null;
+
+  const pendingPropertyTypeActive =
+    pendingPropertyType && selectedPropertyType?.id !== pendingPropertyType.id
+      ? pendingPropertyType
+      : null;
+  const displayPropertyType = pendingPropertyTypeActive ?? selectedPropertyType;
+  const propertyTypeIdForFetch = displayPropertyType?.id ?? null;
+
+  const { neighborhoods, loadingNeighborhoods } = useFilterNeighborhoods(cityIdForFetch);
+  const { propertySubtypes, loadingSubtypes } = useFilterPropertySubtypes(propertyTypeIdForFetch);
 
   const [minPriceInput, setMinPriceInput] = useState(minPriceParam);
   const [maxPriceInput, setMaxPriceInput] = useState(maxPriceParam);
@@ -149,14 +148,10 @@ export function ListingsFilterBar({
   const navigateHref = useCallback(
     (href: string, mode: 'push' | 'replace' = 'push') => {
       startTransition(() => {
-        if (mode === 'replace') {
-          router.replace(href);
-        } else {
-          router.push(href);
-        }
+        navigateListings(href, mode);
       });
     },
-    [router],
+    [navigateListings],
   );
 
   const pushParams = useCallback(
@@ -183,19 +178,12 @@ export function ListingsFilterBar({
     setActivePanel((current) => (current === id ? null : id));
   };
 
-  const displayCity = pendingCity ?? selectedCity;
-  const displayPropertyType = pendingPropertyType ?? selectedPropertyType;
-
-  const locationStep: LocationStep = locationStepOverride ?? (displayCity ? 'neighborhood' : 'city');
-  const propertyStep: PropertyStep = propertyStepOverride ?? (displayPropertyType ? 'subtype' : 'type');
-
-  useEffect(() => {
-    if (activePanel !== 'location') setLocationStepOverride(null);
-  }, [activePanel]);
-
-  useEffect(() => {
-    if (activePanel !== 'property') setPropertyStepOverride(null);
-  }, [activePanel]);
+  const locationStep: LocationStep =
+    (activePanel === 'location' ? locationStepOverride : null) ??
+    (displayCity ? 'neighborhood' : 'city');
+  const propertyStep: PropertyStep =
+    (activePanel === 'property' ? propertyStepOverride : null) ??
+    (displayPropertyType ? 'subtype' : 'type');
 
   useEffect(() => {
     if (!activePanel) return;
@@ -229,111 +217,15 @@ export function ListingsFilterBar({
     );
   }, [debouncedMinPrice, debouncedMaxPrice, minPriceParam, maxPriceParam, pushParams]);
 
-  useEffect(() => {
-    if (pendingCity && selectedCity?.id === pendingCity.id) {
-      setPendingCity(null);
-    }
-  }, [pendingCity, selectedCity?.id]);
-
-  useEffect(() => {
-    if (pendingPropertyType && selectedPropertyType?.id === pendingPropertyType.id) {
-      setPendingPropertyType(null);
-    }
-  }, [pendingPropertyType, selectedPropertyType?.id]);
-
-  useEffect(() => {
-    if (!selectedCity) {
-      setNeighborhoods([]);
-      setLoadingNeighborhoods(false);
-      neighborhoodsCityIdRef.current = null;
-      return;
-    }
-
-    if (neighborhoodsCityIdRef.current === selectedCity.id) {
-      return;
-    }
-
-    if (neighborhoodsCityIdRef.current === null && neighborhoods.length > 0) {
-      neighborhoodsCityIdRef.current = selectedCity.id;
-      return;
-    }
-
-    let cancelled = false;
-    setNeighborhoods([]);
-    setLoadingNeighborhoods(true);
-
-    clientFetch<PublicNeighborhood[]>(bffPaths.neighborhoods.public, {
-      params: { city_id: selectedCity.id },
-    })
-      .then((res) => {
-        if (!cancelled) {
-          setNeighborhoods(
-            normalizePublicNeighborhoods(res.data as Array<PublicNeighborhood & Record<string, unknown>>),
-          );
-          neighborhoodsCityIdRef.current = selectedCity.id;
-        }
-      })
-      .catch(() => {
-        if (!cancelled) setNeighborhoods([]);
-      })
-      .finally(() => {
-        if (!cancelled) setLoadingNeighborhoods(false);
-      });
-
-    return () => {
-      cancelled = true;
-    };
-  }, [neighborhoods.length, selectedCity]);
-
-  useEffect(() => {
-    if (!selectedPropertyType) {
-      setPropertySubtypes([]);
-      setLoadingSubtypes(false);
-      subtypesPropertyTypeIdRef.current = null;
-      return;
-    }
-
-    if (subtypesPropertyTypeIdRef.current === selectedPropertyType.id) {
-      return;
-    }
-
-    if (subtypesPropertyTypeIdRef.current === null && propertySubtypes.length > 0) {
-      subtypesPropertyTypeIdRef.current = selectedPropertyType.id;
-      return;
-    }
-
-    let cancelled = false;
-    setPropertySubtypes([]);
-    setLoadingSubtypes(true);
-
-    clientFetch<PublicPropertySubtype[]>(
-      bffPaths.propertySubtypes.byPropertyType(selectedPropertyType.id),
-    )
-      .then((res) => {
-        if (!cancelled) {
-          setPropertySubtypes(res.data ?? []);
-          subtypesPropertyTypeIdRef.current = selectedPropertyType.id;
-        }
-      })
-      .catch(() => {
-        if (!cancelled) setPropertySubtypes([]);
-      })
-      .finally(() => {
-        if (!cancelled) setLoadingSubtypes(false);
-      });
-
-    return () => {
-      cancelled = true;
-    };
-  }, [propertySubtypes.length, selectedPropertyType]);
-
   const clearAll = () => {
     suppressPriceSyncRef.current = true;
     priceFocusedRef.current = false;
     setMinPriceInput('');
     setMaxPriceInput('');
+    setPendingCity(null);
+    setPendingPropertyType(null);
     setActivePanel(null);
-    startTransition(() => router.push(basePath));
+    startTransition(() => navigateListings(basePath));
     window.setTimeout(() => {
       suppressPriceSyncRef.current = false;
     }, 600);
@@ -573,15 +465,12 @@ export function ListingsFilterBar({
             cities={catalog.cities}
             selectedId={selectedCity?.id ?? null}
             onSelect={(city) => {
-              neighborhoodsCityIdRef.current = null;
-              setNeighborhoods([]);
-              setLoadingNeighborhoods(true);
               setPendingCity(city);
+              setLocationStepOverride('neighborhood');
               pushParams({
                 [LISTING_URL_PARAMS.city]: city.pcode,
                 [LISTING_URL_PARAMS.neighborhood]: null,
               });
-              setLocationStepOverride('neighborhood');
             }}
           />
         ) : (
@@ -615,10 +504,8 @@ export function ListingsFilterBar({
             propertyTypes={catalog.propertyTypes}
             selectedId={selectedPropertyType?.id ?? null}
             onSelect={(type) => {
-              subtypesPropertyTypeIdRef.current = null;
-              setPropertySubtypes([]);
-              setLoadingSubtypes(true);
               setPendingPropertyType(type);
+              setPropertyStepOverride('subtype');
               pushParams(
                 {
                   [LISTING_URL_PARAMS.propertyType]: type.slug,
@@ -626,7 +513,6 @@ export function ListingsFilterBar({
                 },
                 { clearSpec: true },
               );
-              setPropertyStepOverride('subtype');
             }}
           />
         ) : (

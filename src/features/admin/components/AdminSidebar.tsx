@@ -36,6 +36,7 @@ import { logout } from '@/features/auth/services/auth-service';
 import { useAdminNavBadges } from '@/features/admin/hooks/use-admin-nav-badges';
 import { useNotificationUnreadCount } from '@/features/notifications/hooks/use-notification-unread-count';
 import { usePermissions } from '@/features/admin/providers/permissions-provider';
+import { canAccessAdminPath } from '@/lib/auth/admin-route-permissions';
 import { useLocale } from '@/lib/i18n/locale-provider';
 import { cn } from '@/lib/utils/cn';
 import { Button, ButtonLink } from '@/components/ui/button';
@@ -45,15 +46,6 @@ interface AdminSidebarProps {
 }
 
 const SIDEBAR_COMPACT_KEY = 're-admin-sidebar-compact';
-
-function isNavPathAllowed(href: string, allowedPaths: Set<string>): boolean {
-  const normalized = href.replace(/\/+$/, '') || '/admin';
-  if (allowedPaths.has(normalized)) return true;
-  for (const path of allowedPaths) {
-    if (normalized.startsWith(`${path}/`)) return true;
-  }
-  return false;
-}
 
 const navItems = [
   { href: '/admin', labelKey: 'admin.dashboard' as const, icon: LayoutDashboard, exact: true },
@@ -136,7 +128,7 @@ export function AdminSidebar({ user }: AdminSidebarProps) {
   const pathname = usePathname();
   const router = useRouter();
   const { t } = useLocale();
-  const { isPlatformAdmin, allowedPaths, hasPermission } = usePermissions();
+  const { isPlatformAdmin, permissions, hasPermission } = usePermissions();
   const adminBadges = useAdminNavBadges();
   const notificationUnreadCount = useNotificationUnreadCount();
   const [open, setOpen] = useState(false);
@@ -218,7 +210,9 @@ export function AdminSidebar({ user }: AdminSidebarProps) {
   );
 
   const visibleNavItems = [
-    ...navItems.filter((item) => isNavPathAllowed(item.href, allowedPaths)),
+    ...navItems.filter(
+      (item) => isPlatformAdmin || canAccessAdminPath(item.href, permissions),
+    ),
     ...(isPlatformAdmin
       ? [
           { href: '/admin/system-status', labelKey: 'admin.systemStatus.nav' as const, icon: Activity, exact: true },

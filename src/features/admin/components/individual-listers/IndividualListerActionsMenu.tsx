@@ -8,6 +8,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import { usePermissions } from '@/features/admin/providers/permissions-provider';
 import { IndividualListerProfile } from '@/features/individual-lister/types/individual-lister';
 import { useLocale } from '@/lib/i18n/locale-provider';
 
@@ -35,6 +36,7 @@ export function IndividualListerActionsMenu({
   onHardDelete,
 }: IndividualListerActionsMenuProps) {
   const { t } = useLocale();
+  const { hasPermission } = usePermissions();
 
   return (
     <DropdownMenu>
@@ -48,43 +50,58 @@ export function IndividualListerActionsMenu({
         {!lister.deleted_at ? (
           <>
             {lister.verification_status === 'pending' || lister.verification_status === 'rejected' ? (
-              <DropdownMenuItem className="cursor-pointer" onClick={onVerify}>
-                {t('admin.verify')}
-              </DropdownMenuItem>
+              hasPermission('individual_listers.verify') ? (
+                <DropdownMenuItem className="cursor-pointer" onClick={onVerify}>
+                  {t('admin.verify')}
+                </DropdownMenuItem>
+              ) : null
             ) : null}
 
             {lister.verification_status === 'pending' ? (
-              <DropdownMenuItem className="cursor-pointer" onClick={onReject}>
-                {t('admin.reject')}
-              </DropdownMenuItem>
+              hasPermission('individual_listers.reject') ? (
+                <DropdownMenuItem className="cursor-pointer" onClick={onReject}>
+                  {t('admin.reject')}
+                </DropdownMenuItem>
+              ) : null
             ) : null}
 
             {lister.verification_status === 'verified' ? (
-              <DropdownMenuItem className="cursor-pointer" onClick={onSuspend}>
-                {t('admin.suspend')}
-              </DropdownMenuItem>
+              hasPermission('individual_listers.suspend') ? (
+                <DropdownMenuItem className="cursor-pointer" onClick={onSuspend}>
+                  {t('admin.suspend')}
+                </DropdownMenuItem>
+              ) : null
             ) : null}
 
             {lister.verification_status === 'suspended' ? (
-              <DropdownMenuItem className="cursor-pointer" onClick={onUnsuspend}>
-                {t('admin.unsuspend')}
-              </DropdownMenuItem>
+              hasPermission('individual_listers.unsuspend') ? (
+                <DropdownMenuItem className="cursor-pointer" onClick={onUnsuspend}>
+                  {t('admin.unsuspend')}
+                </DropdownMenuItem>
+              ) : null
             ) : null}
 
-            <DropdownMenuSeparator />
-
-            <DropdownMenuItem className="cursor-pointer text-amber-700 focus:text-amber-800" onClick={onSoftDelete}>
-              {t('admin.softDelete')}
-            </DropdownMenuItem>
+            {hasPermission('individual_listers.soft_delete') ? (
+              <>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem className="cursor-pointer text-amber-700 focus:text-amber-800" onClick={onSoftDelete}>
+                  {t('admin.softDelete')}
+                </DropdownMenuItem>
+              </>
+            ) : null}
           </>
         ) : (
           <>
-            <DropdownMenuItem className="cursor-pointer" onClick={onRestore}>
-              {t('admin.restore')}
-            </DropdownMenuItem>
-            <DropdownMenuItem className="cursor-pointer text-red-600 focus:text-red-700" onClick={onHardDelete}>
-              {t('admin.hardDelete')}
-            </DropdownMenuItem>
+            {hasPermission('individual_listers.restore') ? (
+              <DropdownMenuItem className="cursor-pointer" onClick={onRestore}>
+                {t('admin.restore')}
+              </DropdownMenuItem>
+            ) : null}
+            {hasPermission('individual_listers.delete') ? (
+              <DropdownMenuItem className="cursor-pointer text-red-600 focus:text-red-700" onClick={onHardDelete}>
+                {t('admin.hardDelete')}
+              </DropdownMenuItem>
+            ) : null}
           </>
         )}
       </DropdownMenuContent>

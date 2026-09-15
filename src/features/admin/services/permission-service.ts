@@ -15,6 +15,11 @@ export async function fetchMyPermissions(): Promise<UserPermissionAccess[]> {
   return res.data ?? [];
 }
 
+/** Refreshes sub-admin permissions and updates the proxy cookie via BFF. */
+export async function refreshAdminPermissions(): Promise<UserPermissionAccess[]> {
+  return fetchMyPermissions();
+}
+
 export async function fetchAllPermissions(): Promise<PermissionRecord[]> {
   const res = await clientFetch<PermissionRecord[]>(bffPaths.admin.permissions);
   return res.data ?? [];

@@ -14,6 +14,7 @@ import { deleteMainFeature } from '@/features/admin/services/admin-features-clie
 import { AdminMainFeature } from '@/features/admin/types/features';
 import { useLocale } from '@/lib/i18n/locale-provider';
 import { cn } from '@/lib/utils/cn';
+import { usePermissions } from '@/features/admin/providers/permissions-provider';
 import { toast } from '@/components/ui/toaster';
 import { getErrorMessage } from '@/lib/errors/api-error';
 
@@ -24,6 +25,7 @@ interface AdminMainFeaturesPanelProps {
 export function AdminMainFeaturesPanel({ initial }: AdminMainFeaturesPanelProps) {
   const router = useRouter();
   const { t } = useLocale();
+  const { hasPermission } = usePermissions();
   const [isPending, startTransition] = useTransition();
   const [searchInput, setSearchInput] = useState('');
   const [actionId, setActionId] = useState<string | null>(null);
@@ -92,10 +94,12 @@ export function AdminMainFeaturesPanel({ initial }: AdminMainFeaturesPanelProps)
               <Button asChild variant="outline" className="rounded-xl">
                 <Link href="/admin/sub-features">{t('admin.subFeatures')}</Link>
               </Button>
-              <Button onClick={() => { setEditItem(null); setFormOpen(true); }} className="rounded-xl">
-                <Plus size={16} />
-                {t('admin.addMainFeature')}
-              </Button>
+              {hasPermission('main_features.create') ? (
+                <Button onClick={() => { setEditItem(null); setFormOpen(true); }} className="rounded-xl">
+                  <Plus size={16} />
+                  {t('admin.addMainFeature')}
+                </Button>
+              ) : null}
             </div>
           </div>
         }

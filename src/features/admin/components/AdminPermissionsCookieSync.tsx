@@ -1,12 +1,12 @@
 'use client';
 
 import { useEffect } from 'react';
-import { fetchMyPermissions } from '@/features/admin/services/permission-service';
+import { refreshAdminPermissions } from '@/features/admin/services/permission-service';
 
-/** Keeps the proxy permissions cookie in sync via the BFF route handler. */
+/** Client fallback: refresh proxy cookie if layout/server sync was missed. */
 export function AdminPermissionsCookieSync() {
   useEffect(() => {
-    void fetchMyPermissions().catch(() => {});
+    void refreshAdminPermissions().catch(() => {});
   }, []);
 
   return null;

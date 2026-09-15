@@ -9,6 +9,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import { usePermissions } from '@/features/admin/providers/permissions-provider';
 import { AdminListingSummary } from '@/features/listings/types/listing';
 import { useLocale } from '@/lib/i18n/locale-provider';
 
@@ -30,6 +31,7 @@ export function ListingActionsMenu({
   onHardDelete,
 }: ListingActionsMenuProps) {
   const { t } = useLocale();
+  const { hasPermission } = usePermissions();
 
   return (
     <DropdownMenu>
@@ -42,32 +44,41 @@ export function ListingActionsMenu({
       <DropdownMenuContent align="end" className="w-52">
         {!listing.deleted_at ? (
           <>
-            <DropdownMenuItem asChild>
-              <Link href={`/admin/listings/${listing.id}`} className="cursor-pointer">
-                {t('admin.viewDetails')}
-              </Link>
-            </DropdownMenuItem>
+            {hasPermission('listings.view') ? (
+              <DropdownMenuItem asChild>
+                <Link href={`/admin/listings/${listing.id}`} className="cursor-pointer">
+                  {t('admin.viewDetails')}
+                </Link>
+              </DropdownMenuItem>
+            ) : null}
 
-            {listing.status === 'published' ? (
+            {listing.status === 'published' && hasPermission('listings.edit') ? (
               <DropdownMenuItem className="cursor-pointer" onClick={onDraft}>
                 {t('dashboard.listings.actionDraft')}
               </DropdownMenuItem>
             ) : null}
 
-            <DropdownMenuSeparator />
-
-            <DropdownMenuItem className="cursor-pointer text-amber-700 focus:text-amber-800" onClick={onSoftDelete}>
-              {t('admin.softDelete')}
-            </DropdownMenuItem>
+            {hasPermission('listings.soft_delete') ? (
+              <>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem className="cursor-pointer text-amber-700 focus:text-amber-800" onClick={onSoftDelete}>
+                  {t('admin.softDelete')}
+                </DropdownMenuItem>
+              </>
+            ) : null}
           </>
         ) : (
           <>
-            <DropdownMenuItem className="cursor-pointer" onClick={onRestore}>
-              {t('admin.restore')}
-            </DropdownMenuItem>
-            <DropdownMenuItem className="cursor-pointer text-red-600 focus:text-red-700" onClick={onHardDelete}>
-              {t('admin.hardDelete')}
-            </DropdownMenuItem>
+            {hasPermission('listings.restore') ? (
+              <DropdownMenuItem className="cursor-pointer" onClick={onRestore}>
+                {t('admin.restore')}
+              </DropdownMenuItem>
+            ) : null}
+            {hasPermission('listings.delete') ? (
+              <DropdownMenuItem className="cursor-pointer text-red-600 focus:text-red-700" onClick={onHardDelete}>
+                {t('admin.hardDelete')}
+              </DropdownMenuItem>
+            ) : null}
           </>
         )}
       </DropdownMenuContent>

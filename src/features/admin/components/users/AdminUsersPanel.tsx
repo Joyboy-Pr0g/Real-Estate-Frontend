@@ -292,20 +292,24 @@ export function AdminUsersPanel({
                 icon={<Archive size={15} />}
               />
 
-              <Button onClick={() => setCreateOpen(true)} className="rounded-xl" disabled={!hasPermission('users.create')}>
-                <Plus size={16} />
-                {t('admin.addUser')}
-              </Button>
+              {hasPermission('users.create') ? (
+                <Button onClick={() => setCreateOpen(true)} className="rounded-xl">
+                  <Plus size={16} />
+                  {t('admin.addUser')}
+                </Button>
+              ) : null}
 
-              {!canSelect ? (
-                <Button type="button" variant="outline" onClick={() => setCanSelect(true)} className="hidden sm:block rounded-xl">
-                  {t('admin.select')}
-                </Button>
-              ) : (
-                <Button type="button" variant="outline" onClick={() => setCanSelect(false)} className="hidden sm:block rounded-xl">
-                  {t('admin.unSelect')}
-                </Button>
-              )}
+              {hasPermission('users.bulk_delete') ? (
+                !canSelect ? (
+                  <Button type="button" variant="outline" onClick={() => setCanSelect(true)} className="hidden sm:block rounded-xl">
+                    {t('admin.select')}
+                  </Button>
+                ) : (
+                  <Button type="button" variant="outline" onClick={() => setCanSelect(false)} className="hidden sm:block rounded-xl">
+                    {t('admin.unSelect')}
+                  </Button>
+                )
+              ) : null}
             </div>
           </div>
         }

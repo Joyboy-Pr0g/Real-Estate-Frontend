@@ -8,6 +8,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { AdminUserListItem } from '@/features/auth/types/user';
+import { usePermissions } from '@/features/admin/providers/permissions-provider';
 import { useLocale } from '@/lib/i18n/locale-provider';
 
 interface UserActionsMenuProps {
@@ -34,6 +35,7 @@ export function UserActionsMenu({
   onHardDelete,
 }: UserActionsMenuProps) {
   const { t } = useLocale();
+  const { hasPermission } = usePermissions();
 
   return (
     <DropdownMenu>
@@ -48,36 +50,51 @@ export function UserActionsMenu({
           <>
             {user.status === 'active' ? (
               <>
-                <DropdownMenuItem className="cursor-pointer" onClick={onDeactivate}>
-                  {t('admin.deactivateUser')}
-                </DropdownMenuItem>
+                {hasPermission('users.deactivate') ? (
+                  <DropdownMenuItem className="cursor-pointer" onClick={onDeactivate}>
+                    {t('admin.deactivateUser')}
+                  </DropdownMenuItem>
+                ) : null}
 
-                <DropdownMenuItem className="cursor-pointer" onClick={onChangeRole}>
-                  {t('admin.changeRole')}
-                </DropdownMenuItem>
+                {hasPermission('users.change_role') ? (
+                  <DropdownMenuItem className="cursor-pointer" onClick={onChangeRole}>
+                    {t('admin.changeRole')}
+                  </DropdownMenuItem>
+                ) : null}
 
-                <DropdownMenuItem className="cursor-pointer" onClick={onChangePassword}>
-                  {t('admin.changePassword')}
-                </DropdownMenuItem>
+                {hasPermission('users.change_password') ? (
+                  <DropdownMenuItem className="cursor-pointer" onClick={onChangePassword}>
+                    {t('admin.changePassword')}
+                  </DropdownMenuItem>
+                ) : null}
               </>
-
             ) : (
-              <DropdownMenuItem className="cursor-pointer" onClick={onActivate}>
-                {t('admin.activateUser')}
-              </DropdownMenuItem>
+              <>
+                {hasPermission('users.activate') ? (
+                  <DropdownMenuItem className="cursor-pointer" onClick={onActivate}>
+                    {t('admin.activateUser')}
+                  </DropdownMenuItem>
+                ) : null}
+              </>
             )}
-            <DropdownMenuItem className="cursor-pointer text-amber-700 focus:text-amber-800" onClick={onSoftDelete}>
-              {t('admin.softDeleteUser')}
-            </DropdownMenuItem>
+            {hasPermission('users.soft_delete') ? (
+              <DropdownMenuItem className="cursor-pointer text-amber-700 focus:text-amber-800" onClick={onSoftDelete}>
+                {t('admin.softDeleteUser')}
+              </DropdownMenuItem>
+            ) : null}
           </>
         ) : (
           <>
-            <DropdownMenuItem className="cursor-pointer" onClick={onRestore}>
-              {t('admin.restoreUser')}
-            </DropdownMenuItem>
-            <DropdownMenuItem className="cursor-pointer text-red-600 focus:text-red-700" onClick={onHardDelete}>
-              {t('admin.deleteUser')}
-            </DropdownMenuItem>
+            {hasPermission('users.restore') ? (
+              <DropdownMenuItem className="cursor-pointer" onClick={onRestore}>
+                {t('admin.restoreUser')}
+              </DropdownMenuItem>
+            ) : null}
+            {hasPermission('users.delete') ? (
+              <DropdownMenuItem className="cursor-pointer text-red-600 focus:text-red-700" onClick={onHardDelete}>
+                {t('admin.deleteUser')}
+              </DropdownMenuItem>
+            ) : null}
           </>
         )}
       </DropdownMenuContent>

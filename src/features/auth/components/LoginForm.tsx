@@ -9,7 +9,7 @@ import { Button } from '@/components/ui/button';
 import { createLoginSchema, LoginInput } from '@/features/auth/schemas/auth-schemas';
 import { login } from '@/features/auth/services/auth-service';
 import { getErrorMessage, isEmailNotVerifiedError } from '@/lib/errors/api-error';
-import { isAdminPanelRole } from '@/lib/auth/constants';
+import { isAdminPanelRole, isSubAdminRole } from '@/lib/auth/constants';
 import { useLocale } from '@/lib/i18n/locale-provider';
 import { cn } from '@/lib/utils/cn';
 
@@ -43,7 +43,14 @@ export function LoginForm() {
       const redirect = searchParams.get('redirect');
 
       if (redirect) {
+        if (isSubAdminRole(user.role) && redirect.startsWith('/admin')) {
+          window.location.assign(redirect);
+          return;
+        }
         router.push(redirect);
+      } else if (isSubAdminRole(user.role)) {
+        window.location.assign('/admin');
+        return;
       } else if (isAdminPanelRole(user.role)) {
         router.push('/admin');
       } else {

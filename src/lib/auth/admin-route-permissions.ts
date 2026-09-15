@@ -19,6 +19,8 @@ export const ADMIN_ROUTE_VIEW_PERMISSION: Record<string, string> = {
   '/admin/cities': 'cities.view',
   '/admin/neighborhoods': 'neighborhoods.view',
   '/admin/announcements': 'announcements.view',
+  '/admin/messaging': 'messaging.view',
+  '/admin/support-tickets': 'support_tickets.view',
   '/admin/website-settings': 'website_settings.view',
   '/admin/permissions': 'dashboard.view',
 };
@@ -64,6 +66,24 @@ export function hasPermissionName(
   permissionName: string,
 ): boolean {
   return permissions.some((p) => p.name === permissionName);
+}
+
+/** First admin route the sub-admin can open; avoids /admin loops when dashboard.view is missing. */
+export function getSubAdminFallbackPath(permissions: UserPermissionAccess[]): string {
+  if (permissions.length === 0) return '/admin';
+
+  const candidatePaths = [
+    '/admin',
+    ...new Set(permissions.map((p) => p.path.replace(/\/+$/, '') || '/admin')),
+  ];
+
+  for (const path of candidatePaths) {
+    if (canAccessAdminPath(path, permissions)) {
+      return path;
+    }
+  }
+
+  return candidatePaths.find((path) => path !== '/admin') ?? '/admin';
 }
 
 export const ADMIN_PERMISSIONS_COOKIE = 're_admin_perms';

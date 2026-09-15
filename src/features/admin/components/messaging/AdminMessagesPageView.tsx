@@ -10,6 +10,7 @@ import { AdminChatWindow } from '@/features/admin/components/messaging/AdminChat
 import { deleteAdminConversation, fetchAdminConversations } from '@/features/admin/services/admin-messaging-client';
 import { formatAdminConversationParticipants, normalizeAdminConversation } from '@/features/admin/components/messaging/admin-messaging-utils';
 import type { AdminConversationDetail, AdminConversationInboxRow, BlockAuditRow } from '@/features/messaging/types/messaging';
+import { usePermissions } from '@/features/admin/providers/permissions-provider';
 import { getErrorMessage } from '@/lib/errors/api-error';
 import { useLocale } from '@/lib/i18n/locale-provider';
 
@@ -25,6 +26,8 @@ export function AdminMessagesPageView({
   blocks = [],
 }: AdminMessagesPageViewProps) {
   const { t } = useLocale();
+  const { hasPermission } = usePermissions();
+  const canEditMessaging = hasPermission('messaging.edit');
   const router = useRouter();
   const [items, setItems] = useState(initialItems);
   const [search, setSearch] = useState('');
@@ -129,7 +132,7 @@ export function AdminMessagesPageView({
                   )
                 }
                 showBlockBadge={(item) => Boolean((item as AdminConversationInboxRow).has_block)}
-                onDeleteConversation={setDeleteTargetId}
+                onDeleteConversation={canEditMessaging ? setDeleteTargetId : undefined}
                 deletingConversationId={deletingConversationId}
               />
             )}

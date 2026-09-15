@@ -18,6 +18,7 @@ import { AdminPropertyType, PropertyTypeStatus } from '@/features/admin/types/ca
 import { useDebounce } from '@/lib/hooks/use-debounce';
 import { useLocale } from '@/lib/i18n/locale-provider';
 import { cn } from '@/lib/utils/cn';
+import { usePermissions } from '@/features/admin/providers/permissions-provider';
 import { toast } from '@/components/ui/toaster';
 import { getErrorMessage } from '@/lib/errors/api-error';
 
@@ -35,6 +36,7 @@ export function AdminPropertyTypesPanel({
   const router = useRouter();
   const pathname = usePathname();
   const { t } = useLocale();
+  const { hasPermission } = usePermissions();
   const [isPending, startTransition] = useTransition();
   const isInitialRender = useRef(true);
 
@@ -138,10 +140,12 @@ export function AdminPropertyTypesPanel({
                 <option value="active">{t('admin.status.active')}</option>
                 <option value="inactive">{t('admin.status.inactive')}</option>
               </select>
-              <Button onClick={openCreate} className="rounded-xl">
-                <Plus size={16} />
-                {t('admin.addPropertyType')}
-              </Button>
+              {hasPermission('property_types.create') ? (
+                <Button onClick={openCreate} className="rounded-xl">
+                  <Plus size={16} />
+                  {t('admin.addPropertyType')}
+                </Button>
+              ) : null}
             </div>
           </div>
         }

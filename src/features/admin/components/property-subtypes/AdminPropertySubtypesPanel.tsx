@@ -14,6 +14,7 @@ import { AdminPropertySubtype, AdminPropertyType } from '@/features/admin/types/
 import { useDebounce } from '@/lib/hooks/use-debounce';
 import { useLocale } from '@/lib/i18n/locale-provider';
 import { cn } from '@/lib/utils/cn';
+import { usePermissions } from '@/features/admin/providers/permissions-provider';
 import { toast } from '@/components/ui/toaster';
 import { getErrorMessage } from '@/lib/errors/api-error';
 
@@ -33,6 +34,7 @@ export function AdminPropertySubtypesPanel({
   const router = useRouter();
   const pathname = usePathname();
   const { t } = useLocale();
+  const { hasPermission } = usePermissions();
   const [isPending, startTransition] = useTransition();
   const isInitialRender = useRef(true);
 
@@ -126,10 +128,12 @@ export function AdminPropertySubtypesPanel({
                   </option>
                 ))}
               </select>
-              <Button onClick={() => { setEditItem(null); setFormOpen(true); }} className="rounded-xl">
-                <Plus size={16} />
-                {t('admin.addPropertySubtype')}
-              </Button>
+              {hasPermission('property_subtypes.create') ? (
+                <Button onClick={() => { setEditItem(null); setFormOpen(true); }} className="rounded-xl">
+                  <Plus size={16} />
+                  {t('admin.addPropertySubtype')}
+                </Button>
+              ) : null}
             </div>
           </div>
         }
