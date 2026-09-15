@@ -7,8 +7,8 @@ export const propertyTypesSearchSchema = z.object({
 });
 
 export const propertyTypeBodySchema = z.object({
-  name: z.string().trim().min(2).max(20),
-  icon: z.string().trim().min(2).max(20),
+  name: z.string().trim().min(2).max(20).optional(),
+  icon: z.string().trim().min(2).max(20).optional(),
 });
 
 export const propertyTypeUpdateBodySchema = propertyTypeBodySchema.partial().refine(

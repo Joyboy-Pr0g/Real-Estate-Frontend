@@ -8,7 +8,7 @@ export function HomeHeroVisual() {
     <div className="hero-visual pointer-events-none absolute inset-0 z-0" aria-hidden>
       <div className="hero-visual-bg relative h-full w-full">
         <Image
-          src="/real_image.jpg"
+          src="/real_image.jpeg"
           alt=""
           fill
           priority
