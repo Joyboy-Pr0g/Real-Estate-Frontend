@@ -24,7 +24,7 @@ export function HomeHeroMotion({ children }: HomeHeroMotionProps) {
 
       const bg = scope.querySelector('.hero-visual-bg');
       if (bg) {
-        gsap.fromTo(bg, { scale: 1.06, opacity: 0.85 }, { scale: 1, opacity: 1, duration: 1.1, ease: GSAP_EASE });
+        gsap.fromTo(bg, { scale: 1.02, opacity: 0.9 }, { scale: 1, opacity: 1, duration: 1.1, ease: GSAP_EASE });
       }
 
       const tl = gsap.timeline({ defaults: { ease: GSAP_EASE } });

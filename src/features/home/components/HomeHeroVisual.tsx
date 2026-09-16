@@ -6,15 +6,18 @@ import { HeroFloatingTrustIcons } from '@/features/home/components/HeroFloatingT
 export function HomeHeroVisual() {
   return (
     <div className="hero-visual pointer-events-none absolute inset-0 z-0" aria-hidden>
-      <div className="hero-visual-bg relative h-full w-full">
-        <Image
-          src="/real_image.jpeg"
-          alt=""
-          fill
-          priority
-          className="object-cover object-center"
-          sizes="100vw"
-        />
+      <div className="hero-visual-bg relative h-full w-full overflow-hidden">
+        {/* Slightly oversized frame so object-cover feels less cropped / zoomed-in */}
+        <div className="absolute left-1/2 top-[42%] h-[130%] w-[130%] max-w-none -translate-x-1/2 -translate-y-1/2">
+          <Image
+            src="/real_image.jpeg"
+            alt=""
+            fill
+            priority
+            className="object-cover object-[50%_38%]"
+            sizes="100vw"
+          />
+        </div>
       </div>
 
       {/* Readability overlays — content sits on the start side (right in RTL) */}
