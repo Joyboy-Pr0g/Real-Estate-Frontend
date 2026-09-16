@@ -15,6 +15,7 @@ import {
   ShoppingBag,
   Stethoscope,
   Trees,
+  Dumbbell,
   UtensilsCrossed,
   type LucideIcon,
 } from 'lucide-react';
@@ -44,6 +45,7 @@ const CATEGORY_ICONS: Record<NearByPointCategory, LucideIcon> = {
   restaurants: UtensilsCrossed,
   banks: Banknote,
   pharmacies: Pill,
+  gyms: Dumbbell,
   gas_stations: Fuel,
 };
 
@@ -56,6 +58,7 @@ const CATEGORY_EMOJI: Record<NearByPointCategory, string> = {
   restaurants: '🍽️',
   banks: '🏦',
   pharmacies: '💊',
+  gyms: '💪',
   gas_stations: '⛽',
 };
 
@@ -83,11 +86,15 @@ export function ListingMap({ listingId, latitude, longitude, address }: ListingM
 
   const [category, setCategory] = useState<NearByPointCategory>('schools');
   const [result, setResult] = useState<NearByPointsResult | null>(null);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(false);
+  const [loadedFor, setLoadedFor] = useState<string | null>(null);
+  const [errorFor, setErrorFor] = useState<string | null>(null);
   const [activePoiId, setActivePoiId] = useState<string | null>(null);
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const isInitialZoomRef = useRef(true);
+
+  const fetchKey = `${listingId}:${category}`;
+  const loading = loadedFor !== fetchKey && errorFor !== fetchKey;
+  const error = errorFor === fetchKey;
 
   const { isLoaded } = useJsApiLoader({
     id: GOOGLE_MAPS_LOADER_ID,
@@ -97,26 +104,25 @@ export function ListingMap({ listingId, latitude, longitude, address }: ListingM
 
   useEffect(() => {
     let cancelled = false;
-    setLoading(true);
-    setError(false);
 
     clientFetch<NearByPointsResult>(bffPaths.listings.nearByPoints(listingId), {
       searchParams: { category },
     })
       .then((res) => {
-        if (!cancelled) setResult(res.data ?? null);
+        if (!cancelled) {
+          setResult(res.data ?? null);
+          setLoadedFor(fetchKey);
+          setErrorFor(null);
+        }
       })
       .catch(() => {
-        if (!cancelled) setError(true);
-      })
-      .finally(() => {
-        if (!cancelled) setLoading(false);
+        if (!cancelled) setErrorFor(fetchKey);
       });
 
     return () => {
       cancelled = true;
     };
-  }, [listingId, category]);
+  }, [listingId, category, fetchKey]);
 
   const onLoad = useCallback((map: google.maps.Map) => {
     map.setCenter(center);

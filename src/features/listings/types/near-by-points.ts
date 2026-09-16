@@ -7,6 +7,7 @@ export const NEAR_BY_POINT_CATEGORIES = [
   'restaurants',
   'banks',
   'pharmacies',
+  'gyms',
   'gas_stations',
 ] as const;
 
