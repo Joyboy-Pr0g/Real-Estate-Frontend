@@ -12,6 +12,7 @@ import {
   getHighlightSpecKeys,
   getSpecFieldLabel,
 } from '@/features/listings/lib/property-spec-display';
+import { YerVariant } from '@/features/listings/types/listing';
 import { PublicListingSeller, ListingPropertySpecs } from '@/features/listings/types/listing-detail';
 import { PropertySpecSchema } from '@/features/catalog/types/property-subtype';
 import { formatPriceYER } from '@/lib/utils/currency';
@@ -22,6 +23,7 @@ interface StickyListingHeaderProps {
   listingSlug: string;
   title: string;
   price: string;
+  yerVariant: YerVariant;
   cityName: string;
   neighborhoodName: string;
   specs: ListingPropertySpecs;
@@ -36,6 +38,7 @@ function CondensedBar({
   listingSlug,
   title,
   price,
+  yerVariant,
   cityName,
   neighborhoodName,
   specs,
@@ -62,7 +65,7 @@ function CondensedBar({
             <div className="mt-1 flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-gray-600">
               <span className="flex items-center gap-1.5 font-bold text-brand-dark">
                 <Banknote className="h-4 w-4 shrink-0 text-brand" />
-                {formatPriceYER(price)}
+                {formatPriceYER(price, yerVariant)}
               </span>
               <span className="flex items-center gap-1.5 font-medium">
                 <MapPin className="h-4 w-4 shrink-0 text-gray-400" />
@@ -142,7 +145,7 @@ export function StickyListingHeader(props: StickyListingHeaderProps) {
       setOverride(null, false);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [props.title, props.price, props.cityName, props.neighborhoodName, props.specs, props.specSchema, props.seller.id, props.isAuthenticated]);
+  }, [props.title, props.price, props.yerVariant, props.cityName, props.neighborhoodName, props.specs, props.specSchema, props.seller.id, props.isAuthenticated]);
 
   return <div ref={sentinelRef} className="h-px" />;
 }

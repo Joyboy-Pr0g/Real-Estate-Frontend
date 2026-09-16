@@ -16,6 +16,7 @@ import {
 import { PublicPropertyType, PublicTransactionType, PublicCity } from '@/features/catalog/types/catalog';
 import { PublicPropertySubtype } from '@/features/catalog/types/property-subtype';
 import { PublicNeighborhood } from '@/features/catalog/types/neighborhood';
+import { ListingPriceType, YerVariant } from '@/features/listings/types/listing';
 import { ListingPropertySpecs } from '@/features/listings/types/listing-detail';
 import { MyOffice } from '@/features/office/types/office';
 import { clientFetch } from '@/lib/api/client';
@@ -68,6 +69,8 @@ export function CreateListingForm({
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [price, setPrice] = useState('');
+  const [priceType, setPriceType] = useState<ListingPriceType>('ثابت');
+  const [yerVariant, setYerVariant] = useState<YerVariant>('قديم');
   const [cityId, setCityId] = useState('');
   const [neighborhoodId, setNeighborhoodId] = useState('');
   const [neighborhoods, setNeighborhoods] = useState<PublicNeighborhood[]>([]);
@@ -200,6 +203,8 @@ export function CreateListingForm({
       formData.append('title', title.trim());
       formData.append('description', description.trim());
       formData.append('price', price.trim());
+      formData.append('price_type', priceType);
+      formData.append('yer_variant', yerVariant);
       formData.append('city_id', cityId);
       formData.append('neighborhood_id', neighborhoodId);
       formData.append('address', address.trim());
@@ -343,22 +348,50 @@ export function CreateListingForm({
                 />
               </label>
 
-              <label className="block max-w-xs space-y-1.5">
-                <FieldLabel>{t('dashboard.listings.price')}</FieldLabel>
-                <input
-                  required
-                  type="number"
-                  inputMode="decimal"
-                  min="0"
-                  step="any"
-                  value={price}
-                  onChange={(e) => {
-                    const val = e.target.value;
-                    if (/^\d*\.?\d*$/.test(val)) setPrice(val);
-                  }}
-                  className={fieldClass}
-                />
-              </label>
+              <div className="grid gap-4 sm:grid-cols-3">
+                <label className="block space-y-1.5">
+                  <FieldLabel>{t('dashboard.listings.price')}</FieldLabel>
+                  <input
+                    required
+                    type="number"
+                    inputMode="decimal"
+                    min="0"
+                    step="any"
+                    value={price}
+                    onChange={(e) => {
+                      const val = e.target.value;
+                      if (/^\d*\.?\d*$/.test(val)) setPrice(val);
+                    }}
+                    className={fieldClass}
+                  />
+                </label>
+
+                <label className="block space-y-1.5">
+                  <FieldLabel>{t('dashboard.listings.priceType')}</FieldLabel>
+                  <select
+                    required
+                    value={priceType}
+                    onChange={(e) => setPriceType(e.target.value as ListingPriceType)}
+                    className={fieldClass}
+                  >
+                    <option value="ثابت">{t('dashboard.listings.priceType.fixed')}</option>
+                    <option value="قابل للتفاوض">{t('dashboard.listings.priceType.negotiable')}</option>
+                  </select>
+                </label>
+
+                <label className="block space-y-1.5">
+                  <FieldLabel>{t('dashboard.listings.yerVariant')}</FieldLabel>
+                  <select
+                    required
+                    value={yerVariant}
+                    onChange={(e) => setYerVariant(e.target.value as YerVariant)}
+                    className={fieldClass}
+                  >
+                    <option value="قديم">{t('dashboard.listings.yerVariant.old')}</option>
+                    <option value="جديد">{t('dashboard.listings.yerVariant.new')}</option>
+                  </select>
+                </label>
+              </div>
             </>
           ) : null}
 

@@ -1,4 +1,5 @@
 import { PropertySpecSchema } from '@/features/catalog/types/property-subtype';
+import type { ListingPriceType, YerVariant } from '@/features/listings/types/listing';
 
 export interface PublicListingCatalogItemDetailed {
   name: string;
@@ -101,6 +102,8 @@ export interface PublicListingDetail {
   title: string;
   slug: string;
   price: string;
+  price_type: ListingPriceType;
+  yer_variant: YerVariant;
   description: string;
   seller: PublicListingSeller;
   property_type: PublicListingCatalogItemDetailed;

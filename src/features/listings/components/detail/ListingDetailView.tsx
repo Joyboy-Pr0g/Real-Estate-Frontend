@@ -7,6 +7,7 @@ import { ListingSpecGrid } from '@/features/listings/components/detail/ListingSp
 import { ListingContentTabs } from '@/features/listings/components/detail/ListingContentTabs';
 import { ListingDetailsTab } from '@/features/listings/components/detail/ListingDetailsTab';
 import { ListingLocationTab } from '@/features/listings/components/detail/ListingLocationTab';
+import { ListingHistoryTab } from '@/features/listings/components/detail/ListingHistoryTab';
 import { SimilarOfficeListings } from '@/features/listings/components/detail/SimilarOfficeListings';
 import { StickyListingHeader } from '@/features/listings/components/detail/StickyListingHeader';
 import { ViewTracker } from '@/features/listings/components/detail/ViewTracker';
@@ -35,7 +36,7 @@ export function ListingDetailView({
 }: ListingDetailViewProps) {
   return (
     <div className="py-4">
-      <Container>
+      <Container className="max-w-8xl">
         <div className="space-y-3">
           <ListingBreadcrumb listing={listing} />
           <ListingTitleBar
@@ -47,7 +48,7 @@ export function ListingDetailView({
             initialSaved={isSaved}
           />
 
-          <div className="grid grid-cols-1 gap-4 lg:grid-cols-[2fr_1.4fr_1fr]">
+          <div className="grid grid-cols-1 gap-4 lg:grid-cols-[2fr_1.4fr_1.2fr]">
             <div>
               <ListingGallery
                 title={listing.title}
@@ -66,6 +67,8 @@ export function ListingDetailView({
             <div>
               <ListingSpecGrid
                 price={listing.price}
+                priceType={listing.price_type}
+                yerVariant={listing.yer_variant}
                 specs={listing.property_specs}
                 schema={listing.property_subtype.spec_schema}
               />
@@ -81,6 +84,7 @@ export function ListingDetailView({
               listingSlug={listing.slug}
               title={listing.title}
               price={listing.price}
+              yerVariant={listing.yer_variant}
               cityName={listing.city.name}
               neighborhoodName={listing.neighborhood.name}
               specs={listing.property_specs}
@@ -107,6 +111,11 @@ export function ListingDetailView({
                 address={listing.address}
                 neighborhood={listing.neighborhood}
               />
+            }
+            history={
+              listing.histories.length > 0 ? (
+                <ListingHistoryTab histories={listing.histories} yerVariant={listing.yer_variant} />
+              ) : undefined
             }
           />
 

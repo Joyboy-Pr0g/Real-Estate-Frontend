@@ -31,7 +31,7 @@ export async function ListingBreadcrumb({ listing }: ListingBreadcrumbProps) {
   ];
 
   return (
-    <nav aria-label="breadcrumb" className="flex flex-wrap items-center gap-1 text-xs text-gray-500">
+    <nav aria-label="breadcrumb" className="flex flex-wrap items-center gap-1 text-sm text-gray-500">
       {crumbs.map((crumb, i) => (
         <span key={`${crumb.label}-${i}`} className="flex items-center gap-1">
           {i > 0 ? <ChevronLeft className="h-3 w-3 rtl:rotate-180" /> : null}

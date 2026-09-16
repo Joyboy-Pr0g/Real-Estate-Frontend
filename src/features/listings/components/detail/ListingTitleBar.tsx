@@ -48,7 +48,7 @@ export function ListingTitleBar({
 
   return (
     <div className="flex flex-wrap items-start justify-between gap-3">
-      <h1 className="text-xl font-bold text-primary-dark sm:text-2xl">{title}</h1>
+      <h1 className="text-xl pr-8 font-bold text-primary-dark sm:text-2xl">{title}</h1>
 
       <div className="flex shrink-0 items-center gap-2">
         <MessageListingButton

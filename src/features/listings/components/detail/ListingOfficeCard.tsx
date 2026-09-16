@@ -2,6 +2,7 @@ import Image from 'next/image';
 import { BadgeCheck, Building2, Mail, Phone, User } from 'lucide-react';
 import { PublicListingSeller } from '@/features/listings/types/listing-detail';
 import { getServerTranslations } from '@/lib/i18n/server';
+import { ButtonLink } from '@/components/ui/button';
 
 interface ListingOfficeCardProps {
   seller: PublicListingSeller;
@@ -88,6 +89,13 @@ export async function ListingOfficeCard({ seller }: ListingOfficeCardProps) {
           ) : null}
         </div>
       )}
+
+      <div>
+        <ButtonLink href={`/offices/${seller.name}`} className="w-full">
+          <Building2 className="h-4 w-4" />
+          {t('admin.viewOffice')}
+        </ButtonLink>
+      </div>
     </div>
   );
 }

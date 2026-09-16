@@ -13,6 +13,7 @@ import {
   getSpecFieldLabel,
 } from '@/features/listings/lib/property-spec-display';
 import { formatDateTime } from '@/lib/utils/format';
+import { ListingPriceLine } from '@/features/listings/components/ListingPriceLine';
 import { formatPriceYER } from '@/lib/utils/currency';
 import { useLocale } from '@/lib/i18n/locale-provider';
 import { cn } from '@/lib/utils/cn';
@@ -243,7 +244,30 @@ export function OfficeListingDetailView({ listing, editHref, initialOfficeLogs }
             <dl className="space-y-3 text-sm">
               <div className="flex justify-between gap-3">
                 <dt className="text-gray-400">{t('dashboard.listings.price')}</dt>
-                <dd className="font-semibold text-brand-dark">{formatPriceYER(listing.price)}</dd>
+                <dd>
+                  <ListingPriceLine
+                    price={listing.price}
+                    priceType={listing.price_type}
+                    yerVariant={listing.yer_variant}
+                    priceClassName="text-sm font-semibold"
+                  />
+                </dd>
+              </div>
+              <div className="flex justify-between gap-3">
+                <dt className="text-gray-400">{t('dashboard.listings.priceType')}</dt>
+                <dd className="text-primary-dark">
+                  {listing.price_type === 'قابل للتفاوض'
+                    ? t('dashboard.listings.priceType.negotiable')
+                    : t('dashboard.listings.priceType.fixed')}
+                </dd>
+              </div>
+              <div className="flex justify-between gap-3">
+                <dt className="text-gray-400">{t('dashboard.listings.yerVariant')}</dt>
+                <dd className="text-primary-dark">
+                  {listing.yer_variant === 'جديد'
+                    ? t('dashboard.listings.yerVariant.new')
+                    : t('dashboard.listings.yerVariant.old')}
+                </dd>
               </div>
               <div className="flex justify-between gap-3">
                 <dt className="text-gray-400">{t('dashboard.listings.propertyType')}</dt>

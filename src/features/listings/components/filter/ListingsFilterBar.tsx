@@ -290,7 +290,7 @@ export function ListingsFilterBar({
           {basePath === '/listings' ? (
             <Link
               href={mapViewHref}
-              className="flex-1 sm:flex-none inline-flex items-center gap-1.5 rounded-full bg-brand-muted px-2.5 py-1.5 text-[11px] font-semibold text-brand-dark transition-colors hover:bg-brand/15"
+              className="flex-1 sm:flex-none inline-flex items-center justify-center gap-1.5 rounded-full bg-brand-muted px-2.5 py-3 text-[11px] font-semibold text-brand-dark transition-colors hover:bg-brand/15"
             >
               <Map className="h-3.5 w-3.5" />
               <span className="inline">{t('map.mapView')}</span>

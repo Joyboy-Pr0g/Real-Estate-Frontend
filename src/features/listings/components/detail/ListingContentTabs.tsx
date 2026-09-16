@@ -7,17 +7,19 @@ import { useLocale } from '@/lib/i18n/locale-provider';
 interface ListingContentTabsProps {
   details: ReactNode;
   location: ReactNode;
+  history?: ReactNode;
 }
 
-type TabKey = 'details' | 'location';
+type TabKey = 'details' | 'location' | 'history';
 
-export function ListingContentTabs({ details, location }: ListingContentTabsProps) {
+export function ListingContentTabs({ details, location, history }: ListingContentTabsProps) {
   const { t } = useLocale();
   const [active, setActive] = useState<TabKey>('details');
 
   const tabs: { key: TabKey; label: string }[] = [
     { key: 'details', label: t('detail.tabs.details') },
     { key: 'location', label: t('detail.tabs.location') },
+    ...(history ? [{ key: 'history' as const, label: t('detail.tabs.history') }] : []),
   ];
 
   return (
@@ -44,6 +46,7 @@ export function ListingContentTabs({ details, location }: ListingContentTabsProp
       <div className="p-5">
         {active === 'details' ? details : null}
         {active === 'location' ? location : null}
+        {active === 'history' && history ? history : null}
       </div>
     </div>
   );

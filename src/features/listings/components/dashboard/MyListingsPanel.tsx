@@ -34,6 +34,7 @@ import { bffPaths } from '@/lib/api/endpoints';
 import { getErrorMessage } from '@/lib/errors/api-error';
 import { invalidateListingsQueries } from '@/lib/query/invalidate-listings';
 import { useLocale } from '@/lib/i18n/locale-provider';
+import { ListingPriceLine } from '@/features/listings/components/ListingPriceLine';
 import { formatPriceYER } from '@/lib/utils/currency';
 import { cn } from '@/lib/utils/cn';
 import { useDebounce } from '@/lib/hooks/use-debounce';
@@ -183,7 +184,7 @@ function DeletedListingsModal({ open, onClose, onChanged }: DeletedListingsModal
                   <div className="min-w-0">
                     <p className="truncate font-semibold text-primary-dark">{listing.title}</p>
                     <p className="text-xs text-gray-500">
-                      {listing.neighborhood_name}, {listing.city_name} · {formatPriceYER(listing.price)}
+                      {listing.neighborhood_name}, {listing.city_name} · {formatPriceYER(listing.price, listing.yer_variant)}
                     </p>
                   </div>
                   <div className="flex shrink-0 gap-2">
@@ -326,7 +327,12 @@ function MyListingCard({
           </p>
         </div>
 
-        <p className="text-lg font-bold text-brand-dark">{formatPriceYER(listing.price)}</p>
+        <ListingPriceLine
+          price={listing.price}
+          priceType={listing.price_type}
+          yerVariant={listing.yer_variant}
+          priceClassName="text-lg"
+        />
 
         <div className="mt-auto grid grid-cols-2 gap-2 border-t border-gray-100 pt-3">
           <div className="rounded-xl bg-gray-50 px-3 py-2">

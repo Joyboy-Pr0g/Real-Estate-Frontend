@@ -3,11 +3,21 @@ export interface PublicListingCatalogItem {
   icon: string | null;
 }
 
+export type ListingPriceType = 'ثابت' | 'قابل للتفاوض';
+export type YerVariant = 'جديد' | 'قديم';
+
+export enum ListingPriceTypeEnum {
+  FIXED = 'ثابت',
+  NEGOTIABLE = 'قابل للتفاوض',
+}
+
 export interface PublicListing {
   id: string;
   title: string;
   slug: string;
   price: string;
+  price_type: ListingPriceType;
+  yer_variant: YerVariant;
   property_type: PublicListingCatalogItem;
   transaction_type: PublicListingCatalogItem & { display_name_ar: string };
   property_subtype: PublicListingCatalogItem;

@@ -2,10 +2,10 @@
 
 import Image from 'next/image';
 import Link from 'next/link';
-import { Building2, Star } from 'lucide-react';
+import { Building2 } from 'lucide-react';
 import { useState } from 'react';
 import { PublicListing } from '@/features/listings/types/listing';
-import { formatPriceYER } from '@/lib/utils/currency';
+import { ListingPriceLine } from '@/features/listings/components/ListingPriceLine';
 import { useLocale } from '@/lib/i18n/locale-provider';
 import { cn } from '@/lib/utils/cn';
 
@@ -86,17 +86,18 @@ export function ListingCard({ listing, priority = false }: ListingCardProps) {
             <h3 className="font-semibold text-[15px] text-primary-dark line-clamp-1 leading-snug">
               {listing.neighborhood_name}, {listing.city_name}
             </h3>
-            <span className="flex items-center gap-0.5 shrink-0 text-sm text-primary-dark">
-              <Star className="h-3.5 w-3.5 fill-primary-dark text-primary-dark" />
-              <span className="font-medium">4.9</span>
-            </span>
           </div>
           <p className="text-sm text-gray-500 line-clamp-1">{locationLine}</p>
-          <p className="text-sm text-gray-500 line-clamp-1 pt-0.5">
-            <span className="font-semibold text-primary-dark">{formatPriceYER(listing.price)}</span>
-            {' · '}
-            {listing.property_subtype.name}
-          </p>
+          <div className="flex flex-wrap items-center gap-x-2 gap-y-1 pt-0.5 text-sm text-gray-500">
+            <ListingPriceLine
+              price={listing.price}
+              priceType={listing.price_type}
+              yerVariant={listing.yer_variant}
+              priceClassName="text-sm font-semibold text-primary-dark"
+            />
+            <span aria-hidden>·</span>
+            <span className="line-clamp-1">{listing.property_subtype.name}</span>
+          </div>
         </div>
       </article>
     </Link>

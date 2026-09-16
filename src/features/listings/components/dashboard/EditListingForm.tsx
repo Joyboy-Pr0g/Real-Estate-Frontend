@@ -19,6 +19,7 @@ import {
 } from '@/features/listings/lib/listing-image-meta';
 import { PublicCity } from '@/features/catalog/types/catalog';
 import { PublicNeighborhood } from '@/features/catalog/types/neighborhood';
+import { ListingPriceType, YerVariant } from '@/features/listings/types/listing';
 import { PublicListingDetail, ListingPropertySpecs } from '@/features/listings/types/listing-detail';
 import { clientFetch } from '@/lib/api/client';
 import { bffPaths } from '@/lib/api/endpoints';
@@ -55,6 +56,8 @@ export function EditListingForm({
   const [title, setTitle] = useState(listing.title);
   const [description, setDescription] = useState(listing.description);
   const [price, setPrice] = useState(listing.price);
+  const [priceType, setPriceType] = useState<ListingPriceType>(listing.price_type);
+  const [yerVariant, setYerVariant] = useState<YerVariant>(listing.yer_variant);
   const [cityId, setCityId] = useState(listing.city.id);
   const [neighborhoodId, setNeighborhoodId] = useState(listing.neighborhood.id);
   const [neighborhoods, setNeighborhoods] = useState<PublicNeighborhood[]>(initialNeighborhoods);
@@ -116,6 +119,8 @@ export function EditListingForm({
       formData.append('title', title.trim());
       formData.append('description', description.trim());
       formData.append('price', price.trim());
+      formData.append('price_type', priceType);
+      formData.append('yer_variant', yerVariant);
       formData.append('city_id', cityId);
       formData.append('neighborhood_id', neighborhoodId);
       formData.append('address', address.trim());
@@ -204,24 +209,52 @@ export function EditListingForm({
             />
           </label>
 
-          <label className="block max-w-xs space-y-1.5">
-            <FieldLabel>{t('dashboard.listings.price')}</FieldLabel>
-            <input
-              required
-              type="number"
-              inputMode="decimal"
-              min="0"
-              step="any"
-              value={price}
-              onChange={(e) => {
-                const val = e.target.value;
-                if (/^\d*\.?\d*$/.test(val)) {
-                  setPrice(val);
-                }
-              }}
-              className={fieldClass}
-            />
-          </label>
+          <div className="grid gap-4 sm:grid-cols-3">
+            <label className="block space-y-1.5">
+              <FieldLabel>{t('dashboard.listings.price')}</FieldLabel>
+              <input
+                required
+                type="number"
+                inputMode="decimal"
+                min="0"
+                step="any"
+                value={price}
+                onChange={(e) => {
+                  const val = e.target.value;
+                  if (/^\d*\.?\d*$/.test(val)) {
+                    setPrice(val);
+                  }
+                }}
+                className={fieldClass}
+              />
+            </label>
+
+            <label className="block space-y-1.5">
+              <FieldLabel>{t('dashboard.listings.priceType')}</FieldLabel>
+              <select
+                required
+                value={priceType}
+                onChange={(e) => setPriceType(e.target.value as ListingPriceType)}
+                className={fieldClass}
+              >
+                <option value="ثابت">{t('dashboard.listings.priceType.fixed')}</option>
+                <option value="قابل للتفاوض">{t('dashboard.listings.priceType.negotiable')}</option>
+              </select>
+            </label>
+
+            <label className="block space-y-1.5">
+              <FieldLabel>{t('dashboard.listings.yerVariant')}</FieldLabel>
+              <select
+                required
+                value={yerVariant}
+                onChange={(e) => setYerVariant(e.target.value as YerVariant)}
+                className={fieldClass}
+              >
+                <option value="قديم">{t('dashboard.listings.yerVariant.old')}</option>
+                <option value="جديد">{t('dashboard.listings.yerVariant.new')}</option>
+              </select>
+            </label>
+          </div>
         </Tabs.Content>
 
         <Tabs.Content value="address" className="space-y-4 p-6">
