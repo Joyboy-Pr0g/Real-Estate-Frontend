@@ -6,6 +6,7 @@ export const backendPaths = {
     getById: (id: string) => `/listings/${id}`,
     photos: (id: string) => `/listings/${id}/photos`,
     nearByPoints: (id: string) => `/listings/${id}/near-by-points`,
+    metrics: (id: string) => `/listings/${id}/metrics`,
     saved: '/listings/saved',
     favoriteFilters: '/listings/favorite-filters',
     favoriteFilterById: (id: string) => `/listings/favorite-filters/${id}`,
@@ -287,6 +288,7 @@ export const bffPaths = {
   listings: {
     search: '/api/listings/search',
     nearByPoints: (id: string) => `/api/listings/${id}/near-by-points`,
+    metrics: (id: string) => `/api/listings/${id}/metrics`,
     save: (id: string) => `/api/listings/${id}/save`,
     view: (id: string) => `/api/listings/${id}/view`,
     saved: '/api/listings/saved',

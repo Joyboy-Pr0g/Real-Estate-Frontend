@@ -17,6 +17,7 @@ import { PublicPropertyType, PublicTransactionType, PublicCity } from '@/feature
 import { PublicPropertySubtype } from '@/features/catalog/types/property-subtype';
 import { PublicNeighborhood } from '@/features/catalog/types/neighborhood';
 import { ListingPriceType, YerVariant } from '@/features/listings/types/listing';
+import { isSaleTransaction } from '@/features/listings/lib/listing-transaction';
 import { ListingPropertySpecs } from '@/features/listings/types/listing-detail';
 import { MyOffice } from '@/features/office/types/office';
 import { clientFetch } from '@/lib/api/client';
@@ -71,6 +72,8 @@ export function CreateListingForm({
   const [price, setPrice] = useState('');
   const [priceType, setPriceType] = useState<ListingPriceType>('ثابت');
   const [yerVariant, setYerVariant] = useState<YerVariant>('قديم');
+  const [acceptsInstallment, setAcceptsInstallment] = useState(false);
+  const [estimatedMonthlyRent, setEstimatedMonthlyRent] = useState('');
   const [cityId, setCityId] = useState('');
   const [neighborhoodId, setNeighborhoodId] = useState('');
   const [neighborhoods, setNeighborhoods] = useState<PublicNeighborhood[]>([]);
@@ -85,6 +88,8 @@ export function CreateListingForm({
   const [submitting, setSubmitting] = useState(false);
 
   const selectedSubtype = propertySubtypes.find((subtype) => subtype.id === propertySubtypeId) ?? null;
+  const selectedTransactionType = transactionTypes.find((type) => type.id === transactionTypeId) ?? null;
+  const isSaleListing = selectedTransactionType ? isSaleTransaction(selectedTransactionType.name) : false;
   const selectedNeighborhood = neighborhoods.find((neighborhood) => neighborhood.id === neighborhoodId) ?? null;
   const neighborhoodCenter =
     selectedNeighborhood?.latitude != null && selectedNeighborhood?.longitude != null
@@ -205,6 +210,12 @@ export function CreateListingForm({
       formData.append('price', price.trim());
       formData.append('price_type', priceType);
       formData.append('yer_variant', yerVariant);
+      if (isSaleListing) {
+        formData.append('accepts_installment', acceptsInstallment ? 'true' : 'false');
+        if (estimatedMonthlyRent.trim()) {
+          formData.append('estimated_monthly_rent', estimatedMonthlyRent.trim());
+        }
+      }
       formData.append('city_id', cityId);
       formData.append('neighborhood_id', neighborhoodId);
       formData.append('address', address.trim());
@@ -392,6 +403,40 @@ export function CreateListingForm({
                   </select>
                 </label>
               </div>
+
+              {isSaleListing ? (
+                <div className="space-y-4 rounded-xl border border-gray-100 bg-gray-50/60 p-4">
+                  <p className="text-sm font-semibold text-primary-dark">{t('dashboard.listings.saleMetricsSection')}</p>
+
+                  <label className="flex cursor-pointer items-center gap-3">
+                    <input
+                      type="checkbox"
+                      checked={acceptsInstallment}
+                      onChange={(e) => setAcceptsInstallment(e.target.checked)}
+                      className="h-4 w-4 rounded border-gray-300 text-brand focus:ring-brand/30"
+                    />
+                    <span className="text-sm text-primary-dark">{t('dashboard.listings.acceptsInstallment')}</span>
+                  </label>
+
+                  <label className="block max-w-xs space-y-1.5">
+                    <FieldLabel>{t('dashboard.listings.estimatedMonthlyRent')}</FieldLabel>
+                    <input
+                      type="number"
+                      inputMode="decimal"
+                      min="0"
+                      step="any"
+                      value={estimatedMonthlyRent}
+                      onChange={(e) => {
+                        const val = e.target.value;
+                        if (/^\d*\.?\d*$/.test(val)) setEstimatedMonthlyRent(val);
+                      }}
+                      placeholder={t('dashboard.listings.estimatedMonthlyRentPlaceholder')}
+                      className={fieldClass}
+                    />
+                    <p className="text-xs text-gray-500">{t('dashboard.listings.estimatedMonthlyRentHint')}</p>
+                  </label>
+                </div>
+              ) : null}
             </>
           ) : null}
 

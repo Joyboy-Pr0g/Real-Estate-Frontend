@@ -21,6 +21,7 @@ import { PublicCity } from '@/features/catalog/types/catalog';
 import { PublicNeighborhood } from '@/features/catalog/types/neighborhood';
 import { ListingPriceType, YerVariant } from '@/features/listings/types/listing';
 import { PublicListingDetail, ListingPropertySpecs } from '@/features/listings/types/listing-detail';
+import { isSaleTransaction } from '@/features/listings/lib/listing-transaction';
 import { clientFetch } from '@/lib/api/client';
 import { bffPaths } from '@/lib/api/endpoints';
 import { getErrorMessage } from '@/lib/errors/api-error';
@@ -58,6 +59,9 @@ export function EditListingForm({
   const [price, setPrice] = useState(listing.price);
   const [priceType, setPriceType] = useState<ListingPriceType>(listing.price_type);
   const [yerVariant, setYerVariant] = useState<YerVariant>(listing.yer_variant);
+  const [acceptsInstallment, setAcceptsInstallment] = useState(listing.accepts_installment ?? false);
+  const [estimatedMonthlyRent, setEstimatedMonthlyRent] = useState(listing.estimated_monthly_rent ?? '');
+  const isSaleListing = isSaleTransaction(listing.transaction_type.name);
   const [cityId, setCityId] = useState(listing.city.id);
   const [neighborhoodId, setNeighborhoodId] = useState(listing.neighborhood.id);
   const [neighborhoods, setNeighborhoods] = useState<PublicNeighborhood[]>(initialNeighborhoods);
@@ -121,6 +125,10 @@ export function EditListingForm({
       formData.append('price', price.trim());
       formData.append('price_type', priceType);
       formData.append('yer_variant', yerVariant);
+      if (isSaleListing) {
+        formData.append('accepts_installment', acceptsInstallment ? 'true' : 'false');
+        formData.append('estimated_monthly_rent', estimatedMonthlyRent.trim() || '');
+      }
       formData.append('city_id', cityId);
       formData.append('neighborhood_id', neighborhoodId);
       formData.append('address', address.trim());
@@ -255,6 +263,40 @@ export function EditListingForm({
               </select>
             </label>
           </div>
+
+          {isSaleListing ? (
+            <div className="space-y-4 rounded-xl border border-gray-100 bg-gray-50/60 p-4">
+              <p className="text-sm font-semibold text-primary-dark">{t('dashboard.listings.saleMetricsSection')}</p>
+
+              <label className="flex cursor-pointer items-center gap-3">
+                <input
+                  type="checkbox"
+                  checked={acceptsInstallment}
+                  onChange={(e) => setAcceptsInstallment(e.target.checked)}
+                  className="h-4 w-4 rounded border-gray-300 text-brand focus:ring-brand/30"
+                />
+                <span className="text-sm text-primary-dark">{t('dashboard.listings.acceptsInstallment')}</span>
+              </label>
+
+              <label className="block max-w-xs space-y-1.5">
+                <FieldLabel>{t('dashboard.listings.estimatedMonthlyRent')}</FieldLabel>
+                <input
+                  type="number"
+                  inputMode="decimal"
+                  min="0"
+                  step="any"
+                  value={estimatedMonthlyRent}
+                  onChange={(e) => {
+                    const val = e.target.value;
+                    if (/^\d*\.?\d*$/.test(val)) setEstimatedMonthlyRent(val);
+                  }}
+                  placeholder={t('dashboard.listings.estimatedMonthlyRentPlaceholder')}
+                  className={fieldClass}
+                />
+                <p className="text-xs text-gray-500">{t('dashboard.listings.estimatedMonthlyRentHint')}</p>
+              </label>
+            </div>
+          ) : null}
         </Tabs.Content>
 
         <Tabs.Content value="address" className="space-y-4 p-6">

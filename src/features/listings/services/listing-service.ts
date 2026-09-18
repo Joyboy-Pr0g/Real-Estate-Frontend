@@ -9,6 +9,7 @@ import { MyListingReport, MyListingSummary, PublicListing, SavedListingItem, Vie
 import { hasListingSeller } from '../lib/listing-detail-guards';
 import { PublicListingDetail } from '../types/listing-detail';
 import { NearByPointCategory, NearByPointsResult } from '../types/near-by-points';
+import { ListingMetricsResponse } from '../types/listing-metrics';
 import { ListingSearchQuery } from '../schemas/search-schema';
 
 interface CursorParams {
@@ -119,6 +120,14 @@ export const listingService = {
         ...(params.category ? { category: params.category } : {}),
         ...(params.radius ? { radius: params.radius } : {}),
       },
+    });
+    return response.data ?? null;
+  },
+
+  async getMetrics(id: string): Promise<ListingMetricsResponse | null> {
+    const response = await serverFetch<ListingMetricsResponse>(backendPaths.listings.metrics(id), {
+      cacheProfile: 'short',
+      tags: ['listings', `listing-metrics-${id}`],
     });
     return response.data ?? null;
   },

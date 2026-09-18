@@ -104,6 +104,8 @@ export interface PublicListingDetail {
   price: string;
   price_type: ListingPriceType;
   yer_variant: YerVariant;
+  accepts_installment: boolean;
+  estimated_monthly_rent: string | null;
   description: string;
   seller: PublicListingSeller;
   property_type: PublicListingCatalogItemDetailed;

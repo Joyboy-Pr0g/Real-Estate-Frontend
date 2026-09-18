@@ -8,6 +8,8 @@ import { ListingContentTabs } from '@/features/listings/components/detail/Listin
 import { ListingDetailsTab } from '@/features/listings/components/detail/ListingDetailsTab';
 import { ListingLocationTab } from '@/features/listings/components/detail/ListingLocationTab';
 import { ListingHistoryTab } from '@/features/listings/components/detail/ListingHistoryTab';
+import { ListingMetricsTab } from '@/features/listings/components/detail/ListingMetricsTab';
+import { isSaleTransaction } from '@/features/listings/lib/listing-transaction';
 import { SimilarOfficeListings } from '@/features/listings/components/detail/SimilarOfficeListings';
 import { StickyListingHeader } from '@/features/listings/components/detail/StickyListingHeader';
 import { ViewTracker } from '@/features/listings/components/detail/ViewTracker';
@@ -34,6 +36,8 @@ export function ListingDetailView({
   isSaved = false,
   similarSavedIds = [],
 }: ListingDetailViewProps) {
+  const showMetricsTab = isSaleTransaction(listing.transaction_type.name);
+
   return (
     <div className="py-4">
       <Container className="max-w-8xl">
@@ -117,6 +121,7 @@ export function ListingDetailView({
                 <ListingHistoryTab histories={listing.histories} yerVariant={listing.yer_variant} />
               ) : undefined
             }
+            metrics={showMetricsTab ? <ListingMetricsTab listingId={listing.id} /> : undefined}
           />
 
           {listing.seller?.type === 'office' ? (
