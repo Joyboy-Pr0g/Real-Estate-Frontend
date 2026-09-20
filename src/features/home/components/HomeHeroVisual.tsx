@@ -7,13 +7,14 @@ export function HomeHeroVisual() {
   return (
     <div className="hero-visual pointer-events-none absolute inset-0 z-0" aria-hidden>
       <div className="hero-visual-bg relative h-full w-full overflow-hidden">
-        <div className="absolute inset-0 origin-center scale-[0.82]">
+        {/* Slightly oversized frame so object-cover feels less cropped / zoomed-in */}
+        <div className="absolute left-1/2 top-[10%] h-[150%] w-[100%] max-w-none -translate-x-1/2 -translate-y-1/2">
           <Image
             src="/real_image.jpeg"
             alt=""
             fill
             priority
-            className="object-cover object-center"
+            className="object-cover object-[50%_38%]"
             sizes="100vw"
           />
         </div>

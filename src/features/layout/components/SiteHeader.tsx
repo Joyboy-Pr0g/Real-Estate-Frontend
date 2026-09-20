@@ -88,14 +88,14 @@ export function SiteHeader({ user = null, settings = null }: SiteHeaderProps) {
               <motion.span
                 whileHover={{ scale: 1.05 }}
                 className={cn(
-                  'flex h-10 w-10 items-center justify-center overflow-hidden rounded-xl shadow-md',
+                  'flex h-12 w-12 items-center justify-center overflow-hidden rounded-xl shadow-md md:h-14 md:w-14',
                   isHome ? 'bg-white/15 text-white shadow-black/10' : 'bg-brand text-white shadow-brand/20',
                 )}
               >
                 {settings?.header_logo_url ? (
                   <img src={logoUrl} alt={settings.title} className="h-full w-full object-cover" />
                 ) : (
-                  <Building2 className="h-5 w-5" />
+                  <Building2 className="h-6 w-6 md:h-7 md:w-7" />
                 )}
               </motion.span>
               <span
