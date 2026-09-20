@@ -17,7 +17,6 @@ const Chart = dynamic(() => import('react-apexcharts'), { ssr: false });
 const CHART_COLORS = {
   office: '#1e6b45',
   market: '#059669',
-  market_city: '#34d399',
   history: '#d97706',
   final: '#1e3a5f',
   unavailable: '#e5e7eb',
@@ -29,7 +28,7 @@ const CHART_COLORS = {
   netNegative: '#dc2626',
 };
 
-const RENT_SOURCE_ORDER: ListingRentSourceKind[] = ['office', 'market', 'market_city', 'history'];
+const RENT_SOURCE_ORDER: ListingRentSourceKind[] = ['office', 'market', 'history'];
 
 function formatCompactAmount(value: number, locale: string): string {
   return new Intl.NumberFormat(locale === 'ar' ? 'ar-YE' : 'en-US', {

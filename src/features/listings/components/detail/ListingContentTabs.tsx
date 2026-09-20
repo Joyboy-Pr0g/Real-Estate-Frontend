@@ -27,9 +27,9 @@ export function ListingContentTabs({ details, location, history, metrics }: List
   return (
     <div className="rounded-2xl bg-white shadow-(--shadow-soft) ring-1 ring-gray-100">
       <div className="flex gap-1 overflow-x-auto border-b border-gray-100 px-4 pt-3">
-        {tabs.map((tab) => (
+        {tabs.map((tab, index) => (
           <button
-            key={tab.key}
+            key={tab.key + index.toString()}
             type="button"
             onClick={() => setActive(tab.key)}
             className={cn(

@@ -24,7 +24,7 @@ interface ListingMetricsTabProps {
   listingId: string;
 }
 
-const RENT_SOURCE_ORDER: ListingRentSourceKind[] = ['office', 'market', 'market_city', 'history'];
+const RENT_SOURCE_ORDER: ListingRentSourceKind[] = ['office', 'market', 'history'];
 
 function computeMonthlyInstallment(price: number, downPct: number, years: number): number {
   const financed = price * (1 - downPct / 100);
@@ -40,9 +40,6 @@ function getRentSourceHint(
 
   if (source.source === 'market' && source.sample_count) {
     return t('detail.metrics.marketSample').replace('{count}', String(source.sample_count));
-  }
-  if (source.source === 'market_city' && source.sample_count) {
-    return t('detail.metrics.citySample').replace('{count}', String(source.sample_count));
   }
   if (source.source === 'office') {
     return t('detail.metrics.officeEstimate');

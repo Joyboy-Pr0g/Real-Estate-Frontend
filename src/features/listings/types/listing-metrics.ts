@@ -1,6 +1,6 @@
 import type { YerVariant } from '@/features/listings/types/listing';
 
-export type ListingRentSourceKind = 'office' | 'market' | 'market_city' | 'history';
+export type ListingRentSourceKind = 'office' | 'market' | 'history';
 
 export interface ListingRentSource {
   source: ListingRentSourceKind;
@@ -25,7 +25,6 @@ export interface ListingMetricsResponse {
   rent_sources: {
     office: ListingRentSource;
     market: ListingRentSource;
-    market_city: ListingRentSource;
     history: ListingRentSource;
   };
   final_estimated_rent: string | null;
