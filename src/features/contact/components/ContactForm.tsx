@@ -11,7 +11,8 @@ import type { AuthUser } from '@/features/auth/types/user';
 
 export function ContactForm({ user }: { user: AuthUser | null }) {
   const { t } = useLocale();
-  const [fullName, setFullName] = useState(user?.f_name + ' ' + user?.l_name || '');
+  const full_name = (user?.f_name && user?.l_name) ? user.f_name + ' ' + user.l_name : '';
+  const [fullName, setFullName] = useState(full_name);
   const [email, setEmail] = useState(user?.email || '');
   const [subject, setSubject] = useState('');
   const [message, setMessage] = useState('');
