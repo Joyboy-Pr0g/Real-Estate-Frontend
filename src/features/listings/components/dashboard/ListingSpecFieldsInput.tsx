@@ -37,7 +37,10 @@ function SpecField({ field, value, onChange }: SpecFieldProps) {
   if (field.type === 'boolean') {
     return (
       <label className="flex cursor-pointer items-center justify-between gap-3 rounded-xl border border-gray-100 bg-gray-50/60 px-4 py-3">
-        <span className="text-sm font-medium text-primary-dark">{field.label}</span>
+        <span className="text-sm font-medium text-primary-dark flex items-center gap-1">
+          {field.label}
+          {field.required ? <span className="text-xs text-red-500">*</span> : ''}
+        </span>
         <input
           type="checkbox"
           checked={value === true}
@@ -51,9 +54,9 @@ function SpecField({ field, value, onChange }: SpecFieldProps) {
   if (field.type === 'enum') {
     return (
       <label className="block space-y-1.5">
-        <span className="text-sm font-medium text-primary-dark">
+        <span className="text-sm font-medium text-primary-dark flex items-center gap-1">
           {field.label}
-          {field.required ? ' *' : ''}
+          {field.required ? <span className="text-xs text-red-500">*</span> : ''}
         </span>
         <select
           required={field.required}
@@ -77,7 +80,7 @@ function SpecField({ field, value, onChange }: SpecFieldProps) {
       <label className="block space-y-1.5">
         <span className="text-sm font-medium text-primary-dark">
           {field.label}
-          {field.required ? ' *' : ''}
+          {field.required ? <span className="text-xs text-red-500">*</span> : ''}
         </span>
         <input
           type="number"
@@ -96,7 +99,7 @@ function SpecField({ field, value, onChange }: SpecFieldProps) {
     <label className="block space-y-1.5">
       <span className="text-sm font-medium text-primary-dark">
         {field.label}
-        {field.required ? ' *' : ''}
+        {field.required ? <span className="text-xs text-red-500">*</span> : ''}
       </span>
       <input
         type="text"
