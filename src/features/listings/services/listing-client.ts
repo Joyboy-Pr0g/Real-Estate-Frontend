@@ -1,7 +1,8 @@
 'use client';
 
 import { clientFetch } from '@/lib/api/client';
-import { bffPaths } from '@/lib/api/endpoints';
+import { clientMultipartBackend } from '@/lib/api/client-multipart-backend';
+import { backendPaths, bffPaths } from '@/lib/api/endpoints';
 import { MyListingSummary } from '@/features/listings/types/listing';
 import { ListingDetailPhoto, PublicListingDetail } from '@/features/listings/types/listing-detail';
 
@@ -16,15 +17,18 @@ export async function fetchListingPhotos(listingId: string): Promise<ListingDeta
 }
 
 export async function createListing(formData: FormData): Promise<{ id: string }> {
-  const res = await clientFetch<{ id: string }>(bffPaths.listings.create, {
-    method: 'POST',
-    body: formData,
-  });
+  const res = await clientMultipartBackend<{ id: string }>(
+    backendPaths.listings.create,
+    formData,
+    'POST',
+  );
   return res.data!;
 }
 
 export async function updateListing(id: string, formData: FormData): Promise<void> {
-  await clientFetch(bffPaths.listings.byId(id), { method: 'PUT', body: formData });
+  await clientMultipartBackend(backendPaths.listings.getById(id), formData, 'PUT', {
+    revalidateListingId: id,
+  });
 }
 
 export async function publishListing(id: string): Promise<void> {
@@ -44,7 +48,9 @@ export async function markListingRented(id: string): Promise<void> {
 }
 
 export async function updateListingHistoryDetails(id: string, formData: FormData): Promise<void> {
-  await clientFetch(bffPaths.listings.historyLatest(id), { method: 'PATCH', body: formData });
+  await clientMultipartBackend(backendPaths.listings.historyLatest(id), formData, 'PATCH', {
+    revalidateListingId: id,
+  });
 }
 
 export type ListingReportReason =

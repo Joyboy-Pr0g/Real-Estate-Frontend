@@ -535,7 +535,7 @@ export function CreateListingForm({
 
         <div className={cn('flex gap-2 border-t border-gray-100 p-4', dir === 'rtl' ? 'justify-start' : 'justify-end')}>
           {stepIndex > 0 ? (
-            <Button type="button" variant="outline" onClick={goBack}>
+            <Button type="button" disabled={submitting} variant="outline" onClick={goBack}>
               {t('dashboard.listings.stepBack')}
             </Button>
           ) : null}
