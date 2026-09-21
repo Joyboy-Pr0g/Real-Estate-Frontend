@@ -14,6 +14,8 @@ const envSchema = z.object({
   NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID: z.string().optional(),
   NEXT_PUBLIC_FIREBASE_APP_ID: z.string().optional(),
   NEXT_PUBLIC_FIREBASE_VAPID_KEY: z.string().optional(),
+  ACCESS_TOKEN_MAX_AGE_SEC: z.coerce.number().int().positive().default(900),
+  REFRESH_TOKEN_MAX_AGE_SEC: z.coerce.number().int().positive().default(604800),
 });
 
 export const env = envSchema.parse({
@@ -30,4 +32,6 @@ export const env = envSchema.parse({
   NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID ?? process.env.FIREBASE_MESSAGING_SENDER_ID,
   NEXT_PUBLIC_FIREBASE_APP_ID: process.env.NEXT_PUBLIC_FIREBASE_APP_ID ?? process.env.FIREBASE_APP_ID,
   NEXT_PUBLIC_FIREBASE_VAPID_KEY: process.env.NEXT_PUBLIC_FIREBASE_VAPID_KEY ?? process.env.FIREBASE_VAPID_KEY,
+  ACCESS_TOKEN_MAX_AGE_SEC: process.env.ACCESS_TOKEN_MAX_AGE_SEC,
+  REFRESH_TOKEN_MAX_AGE_SEC: process.env.REFRESH_TOKEN_MAX_AGE_SEC,
 });

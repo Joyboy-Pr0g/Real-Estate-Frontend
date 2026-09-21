@@ -25,7 +25,7 @@ const messaging = firebase.messaging();
 messaging.onBackgroundMessage((payload) => {
   const title = payload.notification?.title ?? payload.data?.title ?? 'اليمن للعقارات';
   const body = payload.notification?.body ?? payload.data?.body ?? '';
-  self.registration.showNotification(title, { body, icon: '/favicon.ico' });
+  self.registration.showNotification(title, { body, icon: '/favicon/favicon-96x96.png', badge: '/favicon/favicon-96x96.png' });
 });
 `;
 

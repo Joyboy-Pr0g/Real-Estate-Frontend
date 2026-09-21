@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import {
   AUTH_COOKIE_NAME,
+  REFRESH_COOKIE_NAME,
   decodeTokenRole,
   isAdminPanelRole,
   isSubAdminRole,
@@ -11,9 +12,19 @@ import {
   decodePermissionsCookie,
 } from '@/lib/auth/admin-route-permissions';
 
+function clearSessionCookies(response: NextResponse): NextResponse {
+  response.cookies.delete(AUTH_COOKIE_NAME);
+  response.cookies.delete(REFRESH_COOKIE_NAME);
+  response.cookies.delete(ADMIN_PERMISSIONS_COOKIE);
+  return response;
+}
+
 export function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
-  const token = request.cookies.get(AUTH_COOKIE_NAME)?.value;
+  const accessToken = request.cookies.get(AUTH_COOKIE_NAME)?.value;
+  const refreshToken = request.cookies.get(REFRESH_COOKIE_NAME)?.value;
+  const role = accessToken ? decodeTokenRole(accessToken) : null;
+  const hasRefreshSession = Boolean(refreshToken);
 
   const isAdminRoute = pathname.startsWith('/admin');
   const isDashboardRoute = pathname.startsWith('/dashboard');
@@ -23,8 +34,7 @@ export function proxy(request: NextRequest) {
     pathname === '/forgot-password' ||
     pathname === '/verify-email';
 
-  if (isAuthRoute && token) {
-    const role = decodeTokenRole(token);
+  if (isAuthRoute && (accessToken || hasRefreshSession)) {
     if (role) {
       if (isAdminPanelRole(role) && pathname !== '/verify-email') {
         return NextResponse.redirect(new URL('/admin', request.url));
@@ -32,11 +42,8 @@ export function proxy(request: NextRequest) {
       if ((pathname === '/register' || pathname === '/login') && !isAdminPanelRole(role)) {
         return NextResponse.redirect(new URL('/', request.url));
       }
-    } else {
-      const response = NextResponse.next();
-      response.cookies.delete(AUTH_COOKIE_NAME);
-      response.cookies.delete(ADMIN_PERMISSIONS_COOKIE);
-      return response;
+    } else if (!hasRefreshSession) {
+      return clearSessionCookies(NextResponse.next());
     }
   }
 
@@ -48,20 +55,26 @@ export function proxy(request: NextRequest) {
     return NextResponse.next();
   }
 
-  if (!token) {
+  if (!accessToken && !hasRefreshSession) {
     const url = new URL('/login', request.url);
     url.searchParams.set('redirect', pathname);
     return NextResponse.redirect(url);
   }
 
-  const role = decodeTokenRole(token);
+  if (!role && !hasRefreshSession) {
+    const url = new URL('/login', request.url);
+    url.searchParams.set('redirect', pathname);
+    return clearSessionCookies(NextResponse.redirect(url));
+  }
+
+  if (!role && hasRefreshSession) {
+    return NextResponse.next();
+  }
+
   if (!role) {
     const url = new URL('/login', request.url);
     url.searchParams.set('redirect', pathname);
-    const response = NextResponse.redirect(url);
-    response.cookies.delete(AUTH_COOKIE_NAME);
-    response.cookies.delete(ADMIN_PERMISSIONS_COOKIE);
-    return response;
+    return clearSessionCookies(NextResponse.redirect(url));
   }
 
   if (isAdminRoute && !isAdminPanelRole(role)) {
@@ -103,5 +116,5 @@ export function proxy(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ['/((?!_next/static|_next/image|favicon.ico|api/).*)'],
+  matcher: ['/((?!_next/static|_next/image|favicon.ico|favicon/|apple-touch-icon.png|site.webmanifest|api/).*)'],
 };

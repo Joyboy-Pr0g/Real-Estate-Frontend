@@ -10,6 +10,7 @@ import {
   Bell,
   ChevronsLeft,
   ChevronsRight,
+  User,
   ClipboardList,
   Clock,
   Flag,
@@ -272,6 +273,17 @@ export function AdminSidebar({ user }: AdminSidebarProps) {
           </Link>
         );
       })}
+      <Link
+        href="/admin/profile"
+        prefetch={false}
+        onClick={() => setOpen(false)}
+        title={compact ? t('admin.profile.nav') : undefined}
+        aria-label={compact ? t('admin.profile.nav') : undefined}
+        className={cn('relative inline-flex w-full shrink-0 items-center gap-2 rounded-xl px-3 py-2.5 text-sm font-medium transition-colors', compact && 'lg:justify-center lg:gap-0 lg:px-2')}
+      >
+        <User className="h-4 w-4 shrink-0" />
+        <span className={cn('truncate', compact && 'lg:hidden')}>{t('admin.profile.nav')}</span>
+      </Link>
     </nav>
   );
 

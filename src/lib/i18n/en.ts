@@ -1255,6 +1255,7 @@ export const en: Record<TranslationKey, string> = {
   'legal.badge': 'Legal',
   'legal.lastUpdated': 'Last updated',
   'admin.websiteSettings.nav': 'Website settings',
+  'admin.profile.nav': 'Profile',
   'admin.websiteSettings.title': 'Website settings',
   'admin.websiteSettings.updated': 'Website settings saved',
   'admin.websiteSettings.save': 'Save settings',

@@ -93,10 +93,9 @@ export async function changePassword(data: ChangePasswordInput): Promise<void> {
   });
 }
 
-export async function refreshToken(refreshTokenValue: string): Promise<void> {
+export async function refreshToken(): Promise<void> {
   await clientFetch(bffPaths.auth.refreshToken, {
     method: 'POST',
-    body: { refreshToken: refreshTokenValue },
   });
 }
 

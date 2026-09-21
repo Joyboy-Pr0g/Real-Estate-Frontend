@@ -1253,6 +1253,7 @@ export const ar = {
   'legal.badge': 'قانوني',
   'legal.lastUpdated': 'آخر تحديث',
   'admin.websiteSettings.nav': 'إعدادات الموقع',
+  'admin.profile.nav': 'الملف الشخصي',
   'admin.websiteSettings.title': 'إعدادات الموقع',
   'admin.websiteSettings.updated': 'تم حفظ إعدادات الموقع',
   'admin.websiteSettings.save': 'حفظ الإعدادات',

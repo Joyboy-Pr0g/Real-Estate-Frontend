@@ -1,8 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { fetchBackend } from '@/lib/api/fetch';
 import { backendPaths } from '@/lib/api/endpoints';
-import { getAuthToken } from '@/lib/auth/session';
-import { AUTH_COOKIE_NAME } from '@/lib/auth/constants';
+import { clearSession, getAuthToken } from '@/lib/auth/session';
 import { AuthUser } from '@/features/auth/types/user';
 import { ApiError } from '@/lib/errors/api-error';
 import { proxyToBackend } from '@/lib/api/route-handler';
@@ -23,12 +22,11 @@ export async function GET() {
     return NextResponse.json(response);
   } catch (err) {
     if (err instanceof ApiError && (err.status === 401 || err.status === 403)) {
-      const response = NextResponse.json(
+      await clearSession();
+      return NextResponse.json(
         { success: false, message: err.message },
         { status: err.status },
       );
-      response.cookies.delete(AUTH_COOKIE_NAME);
-      return response;
     }
 
     if (err instanceof ApiError) {

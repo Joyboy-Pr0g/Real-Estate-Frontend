@@ -4,6 +4,7 @@ import type { WebsiteSettings } from '@/features/website-settings/types/website-
 import type { PublicListingDetail } from '@/features/listings/types/listing-detail';
 import { getListingCanonicalPath } from '@/lib/seo/indexing';
 import { withWebsiteSettingsDefaults, resolveWebsiteLogo } from '@/lib/website-settings/defaults';
+import { buildFaviconMetadata, STATIC_FAVICON_PATHS } from '@/lib/seo/favicons';
 import type { Locale } from '@/lib/i18n/config';
 
 export function getSiteUrl(settings: WebsiteSettings): string {
@@ -82,7 +83,10 @@ function resolveRobots(settings: WebsiteSettings, pageRobots?: Metadata['robots'
 export function buildOrganizationSchema(settings: WebsiteSettings) {
   const s = withWebsiteSettingsDefaults(settings);
   const siteUrl = getSiteUrl(s);
-  const logoUrl = absoluteAssetUrl(siteUrl, s.header_logo_url || s.favicon_url);
+  const logoUrl = absoluteAssetUrl(
+    siteUrl,
+    s.header_logo_url || s.favicon_url || STATIC_FAVICON_PATHS.png96,
+  );
   const ogImage = absoluteAssetUrl(siteUrl, s.og_image_url || s.header_logo_url);
 
   return {
@@ -199,7 +203,7 @@ export function buildSiteMetadata(settings: WebsiteSettings, overrides?: Metadat
     ?.split(',')
     .map((item) => item.trim())
     .filter(Boolean);
-  const favicon = absoluteAssetUrl(siteUrl, s.favicon_url);
+  const faviconMeta = buildFaviconMetadata(siteUrl, s.favicon_url);
 
   return {
     metadataBase: new URL(siteUrl),
@@ -212,11 +216,7 @@ export function buildSiteMetadata(settings: WebsiteSettings, overrides?: Metadat
     robots: resolveRobots(s),
     alternates: buildHreflangAlternates(siteUrl),
     verification: buildVerificationMeta(s),
-    icons: {
-      icon: [{ url: favicon, sizes: 'any' }],
-      apple: [{ url: favicon, sizes: '180x180' }],
-      shortcut: [favicon],
-    },
+    ...faviconMeta,
     openGraph: {
       type: 'website',
       locale: s.default_locale ?? 'ar_YE',

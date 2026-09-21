@@ -28,6 +28,13 @@ const nextConfig: NextConfig = {
       { protocol: 'https', hostname: '**' },
     ],
   },
+  async rewrites() {
+    return [
+      { source: '/favicon.ico', destination: '/favicon/favicon.ico' },
+      { source: '/apple-touch-icon.png', destination: '/favicon/apple-touch-icon.png' },
+      { source: '/site.webmanifest', destination: '/favicon/site.webmanifest' },
+    ];
+  },
 };
 
 export default nextConfig;
