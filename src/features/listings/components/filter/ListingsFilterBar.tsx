@@ -286,11 +286,11 @@ export function ListingsFilterBar({
           </div>
         </div>
 
-        <div className="flex items-center w-full sm:w-auto gap-2">
+        <div className="flex flex-col sm:flex-row items-center w-full sm:w-auto gap-2">
           {basePath === '/listings' ? (
             <Link
               href={mapViewHref}
-              className="flex-1 sm:flex-none inline-flex items-center justify-center gap-1.5 rounded-full bg-brand-muted px-2.5 py-3 text-[11px] font-semibold text-brand-dark transition-colors hover:bg-brand/15"
+              className="w-full sm:w-auto flex-1 sm:flex-none inline-flex items-center justify-center gap-1.5 rounded-full bg-brand-muted px-2.5 py-1.5 text-[11px] font-semibold text-brand-dark transition-colors hover:bg-brand/15"
             >
               <Map className="h-3.5 w-3.5" />
               <span className="inline">{t('map.mapView')}</span>
@@ -298,7 +298,7 @@ export function ListingsFilterBar({
           ) : null}
           {pending ? <Loader2 className="h-4 w-4 animate-spin text-gray-400" aria-hidden /> : null}
           {activeFilterCount > 0 ? (
-            <>
+            <div className="flex items-center gap-2 w-full sm:w-auto">
               <button
                 type="button"
                 onClick={handleSaveFilterClick}
@@ -315,7 +315,7 @@ export function ListingsFilterBar({
                 <RotateCcw className="h-3.5 w-3.5" />
                 {t('filters.clearAll')}
               </button>
-            </>
+            </div>
           ) : null}
         </div>
       </div>

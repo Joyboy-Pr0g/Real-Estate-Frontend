@@ -61,10 +61,10 @@ export function ListingDetailView({
                 videoThumbnail={listing.video_thumbnail}
                 customId={listing.custom_id}
                 propertyType={listing.property_type}
+                subtype={listing.property_subtype}
                 transactionType={listing.transaction_type}
                 publishedAt={listing.published_at}
-                cityName={listing.city.name}
-                neighborhoodName={listing.neighborhood.name}
+                updatedAt={listing.updated_at}
                 address={listing.address}
               />
             </div>
@@ -86,6 +86,7 @@ export function ListingDetailView({
             <StickyListingHeader
               listingId={listing.id}
               listingSlug={listing.slug}
+              listingPhoto={listing.photos.find((photo) => photo.is_main)?.url}
               title={listing.title}
               price={listing.price}
               yerVariant={listing.yer_variant}
