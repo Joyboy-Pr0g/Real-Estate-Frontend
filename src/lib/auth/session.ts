@@ -1,10 +1,14 @@
 import { cache } from 'react';
-import { cookies } from 'next/headers';
+import { cookies, headers } from 'next/headers';
 import { fetchBackend } from '@/lib/api/fetch';
 import { backendPaths } from '@/lib/api/endpoints';
 import { AuthUser } from '@/features/auth/types/user';
 import { UserPermissionAccess } from '@/features/admin/types/permission';
-import { AUTH_COOKIE_NAME, REFRESH_COOKIE_NAME } from '@/lib/auth/constants';
+import {
+  AUTH_COOKIE_NAME,
+  REFRESH_COOKIE_NAME,
+  REFRESHED_ACCESS_TOKEN_HEADER,
+} from '@/lib/auth/constants';
 import {
   ADMIN_PERMISSIONS_COOKIE,
   decodePermissionsCookie,
@@ -142,14 +146,34 @@ export async function refreshSession(): Promise<string | undefined> {
   }
 }
 
-/** Returns a valid access token, refreshing silently when expired but refresh cookie exists. */
-export async function getAuthToken(): Promise<string | undefined> {
+interface GetAuthTokenOptions {
+  /** When true, may rotate tokens and write cookies. Use only in Route Handlers or Server Actions. */
+  refresh?: boolean;
+}
+
+/**
+ * Returns a valid access token for the current request.
+ * Server Components must use the default read-only mode (no cookie writes).
+ */
+export async function getAuthToken(options?: GetAuthTokenOptions): Promise<string | undefined> {
+  if (!options?.refresh) {
+    const headerStore = await headers();
+    const middlewareToken = headerStore.get(REFRESHED_ACCESS_TOKEN_HEADER);
+    if (middlewareToken) {
+      return middlewareToken;
+    }
+  }
+
   const accessToken = await getRawAuthToken();
   if (accessToken && !isAccessTokenExpired(accessToken)) {
     return accessToken;
   }
 
-  return refreshSession();
+  if (options?.refresh) {
+    return refreshSession();
+  }
+
+  return undefined;
 }
 
 /** Fetches sub-admin permissions and writes the proxy cookie. */

@@ -12,7 +12,7 @@ import { ApiError } from '@/lib/errors/api-error';
 
 export async function GET(_request: NextRequest) {
   try {
-    const token = await getAuthToken();
+    const token = await getAuthToken({ refresh: true });
     if (!token) {
       return NextResponse.json({ success: false, message: 'Unauthorized' }, { status: 401 });
     }

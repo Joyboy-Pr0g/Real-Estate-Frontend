@@ -9,7 +9,7 @@ import { updateProfileBodySchema } from '@/features/auth/schemas/auth-schemas';
 
 export async function GET() {
   try {
-    const token = await getAuthToken();
+    const token = await getAuthToken({ refresh: true });
     if (!token) {
       return NextResponse.json({ success: false, message: 'Unauthorized' }, { status: 401 });
     }

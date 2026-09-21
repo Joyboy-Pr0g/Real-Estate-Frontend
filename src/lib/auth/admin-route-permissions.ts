@@ -21,6 +21,7 @@ export const ADMIN_ROUTE_VIEW_PERMISSION: Record<string, string> = {
   '/admin/announcements': 'announcements.view',
   '/admin/messaging': 'messaging.view',
   '/admin/support-tickets': 'support_tickets.view',
+  '/admin/contacts': 'contacts.view',
   '/admin/website-settings': 'website_settings.view',
   '/admin/permissions': 'dashboard.view',
 };

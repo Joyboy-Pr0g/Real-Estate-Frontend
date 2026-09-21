@@ -212,6 +212,14 @@ export const backendPaths = {
     public: '/website-settings',
     admin: '/website-settings/admin',
   },
+  contacts: {
+    submit: '/contacts',
+    admin: {
+      list: '/contacts/admin',
+      byId: (id: string) => `/contacts/admin/${id}`,
+      reply: (id: string) => `/contacts/admin/${id}/reply`,
+    },
+  },
 } as const;
 
 export const bffPaths = {
@@ -415,5 +423,13 @@ export const bffPaths = {
   websiteSettings: {
     public: '/api/website-settings',
     admin: '/api/website-settings/admin',
+  },
+  contacts: {
+    submit: '/api/contacts',
+    admin: {
+      list: '/api/contacts/admin',
+      byId: (id: string) => `/api/contacts/admin/${id}`,
+      reply: (id: string) => `/api/contacts/admin/${id}/reply`,
+    },
   },
 } as const;

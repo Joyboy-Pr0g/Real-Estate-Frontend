@@ -15,7 +15,7 @@ export async function proxyToBackend(
   { path, method, requireAuth = true, searchParams }: ProxyOptions,
 ): Promise<NextResponse> {
   try {
-    const token = await getAuthToken();
+    const token = await getAuthToken({ refresh: true });
     if (requireAuth && !token) {
       return NextResponse.json({ success: false, message: 'Unauthorized' }, { status: 401 });
     }

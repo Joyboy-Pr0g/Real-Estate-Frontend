@@ -22,6 +22,7 @@ import {
   LifeBuoy,
   ListTree,
   LogOut,
+  Mail,
   MapPin,
   Megaphone,
   MessageCircle,
@@ -95,6 +96,13 @@ const navItems = [
     labelKey: 'admin.supportTickets.title' as const,
     icon: LifeBuoy,
     exact: false,
+  },
+  {
+    href: '/admin/contacts',
+    labelKey: 'admin.contacts.title' as const,
+    icon: Mail,
+    exact: false,
+    badgeKey: 'pending_contact' as const,
   },
   {
     href: '/admin/notifications',

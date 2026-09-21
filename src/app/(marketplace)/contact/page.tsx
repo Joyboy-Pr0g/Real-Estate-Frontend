@@ -1,10 +1,12 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
-import { Mail, MapPin, Phone } from 'lucide-react';
 import { Container } from '@/components/ui/container';
+import { ContactForm } from '@/features/contact/components/ContactForm';
+import { ContactInfoCards } from '@/features/contact/components/ContactInfoCards';
 import { getPageMetadataFromSettings } from '@/lib/seo/metadata';
 import { getWebsiteSettingsServer } from '@/features/website-settings/services/website-settings-server';
-import { formatWhatsappLink, withWebsiteSettingsDefaults } from '@/lib/website-settings/defaults';
+import { withWebsiteSettingsDefaults } from '@/lib/website-settings/defaults';
+import { getSession } from '@/lib/auth/session';
 
 export async function generateMetadata(): Promise<Metadata> {
   return getPageMetadataFromSettings({
@@ -16,70 +18,37 @@ export async function generateMetadata(): Promise<Metadata> {
 
 export default async function ContactPage() {
   const settings = withWebsiteSettingsDefaults(await getWebsiteSettingsServer());
+  const user = (await getSession())!;
 
   return (
     <div className="py-10 lg:py-14">
       <Container>
-        <div className="mx-auto max-w-3xl space-y-8">
-          <div>
-            <h1 className="text-3xl font-bold text-primary-dark lg:text-4xl"> تواصل معنا</h1>
-            <p className="mt-3 text-base text-gray-600">
+        <div className="mx-auto max-w-5xl space-y-10">
+          <div className="max-w-2xl">
+            <h1 className="text-3xl font-bold text-primary-dark lg:text-4xl">تواصل معنا</h1>
+            <p className="mt-3 text-base leading-relaxed text-gray-600">
               تواصل مع فريق {settings.title} للحصول على الدعم، أسئلة التحقق من مكتب العقارات، أو الاستفسارات حول الشركة.
             </p>
           </div>
 
-          <div className="space-y-4 rounded-2xl border border-gray-200 bg-white p-6 shadow-var(--shadow-soft)">
-            {settings.website_phone ? (
-              <p className="flex items-center gap-3 text-sm text-gray-700">
-                <Phone className="h-4 w-4 text-brand" />
-                <a href={`tel:${settings.website_phone.replace(/\s/g, '')}`} className="hover:text-brand">
-                  {settings.website_phone}
-                </a>
-              </p>
-            ) : null}
-            {settings.website_email ? (
-              <p className="flex items-center gap-3 text-sm text-gray-700">
-                <Mail className="h-4 w-4 text-brand" />
-                <a href={`mailto:${settings.website_email}`} className="hover:text-brand">
-                  {settings.website_email}
-                </a>
-              </p>
-            ) : null}
-            {settings.support_email && settings.support_email !== settings.website_email ? (
-              <p className="flex items-center gap-3 text-sm text-gray-700">
-                <Mail className="h-4 w-4 text-brand" />
-                <a href={`mailto:${settings.support_email}`} className="hover:text-brand">
-                  {settings.support_email}
-                </a>
-              </p>
-            ) : null}
-            {settings.whatsapp ? (
-              <p className="text-sm">
-                <a
-                  href={formatWhatsappLink(settings.whatsapp)}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="font-medium text-brand hover:underline"
-                >
-                  دعم WhatsApp
-                </a>
-              </p>
-            ) : null}
-            {settings.address_text ? (
-              <p className="flex items-start gap-3 text-sm text-gray-700">
-                <MapPin className="mt-0.5 h-4 w-4 shrink-0 text-brand" />
-                {settings.address_text}
-              </p>
-            ) : null}
-          </div>
+          <ContactInfoCards settings={settings} />
 
-          <div className="flex flex-wrap gap-4 text-sm">
-            <Link href="/privacy" className="text-brand hover:underline">
-              سياسة الخصوصية
-            </Link>
-            <Link href="/terms" className="text-brand hover:underline">
-              شروط الخدمة
-            </Link>
+          <div className="grid gap-8 lg:grid-cols-[1.1fr_0.9fr] lg:items-start">
+            <ContactForm user={user} />
+            <aside className="rounded-2xl border border-gray-200 bg-gradient-to-br from-brand-muted/50 to-white p-6 text-sm text-gray-600 lg:sticky lg:top-24">
+              <h2 className="text-base font-bold text-primary-dark">ساعات الرد</h2>
+              <p className="mt-2 leading-relaxed">
+                نرد على رسائل نموذج التواصل خلال أيام العمل. للاستفسارات العاجلة، استخدم الهاتف أو WhatsApp إن وُجد.
+              </p>
+              <div className="mt-6 flex flex-wrap gap-4 border-t border-gray-200/80 pt-4">
+                <Link href="/privacy" className="font-medium text-brand hover:underline">
+                  سياسة الخصوصية
+                </Link>
+                <Link href="/terms" className="font-medium text-brand hover:underline">
+                  شروط الخدمة
+                </Link>
+              </div>
+            </aside>
           </div>
         </div>
       </Container>

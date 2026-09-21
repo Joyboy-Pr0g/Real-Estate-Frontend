@@ -7,7 +7,8 @@ const EMPTY: AdminNavBadges = {
   pending_offices: 0,
   pending_individual_listers: 0,
   total_listing_reports: 0,
-  pending_listing_reports: 0,
+  pending_listing_reports: 0, 
+  pending_contact: 0,
   total_conversation_reports: 0,
   pending_conversation_reports: 0,
 };

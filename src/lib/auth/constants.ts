@@ -1,6 +1,9 @@
 export const AUTH_COOKIE_NAME = 'auth_token';
 export const REFRESH_COOKIE_NAME = 'refresh_token';
 
+/** Set by middleware after a silent refresh so Server Components can read the new access token on the same request. */
+export const REFRESHED_ACCESS_TOKEN_HEADER = 'x-refreshed-access-token';
+
 export type TokenRole = 'buyer' | 'office' | 'platform_admin' | 'sub_admin';
 
 export function decodeTokenRole(token: string): TokenRole | null {
