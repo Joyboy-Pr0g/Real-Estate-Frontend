@@ -60,6 +60,10 @@ export function EditListingForm({
   const [priceType, setPriceType] = useState<ListingPriceType>(listing.price_type);
   const [yerVariant, setYerVariant] = useState<YerVariant>(listing.yer_variant);
   const [acceptsInstallment, setAcceptsInstallment] = useState(listing.accepts_installment ?? false);
+  const [initialPercentage, setInitialPercentage] = useState(listing.initial_percentage ?? '');
+  const [maxNumberOfMonths, setMaxNumberOfMonths] = useState(
+    listing.max_number_of_months != null ? String(listing.max_number_of_months) : '',
+  );
   const [estimatedMonthlyRent, setEstimatedMonthlyRent] = useState(listing.estimated_monthly_rent ?? '');
   const isSaleListing = isSaleTransaction(listing.transaction_type.name);
   const [cityId, setCityId] = useState(listing.city.id);
@@ -127,6 +131,15 @@ export function EditListingForm({
       formData.append('yer_variant', yerVariant);
       if (isSaleListing) {
         formData.append('accepts_installment', acceptsInstallment ? 'true' : 'false');
+        if (acceptsInstallment) {
+          if (!initialPercentage.trim() || !maxNumberOfMonths.trim()) {
+            toast.error(t('dashboard.listings.installmentFieldsRequired'));
+            setSubmitting(false);
+            return;
+          }
+          formData.append('initial_percentage', initialPercentage.trim());
+          formData.append('max_number_of_months', maxNumberOfMonths.trim());
+        }
         formData.append('estimated_monthly_rent', estimatedMonthlyRent.trim() || '');
       }
       formData.append('city_id', cityId);
@@ -272,11 +285,60 @@ export function EditListingForm({
                 <input
                   type="checkbox"
                   checked={acceptsInstallment}
-                  onChange={(e) => setAcceptsInstallment(e.target.checked)}
+                  onChange={(e) => {
+                    const checked = e.target.checked;
+                    setAcceptsInstallment(checked);
+                    if (!checked) {
+                      setInitialPercentage('');
+                      setMaxNumberOfMonths('');
+                    }
+                  }}
                   className="h-4 w-4 rounded border-gray-300 text-brand focus:ring-brand/30"
                 />
                 <span className="text-sm text-primary-dark">{t('dashboard.listings.acceptsInstallment')}</span>
               </label>
+
+              {acceptsInstallment ? (
+                <div className="grid gap-4 sm:grid-cols-2">
+                  <label className="block space-y-1.5">
+                    <FieldLabel>{t('dashboard.listings.initialPercentage')}</FieldLabel>
+                    <input
+                      type="number"
+                      inputMode="decimal"
+                      min="1"
+                      max="100"
+                      step="any"
+                      required
+                      value={initialPercentage}
+                      onChange={(e) => {
+                        const val = e.target.value;
+                        if (/^\d*\.?\d*$/.test(val)) setInitialPercentage(val);
+                      }}
+                      placeholder={t('dashboard.listings.initialPercentagePlaceholder')}
+                      className={fieldClass}
+                    />
+                    <p className="text-xs text-gray-500">{t('dashboard.listings.initialPercentageHint')}</p>
+                  </label>
+                  <label className="block space-y-1.5">
+                    <FieldLabel>{t('dashboard.listings.maxNumberOfMonths')}</FieldLabel>
+                    <input
+                      type="number"
+                      inputMode="numeric"
+                      min="1"
+                      step="1"
+                      required
+                      value={maxNumberOfMonths}
+                      onChange={(e) => {
+                        const val = e.target.value;
+                        if (/^\d*$/.test(val)) setMaxNumberOfMonths(val);
+                      }}
+                      placeholder={t('dashboard.listings.maxNumberOfMonthsPlaceholder')}
+                      className={fieldClass}
+                    />
+                    <p className="text-xs text-gray-500">{t('dashboard.listings.maxNumberOfMonthsHint')}</p>
+                  </label>
+                </div>
+              ) : null}
 
               <label className="block max-w-xs space-y-1.5">
                 <FieldLabel>{t('dashboard.listings.estimatedMonthlyRent')}</FieldLabel>

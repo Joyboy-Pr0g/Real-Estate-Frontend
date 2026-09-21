@@ -26,10 +26,10 @@ interface ListingMetricsTabProps {
 
 const RENT_SOURCE_ORDER: ListingRentSourceKind[] = ['office', 'market', 'history'];
 
-function computeMonthlyInstallment(price: number, downPct: number, years: number): number {
+function computeMonthlyInstallment(price: number, downPct: number, months: number): number {
   const financed = price * (1 - downPct / 100);
-  if (financed <= 0 || years <= 0) return 0;
-  return financed / (years * 12);
+  if (financed <= 0 || months <= 0) return 0;
+  return financed / months;
 }
 
 function getRentSourceHint(
@@ -60,7 +60,7 @@ export function ListingMetricsTab({ listingId }: ListingMetricsTabProps) {
   const error = errorFor === listingId;
 
   const [downPct, setDownPct] = useState(5);
-  const [years, setYears] = useState(10);
+  const [months, setMonths] = useState(120);
 
   useEffect(() => {
     let cancelled = false;
@@ -71,7 +71,7 @@ export function ListingMetricsTab({ listingId }: ListingMetricsTabProps) {
           setMetrics(res.data ?? null);
           if (res.data?.installment_defaults) {
             setDownPct(res.data.installment_defaults.min_down_pct);
-            setYears(res.data.installment_defaults.default_years);
+            setMonths(res.data.installment_defaults.default_months);
           }
           setLoadedFor(listingId);
           setErrorFor(null);
@@ -87,12 +87,12 @@ export function ListingMetricsTab({ listingId }: ListingMetricsTabProps) {
   }, [listingId]);
 
   const price = metrics ? Number(metrics.price) : 0;
-  const maxYears = metrics?.installment_defaults.max_years ?? 30;
+  const maxMonths = metrics?.installment_defaults.max_months ?? 360;
   const minDownPct = metrics?.installment_defaults.min_down_pct ?? 5;
 
   const monthlyInstallment = useMemo(
-    () => computeMonthlyInstallment(price, downPct, years),
-    [price, downPct, years],
+    () => computeMonthlyInstallment(price, downPct, months),
+    [price, downPct, months],
   );
 
   const estimatedRent = metrics?.final_estimated_rent ? Number(metrics.final_estimated_rent) : null;
@@ -204,24 +204,30 @@ export function ListingMetricsTab({ listingId }: ListingMetricsTabProps) {
               <p className="text-xs text-gray-500">
                 {formatPriceYER((price * downPct) / 100, metrics.yer_variant)}
               </p>
+              <p className="text-xs text-gray-500">
+                {t('detail.metrics.minDownPctHint').replace('{pct}', String(minDownPct))}
+              </p>
             </label>
 
             <label className="block space-y-2">
               <div className="flex items-center justify-between text-sm">
-                <span className="font-medium text-primary-dark">{t('detail.metrics.years')}</span>
+                <span className="font-medium text-primary-dark">{t('detail.metrics.months')}</span>
                 <span className="font-semibold text-brand-dark">
-                  {years} {t('detail.metrics.yearsUnit')}
+                  {months} {t('detail.metrics.monthsUnit')}
                 </span>
               </div>
               <input
                 type="range"
                 min={1}
-                max={maxYears}
+                max={maxMonths}
                 step={1}
-                value={years}
-                onChange={(e) => setYears(Number(e.target.value))}
+                value={months}
+                onChange={(e) => setMonths(Number(e.target.value))}
                 className="h-2 w-full cursor-pointer accent-brand"
               />
+              <p className="text-xs text-gray-500">
+                {t('detail.metrics.maxMonthsHint').replace('{months}', String(maxMonths))}
+              </p>
             </label>
           </div>
 

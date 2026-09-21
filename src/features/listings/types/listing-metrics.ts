@@ -12,8 +12,8 @@ export interface ListingRentSource {
 
 export interface ListingInstallmentDefaults {
   min_down_pct: number;
-  default_years: number;
-  max_years: number;
+  default_months: number;
+  max_months: number;
 }
 
 export interface ListingMetricsResponse {

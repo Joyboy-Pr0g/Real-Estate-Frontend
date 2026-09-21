@@ -106,6 +106,8 @@ export interface PublicListingDetail {
   yer_variant: YerVariant;
   accepts_installment: boolean;
   estimated_monthly_rent: string | null;
+  initial_percentage: string | null;
+  max_number_of_months: number | null;
   description: string;
   seller: PublicListingSeller;
   property_type: PublicListingCatalogItemDetailed;
