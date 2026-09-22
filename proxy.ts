@@ -46,60 +46,6 @@ function resolveBackendUrl(): string {
   return raw.replace(/\/$/, '');
 }
 
-/** Production site origin from env (must match sitemap + rel=canonical). */
-function resolveCanonicalSiteUrl(): URL | null {
-  const raw =
-    process.env.NEXT_PUBLIC_SITE_URL?.trim() ||
-    process.env.SITE_URL?.trim() ||
-    process.env.NEXT_PUBLIC_APP_URL?.trim() ||
-    process.env.APP_URL?.trim();
-
-  if (!raw) {
-    if (process.env.NODE_ENV === 'production') {
-      return new URL('https://yemen-land.com');
-    }
-    return null;
-  }
-
-  try {
-    return new URL(raw.endsWith('/') ? raw.slice(0, -1) : raw);
-  } catch {
-    return null;
-  }
-}
-
-/**
- * One host + HTTPS for SEO: www/http variants → canonical origin (301).
- * Fixes GSC "alternate page with proper canonical" when Google crawls www but canonical is apex.
- */
-function redirectToCanonicalSite(request: NextRequest): NextResponse | null {
-  const canonical = resolveCanonicalSiteUrl();
-  if (!canonical) return null;
-
-  const requestHost = request.headers.get('host')?.split(':')[0]?.toLowerCase();
-  if (!requestHost || requestHost === 'localhost' || requestHost === '127.0.0.1') {
-    return null;
-  }
-
-  const canonicalHost = canonical.hostname.toLowerCase();
-  const forwardedProto = request.headers.get('x-forwarded-proto')?.split(',')[0]?.trim().toLowerCase();
-  const requestIsHttps =
-    forwardedProto === 'https' || request.nextUrl.protocol === 'https:';
-  const wantHttps = canonical.protocol === 'https:';
-
-  const hostMismatch = requestHost !== canonicalHost;
-  const protoMismatch = wantHttps && !requestIsHttps;
-
-  if (!hostMismatch && !protoMismatch) return null;
-
-  const destination = request.nextUrl.clone();
-  destination.protocol = canonical.protocol;
-  destination.hostname = canonicalHost;
-  destination.port = '';
-
-  return NextResponse.redirect(destination, 301);
-}
-
 async function refreshTokensIfNeeded(request: NextRequest): Promise<RefreshedTokens | null> {
   const refreshToken = request.cookies.get(REFRESH_COOKIE_NAME)?.value;
   if (!refreshToken) {
@@ -188,11 +134,6 @@ function redirectResponse(
 }
 
 export async function proxy(request: NextRequest) {
-  const canonicalRedirect = redirectToCanonicalSite(request);
-  if (canonicalRedirect) {
-    return canonicalRedirect;
-  }
-
   const refreshed = await refreshTokensIfNeeded(request);
   const { pathname } = request.nextUrl;
   const accessToken =
