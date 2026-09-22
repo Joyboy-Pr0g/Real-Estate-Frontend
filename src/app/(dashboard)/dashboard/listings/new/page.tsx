@@ -1,6 +1,7 @@
 import { getServerTranslations } from '@/lib/i18n/server';
 import { Container } from '@/components/ui/container';
 import { catalogService } from '@/features/catalog/services/catalog-service';
+import { featureService } from '@/features/catalog/services/feature-service';
 import { getMyIndividualListerProfile } from '@/features/individual-lister/services/individual-lister-service';
 import { CreateListingForm } from '@/features/listings/components/dashboard/CreateListingForm';
 import { ListingCreationBlocked } from '@/features/listings/components/dashboard/ListingCreationBlocked';
@@ -8,9 +9,10 @@ import { VerificationStatusBanner } from '@/features/dashboard/components/Verifi
 
 export default async function NewListingPage() {
   const { t } = await getServerTranslations();
-  const [catalog, individualProfile] = await Promise.all([
+  const [catalog, individualProfile, mainFeatures] = await Promise.all([
     catalogService.getPublicCatalog(),
     getMyIndividualListerProfile(),
+    featureService.getMainFeatures(),
   ]);
 
   const canCreate = individualProfile?.verification_status === 'verified';
@@ -40,6 +42,7 @@ export default async function NewListingPage() {
             propertyTypes={catalog.propertyTypes}
             transactionTypes={catalog.transactionTypes}
             cities={catalog.cities}
+            mainFeatures={mainFeatures}
           />
         )}
       </div>

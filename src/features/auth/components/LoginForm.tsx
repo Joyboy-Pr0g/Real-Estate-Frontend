@@ -12,6 +12,7 @@ import { getErrorMessage, isEmailNotVerifiedError } from '@/lib/errors/api-error
 import { isAdminPanelRole, isSubAdminRole } from '@/lib/auth/constants';
 import { useLocale } from '@/lib/i18n/locale-provider';
 import { cn } from '@/lib/utils/cn';
+import { PasswordInput } from '@/features/auth/components/PasswordInput';
 
 const fieldClassName =
   'h-11 w-full rounded-xl border border-gray-200 bg-gray-50 px-4 text-sm outline-none transition-colors focus:border-brand/40 focus:bg-white focus:ring-2 focus:ring-brand/15';
@@ -106,12 +107,11 @@ export function LoginForm() {
             {t('auth.forgotPassword')}
           </Link>
         </div>
-        <input
+        <PasswordInput
           id="password"
-          type="password"
           autoComplete="current-password"
           placeholder="••••••••"
-          className={cn(fieldClassName, errors.password && 'border-red-300 focus:border-red-400 focus:ring-red-100')}
+          hasError={Boolean(errors.password)}
           {...register('password')}
         />
         {errors.password ? <p className="text-xs text-red-600">{errors.password.message}</p> : null}

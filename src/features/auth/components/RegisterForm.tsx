@@ -11,6 +11,7 @@ import { register as registerUser } from '@/features/auth/services/auth-service'
 import { getErrorMessage } from '@/lib/errors/api-error';
 import { useLocale } from '@/lib/i18n/locale-provider';
 import { cn } from '@/lib/utils/cn';
+import { PasswordInput } from '@/features/auth/components/PasswordInput';
 
 const fieldClassName =
   'h-11 w-full rounded-xl border border-gray-200 bg-gray-50 px-4 text-sm outline-none transition-colors focus:border-brand/40 focus:bg-white focus:ring-2 focus:ring-brand/15';
@@ -114,12 +115,11 @@ export function RegisterForm() {
         <label htmlFor="password" className="text-sm font-medium text-primary-dark">
           {t('auth.password')}
         </label>
-        <input
+        <PasswordInput
           id="password"
-          type="password"
           autoComplete="new-password"
           placeholder="••••••••"
-          className={cn(fieldClassName, errors.password && 'border-red-300')}
+          hasError={Boolean(errors.password)}
           {...register('password')}
         />
         <FieldError message={errors.password?.message} />
@@ -130,12 +130,11 @@ export function RegisterForm() {
         <label htmlFor="password_confirmation" className="text-sm font-medium text-primary-dark">
           {t('auth.confirmPassword')}
         </label>
-        <input
+        <PasswordInput
           id="password_confirmation"
-          type="password"
           autoComplete="new-password"
           placeholder="••••••••"
-          className={cn(fieldClassName, errors.password_confirmation && 'border-red-300')}
+          hasError={Boolean(errors.password_confirmation)}
           {...register('password_confirmation')}
         />
         <FieldError message={errors.password_confirmation?.message} />

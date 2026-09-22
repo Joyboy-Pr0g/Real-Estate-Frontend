@@ -7,6 +7,8 @@ import * as Tabs from '@radix-ui/react-tabs';
 import { Button } from '@/components/ui/button';
 import { toast } from '@/components/ui/toaster';
 import { ListingSpecFieldsInput } from '@/features/listings/components/dashboard/ListingSpecFieldsInput';
+import { ListingSubFeaturesInput } from '@/features/listings/components/dashboard/ListingSubFeaturesInput';
+import { PublicMainFeature } from '@/features/catalog/types/feature';
 import { ImageGalleryInput } from '@/features/listings/components/dashboard/ImageGalleryInput';
 import { VideoInput } from '@/features/listings/components/dashboard/VideoInput';
 import { ExistingPhotosGallery } from '@/features/listings/components/dashboard/ExistingPhotosGallery';
@@ -32,6 +34,7 @@ interface EditListingFormProps {
   listing: PublicListingDetail;
   cities: PublicCity[];
   initialNeighborhoods: PublicNeighborhood[];
+  mainFeatures: PublicMainFeature[];
   redirectPath?: string;
 }
 
@@ -49,6 +52,7 @@ export function EditListingForm({
   listing,
   cities,
   initialNeighborhoods,
+  mainFeatures,
   redirectPath = '/dashboard/listings',
 }: EditListingFormProps) {
   const { t, dir } = useLocale();
@@ -74,6 +78,7 @@ export function EditListingForm({
   const [latitude, setLatitude] = useState(listing.latitude);
   const [longitude, setLongitude] = useState(listing.longitude);
   const [specs, setSpecs] = useState<ListingPropertySpecs>(listing.property_specs);
+  const [subFeatureIds, setSubFeatureIds] = useState<string[]>(listing.features_ids ?? []);
   const [existingPhotos, setExistingPhotos] = useState(listing.photos);
   const [existingVideo, setExistingVideo] = useState(
     listing.video_url && listing.video_public_id
@@ -148,6 +153,7 @@ export function EditListingForm({
       formData.append('latitude', latitude.trim());
       formData.append('longitude', longitude.trim());
       formData.append('property_specs', JSON.stringify(specs));
+      formData.append('sub_feature_ids', JSON.stringify(subFeatureIds));
       newImages.forEach((item) => formData.append('images', item.file));
       if (video) formData.append('video', video);
 
@@ -436,7 +442,7 @@ export function EditListingForm({
           </div>
         </Tabs.Content>
 
-        <Tabs.Content value="specs" className="p-6">
+        <Tabs.Content value="specs" className="space-y-6 p-6">
           {listing.property_subtype.spec_schema ? (
             <ListingSpecFieldsInput
               schema={listing.property_subtype.spec_schema}
@@ -446,6 +452,12 @@ export function EditListingForm({
           ) : (
             <p className="text-sm text-gray-400">{t('dashboard.listings.selectSubtypeFirst')}</p>
           )}
+          <ListingSubFeaturesInput
+            mainFeatures={mainFeatures}
+            selectedIds={subFeatureIds}
+            onChange={setSubFeatureIds}
+            disabled={submitting}
+          />
         </Tabs.Content>
 
         <Tabs.Content value="media" className="space-y-6 p-6">

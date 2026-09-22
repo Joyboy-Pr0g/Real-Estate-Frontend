@@ -1,6 +1,7 @@
 import { getServerTranslations } from '@/lib/i18n/server';
 import { Container } from '@/components/ui/container';
 import { catalogService } from '@/features/catalog/services/catalog-service';
+import { featureService } from '@/features/catalog/services/feature-service';
 import { getMyOffices } from '@/features/office/services/office-service';
 import { CreateListingForm } from '@/features/listings/components/dashboard/CreateListingForm';
 import { ListingCreationBlocked } from '@/features/listings/components/dashboard/ListingCreationBlocked';
@@ -8,7 +9,11 @@ import { VerificationStatusBanner } from '@/features/dashboard/components/Verifi
 
 export default async function NewOfficeListingPage() {
   const { t } = await getServerTranslations();
-  const [catalog, offices] = await Promise.all([catalogService.getPublicCatalog(), getMyOffices()]);
+  const [catalog, offices, mainFeatures] = await Promise.all([
+    catalogService.getPublicCatalog(),
+    getMyOffices(),
+    featureService.getMainFeatures(),
+  ]);
   const verifiedOffices = offices.filter((office) => office.verification_status === 'verified');
   const canCreate = verifiedOffices.length > 0;
   const hasUnverifiedOnly = offices.length > 0 && verifiedOffices.length === 0;
@@ -38,6 +43,7 @@ export default async function NewOfficeListingPage() {
             propertyTypes={catalog.propertyTypes}
             transactionTypes={catalog.transactionTypes}
             cities={catalog.cities}
+            mainFeatures={mainFeatures}
             offices={verifiedOffices}
             redirectPath="/dashboard/office/listings"
           />

@@ -5,6 +5,8 @@ import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { toast } from '@/components/ui/toaster';
 import { ListingSpecFieldsInput } from '@/features/listings/components/dashboard/ListingSpecFieldsInput';
+import { ListingSubFeaturesInput } from '@/features/listings/components/dashboard/ListingSubFeaturesInput';
+import { PublicMainFeature } from '@/features/catalog/types/feature';
 import { ImageGalleryInput } from '@/features/listings/components/dashboard/ImageGalleryInput';
 import { VideoInput } from '@/features/listings/components/dashboard/VideoInput';
 import { ListingLocationPicker } from '@/features/listings/components/dashboard/ListingLocationPicker';
@@ -30,6 +32,7 @@ interface CreateListingFormProps {
   propertyTypes: PublicPropertyType[];
   transactionTypes: PublicTransactionType[];
   cities: PublicCity[];
+  mainFeatures: PublicMainFeature[];
   offices?: MyOffice[];
   redirectPath?: string;
 }
@@ -48,6 +51,7 @@ export function CreateListingForm({
   propertyTypes,
   transactionTypes,
   cities,
+  mainFeatures,
   offices = [],
   redirectPath = '/dashboard/listings',
 }: CreateListingFormProps) {
@@ -84,6 +88,7 @@ export function CreateListingForm({
   const [latitude, setLatitude] = useState('');
   const [longitude, setLongitude] = useState('');
   const [specs, setSpecs] = useState<ListingPropertySpecs>({});
+  const [subFeatureIds, setSubFeatureIds] = useState<string[]>([]);
   const [images, setImages] = useState<ListingImageDraft[]>([]);
   const [mainImageId, setMainImageId] = useState<string | null>(null);
   const [video, setVideo] = useState<File | null>(null);
@@ -233,6 +238,7 @@ export function CreateListingForm({
       formData.append('latitude', latitude.trim());
       formData.append('longitude', longitude.trim());
       formData.append('property_specs', JSON.stringify(specs));
+      formData.append('sub_feature_ids', JSON.stringify(subFeatureIds));
       images.forEach((item) => formData.append('images', item.file));
       formData.append('image_meta', JSON.stringify(buildCreateImageMeta(images, mainImageId)));
       if (video) formData.append('video', video);
@@ -566,11 +572,19 @@ export function CreateListingForm({
           ) : null}
 
           {step === 'specs' ? (
-            selectedSubtype ? (
-              <ListingSpecFieldsInput schema={selectedSubtype.spec_schema} values={specs} onChange={handleSpecChange} />
-            ) : (
-              <p className="text-sm text-gray-400">{t('dashboard.listings.selectSubtypeFirst')}</p>
-            )
+            <div className="space-y-6">
+              {selectedSubtype ? (
+                <ListingSpecFieldsInput schema={selectedSubtype.spec_schema} values={specs} onChange={handleSpecChange} />
+              ) : (
+                <p className="text-sm text-gray-400">{t('dashboard.listings.selectSubtypeFirst')}</p>
+              )}
+              <ListingSubFeaturesInput
+                mainFeatures={mainFeatures}
+                selectedIds={subFeatureIds}
+                onChange={setSubFeatureIds}
+                disabled={submitting}
+              />
+            </div>
           ) : null}
 
           {step === 'media' ? (
