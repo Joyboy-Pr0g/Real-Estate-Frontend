@@ -15,7 +15,7 @@ const envSchema = z.object({
   NEXT_PUBLIC_FIREBASE_APP_ID: z.string().optional(),
   NEXT_PUBLIC_FIREBASE_VAPID_KEY: z.string().optional(),
   /** Must match backend AUTH_EMAIL_SEND_COOLDOWN_SEC (Redis send cooldown). */
-  NEXT_PUBLIC_AUTH_EMAIL_SEND_COOLDOWN_SEC: z.coerce.number().int().positive().default(120),
+  NEXT_PUBLIC_AUTH_EMAIL_SEND_COOLDOWN_SEC: z.coerce.number().int().positive().default(60),
   ACCESS_TOKEN_MAX_AGE_SEC: z.coerce.number().int().positive().default(900),
   REFRESH_TOKEN_MAX_AGE_SEC: z.coerce.number().int().positive().default(604800),
 });
