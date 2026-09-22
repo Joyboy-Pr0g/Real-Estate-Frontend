@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { env } from '@/env';
 import {
   AUTH_COOKIE_NAME,
   REFRESH_COOKIE_NAME,
@@ -42,7 +43,7 @@ interface RefreshedTokens {
 }
 
 function resolveBackendUrl(): string {
-  const raw = process.env.NEXT_PUBLIC_BACKEND_URL ?? process.env.BACKEND_URL ?? 'http://localhost:3000/api';
+  const raw = env.BACKEND_URL ?? 'https://api.yemen-land.com/api';
   return raw.replace(/\/$/, '');
 }
 

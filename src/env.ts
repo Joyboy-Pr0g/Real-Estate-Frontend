@@ -1,7 +1,7 @@
 import { z } from 'zod';
 
 const envSchema = z.object({
-  BACKEND_URL: z.string().url().default('http://localhost:3000/api'),
+  BACKEND_URL: z.string().url().default('https://api.yemen-land.com/api'),
   NEXT_PUBLIC_APP_URL: z.string().url().optional(),
   NEXT_PUBLIC_SITE_URL: z.string().url().optional(),
   NEXT_PUBLIC_SOCKET_URL: z.string().url().optional(),
