@@ -17,6 +17,8 @@ import { getErrorMessage } from '@/lib/errors/api-error';
 import { useLocale } from '@/lib/i18n/locale-provider';
 import { formatPhoneNumber } from '@/lib/utils/format';
 import { cn } from '@/lib/utils/cn';
+import { EmailSendCooldownBar } from '@/components/auth/EmailSendCooldownBar';
+import { useEmailSendCooldown } from '@/hooks/use-email-send-cooldown';
 
 interface OfficeProfileFormProps {
   office: OfficeDetail;
@@ -53,6 +55,7 @@ export function OfficeProfileForm({ office, cities, initialNeighborhoods, onDone
   const [sendingVerification, setSendingVerification] = useState(false);
 
   const normalizedEmail = email.trim().toLowerCase();
+  const { remainingSeconds, totalSeconds, canSend, startCooldown } = useEmailSendCooldown(normalizedEmail);
   const emailChanged = normalizedEmail !== originalEmail;
   const emailIsValid = useMemo(
     () => z.string().trim().email().safeParse(email).success,
@@ -92,11 +95,12 @@ export function OfficeProfileForm({ office, cities, initialNeighborhoods, onDone
   };
 
   const handleSendVerification = async () => {
-    if (!emailIsValid || !emailChanged) return;
+    if (!emailIsValid || !emailChanged || !canSend) return;
 
     setSendingVerification(true);
     try {
       await sendOfficeEmailVerification(normalizedEmail, office.id);
+      startCooldown();
       setVerifiedNewEmail(null);
       setVerificationModalOpen(true);
     } catch (err) {
@@ -181,7 +185,7 @@ export function OfficeProfileForm({ office, cities, initialNeighborhoods, onDone
                     variant="outline"
                     size="sm"
                     className="h-11 shrink-0 whitespace-nowrap"
-                    disabled={sendingVerification}
+                    disabled={sendingVerification || !canSend}
                     onClick={() => void handleSendVerification()}
                   >
                     {sendingVerification ? t('dashboard.office.sendingCode') : t('dashboard.office.verifyEmail')}
@@ -190,7 +194,10 @@ export function OfficeProfileForm({ office, cities, initialNeighborhoods, onDone
               ) : null}
             </div>
             {emailChanged && emailIsValid && !emailIsVerified ? (
-              <p className="text-xs text-gray-500">{t('dashboard.office.verifyEmailHint')}</p>
+              <>
+                <p className="text-xs text-gray-500">{t('dashboard.office.verifyEmailHint')}</p>
+                <EmailSendCooldownBar remainingSeconds={remainingSeconds} totalSeconds={totalSeconds} />
+              </>
             ) : null}
           </label>
         </div>

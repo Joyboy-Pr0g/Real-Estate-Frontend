@@ -1315,6 +1315,7 @@ export const en: Record<TranslationKey, string> = {
   'auth.verifyEmail': 'Verify',
   'auth.verifying': 'Verifying…',
   'auth.resendCode': 'Resend code',
+  'auth.resendCodeTimer': 'You can resend the code in {time}',
   'auth.verificationCodeSent': 'A new verification code has been sent.',
   'validation.invalidEmail': 'Please enter a valid email',
   'validation.passwordRequired': 'Password is required',

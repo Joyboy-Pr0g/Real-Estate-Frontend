@@ -13,6 +13,7 @@ import { isAdminPanelRole, isSubAdminRole } from '@/lib/auth/constants';
 import { useLocale } from '@/lib/i18n/locale-provider';
 import { cn } from '@/lib/utils/cn';
 import { PasswordInput } from '@/features/auth/components/PasswordInput';
+import { markEmailCodeSent } from '@/lib/auth/email-send-cooldown';
 
 const fieldClassName =
   'h-11 w-full rounded-xl border border-gray-200 bg-gray-50 px-4 text-sm outline-none transition-colors focus:border-brand/40 focus:bg-white focus:ring-2 focus:ring-brand/15';
@@ -50,7 +51,7 @@ export function LoginForm() {
         }
         router.push(redirect);
       } else if (isSubAdminRole(user.role)) {
-        window.location.assign('/admin');
+        router.push('/admin');
         return;
       } else if (isAdminPanelRole(user.role)) {
         router.push('/admin');
@@ -61,6 +62,7 @@ export function LoginForm() {
       router.refresh();
     } catch (err) {
       if (isEmailNotVerifiedError(err)) {
+        markEmailCodeSent(values.email.trim());
         const params = new URLSearchParams({
           email: values.email.trim(),
           sent: '1',

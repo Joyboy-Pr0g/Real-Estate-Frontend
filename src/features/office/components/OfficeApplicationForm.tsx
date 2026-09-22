@@ -18,6 +18,8 @@ import { FileUploadField } from '@/components/ui/file-upload-field';
 import { formatPhoneNumber } from '@/lib/utils/format';
 import { z } from 'zod';
 import { cn } from '@/lib/utils/cn';
+import { EmailSendCooldownBar } from '@/components/auth/EmailSendCooldownBar';
+import { useEmailSendCooldown } from '@/hooks/use-email-send-cooldown';
 
 interface OfficeApplicationFormProps {
   cities: PublicCity[];
@@ -61,6 +63,7 @@ export function OfficeApplicationForm({ cities, existingOffice, onCancel, onSucc
   const [sendingVerification, setSendingVerification] = useState(false);
 
   const normalizedEmail = email.trim().toLowerCase();
+  const { remainingSeconds, totalSeconds, canSend, startCooldown } = useEmailSendCooldown(normalizedEmail);
   const emailIsValid = useMemo(
     () => z.string().trim().email().safeParse(email).success,
     [email],
@@ -119,11 +122,12 @@ export function OfficeApplicationForm({ cities, existingOffice, onCancel, onSucc
   };
 
   const handleSendVerification = async () => {
-    if (!emailIsValid) return;
+    if (!emailIsValid || !canSend) return;
 
     setSendingVerification(true);
     try {
       await sendOfficeEmailVerification(normalizedEmail, existingOffice?.id);
+      startCooldown();
       setVerifiedEmail(null);
       setVerificationModalOpen(true);
     } catch (err) {
@@ -217,7 +221,7 @@ export function OfficeApplicationForm({ cities, existingOffice, onCancel, onSucc
                   variant="outline"
                   size="sm"
                   className="h-11 shrink-0 whitespace-nowrap"
-                  disabled={sendingVerification}
+                  disabled={sendingVerification || !canSend}
                   onClick={() => void handleSendVerification()}
                 >
                   {sendingVerification ? t('dashboard.office.sendingCode') : t('dashboard.office.verifyEmail')}
@@ -226,7 +230,10 @@ export function OfficeApplicationForm({ cities, existingOffice, onCancel, onSucc
             ) : null}
           </div>
           {emailIsValid && !emailIsVerified ? (
-            <p className="text-xs text-gray-500">{t('dashboard.office.verifyEmailHint')}</p>
+            <>
+              <p className="text-xs text-gray-500">{t('dashboard.office.verifyEmailHint')}</p>
+              <EmailSendCooldownBar remainingSeconds={remainingSeconds} totalSeconds={totalSeconds} />
+            </>
           ) : null}
         </label>
       </div>

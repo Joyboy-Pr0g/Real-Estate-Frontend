@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { ChangeEvent, useMemo, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useForm } from 'react-hook-form';
@@ -12,6 +12,8 @@ import { getErrorMessage } from '@/lib/errors/api-error';
 import { useLocale } from '@/lib/i18n/locale-provider';
 import { cn } from '@/lib/utils/cn';
 import { PasswordInput } from '@/features/auth/components/PasswordInput';
+import { markEmailCodeSent } from '@/lib/auth/email-send-cooldown';
+import { formatPhoneNumber } from '@/lib/utils/format';
 
 const fieldClassName =
   'h-11 w-full rounded-xl border border-gray-200 bg-gray-50 px-4 text-sm outline-none transition-colors focus:border-brand/40 focus:bg-white focus:ring-2 focus:ring-brand/15';
@@ -30,6 +32,7 @@ export function RegisterForm() {
   const {
     register,
     handleSubmit,
+    setValue,
     formState: { errors, isSubmitting },
   } = useForm<RegisterInput>({
     resolver: zodResolver(registerSchema),
@@ -40,7 +43,8 @@ export function RegisterForm() {
 
     try {
       const user = await registerUser(values);
-      router.push(`/verify-email?email=${encodeURIComponent(user.email)}`);
+      markEmailCodeSent(user.email);
+      router.push(`/verify-email?email=${encodeURIComponent(user.email)}&sent=1`);
       router.refresh();
     } catch (err) {
       setError(getErrorMessage(err));
@@ -104,9 +108,16 @@ export function RegisterForm() {
           id="phone_number"
           type="tel"
           autoComplete="tel"
+          dir="ltr"
           placeholder={t('auth.phonePlaceholder')}
           className={cn(fieldClassName, errors.phone_number && 'border-red-300')}
           {...register('phone_number')}
+          onChange={(event: ChangeEvent<HTMLInputElement>) => {
+            setValue('phone_number', formatPhoneNumber(event.target.value), {
+              shouldValidate: true,
+              shouldDirty: true,
+            });
+          }}
         />
         <FieldError message={errors.phone_number?.message} />
       </div>

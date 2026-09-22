@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { toast } from '@/components/ui/toaster';
 import { createVerifyEmailSchema } from '@/features/auth/schemas/auth-schemas';
@@ -11,17 +11,11 @@ import {
   verifyOfficeEmail,
 } from '@/features/office/services/office-client';
 import { cn } from '@/lib/utils/cn';
-
-const RESEND_COOLDOWN_SECONDS = 120;
+import { EmailSendCooldownBar } from '@/components/auth/EmailSendCooldownBar';
+import { useEmailSendCooldown } from '@/hooks/use-email-send-cooldown';
 
 const fieldClassName =
   'h-11 w-full rounded-xl border border-gray-200 bg-gray-50 px-4 text-sm outline-none transition-colors focus:border-brand/40 focus:bg-white focus:ring-2 focus:ring-brand/15';
-
-function formatCooldown(seconds: number): string {
-  const minutes = Math.floor(seconds / 60);
-  const remainingSeconds = seconds % 60;
-  return `${minutes}:${remainingSeconds.toString().padStart(2, '0')}`;
-}
 
 interface OfficeEmailVerificationModalProps {
   open: boolean;
@@ -44,28 +38,16 @@ export function OfficeEmailVerificationModal({
   const [error, setError] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [resending, setResending] = useState(false);
-  const [cooldownSeconds, setCooldownSeconds] = useState(0);
-
-  useEffect(() => {
-    if (cooldownSeconds <= 0) return;
-
-    const timerId = window.setTimeout(() => {
-      setCooldownSeconds((current) => Math.max(0, current - 1));
-    }, 1000);
-
-    return () => window.clearTimeout(timerId);
-  }, [cooldownSeconds]);
-
-  const canResend = cooldownSeconds === 0 && !resending;
+  const { remainingSeconds, totalSeconds, canSend, startCooldown } = useEmailSendCooldown(email);
 
   const handleResend = async () => {
-    if (!canResend) return;
+    if (!canSend) return;
 
     setError('');
     setResending(true);
     try {
       await sendOfficeEmailVerification(email, excludeOfficeId);
-      setCooldownSeconds(RESEND_COOLDOWN_SECONDS);
+      startCooldown();
       toast.success(t('auth.verificationCodeSent'));
     } catch (err) {
       setError(getErrorMessage(err));
@@ -137,17 +119,18 @@ export function OfficeEmailVerificationModal({
             />
           </div>
 
-          {cooldownSeconds > 0 ? (
-            <p className="text-xs text-gray-500">
-              {t('dashboard.office.resendCodeTimer').replace('{time}', formatCooldown(cooldownSeconds))}
-            </p>
-          ) : null}
+          <EmailSendCooldownBar remainingSeconds={remainingSeconds} totalSeconds={totalSeconds} />
 
           <div className="flex justify-end gap-2 pt-2">
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)} disabled={submitting}>
               {t('admin.cancel')}
             </Button>
-            <Button type="button" variant="outline" disabled={!canResend} onClick={() => void handleResend()}>
+            <Button
+              type="button"
+              variant="outline"
+              disabled={!canSend || resending}
+              onClick={() => void handleResend()}
+            >
               {resending ? t('auth.sending') : t('auth.resendCode')}
             </Button>
             <Button type="button" disabled={submitting} onClick={() => void handleVerify()}>

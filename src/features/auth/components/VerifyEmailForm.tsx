@@ -11,6 +11,8 @@ import { sendVerificationCode, verifyEmail } from '@/features/auth/services/auth
 import { getErrorMessage } from '@/lib/errors/api-error';
 import { useLocale } from '@/lib/i18n/locale-provider';
 import { cn } from '@/lib/utils/cn';
+import { EmailSendCooldownBar } from '@/components/auth/EmailSendCooldownBar';
+import { useEmailSendCooldown } from '@/hooks/use-email-send-cooldown';
 
 const fieldClassName =
   'h-11 w-full rounded-xl border border-gray-200 bg-gray-50 px-4 text-sm outline-none transition-colors focus:border-brand/40 focus:bg-white focus:ring-2 focus:ring-brand/15';
@@ -30,6 +32,7 @@ export function VerifyEmailForm() {
     register,
     handleSubmit,
     getValues,
+    watch,
     formState: { errors, isSubmitting },
   } = useForm<VerifyEmailInput>({
     resolver: zodResolver(verifySchema),
@@ -38,6 +41,9 @@ export function VerifyEmailForm() {
       code: '',
     },
   });
+
+  const emailValue = watch('email');
+  const { remainingSeconds, totalSeconds, canSend, startCooldown } = useEmailSendCooldown(emailValue);
 
   useEffect(() => {
     if (fromLogin) {
@@ -68,12 +74,15 @@ export function VerifyEmailForm() {
   };
 
   const handleResend = async () => {
+    if (!canSend) return;
+
     setError('');
     setResendMessage('');
     setResending(true);
 
     try {
       await sendVerificationCode({ email: getValues('email').trim() });
+      startCooldown();
       setResendMessage(t('auth.verificationCodeSent'));
     } catch (err) {
       setError(getErrorMessage(err));
@@ -128,11 +137,12 @@ export function VerifyEmailForm() {
       </Button>
 
       <div className="flex flex-col gap-2 text-center text-sm">
+        <EmailSendCooldownBar remainingSeconds={remainingSeconds} totalSeconds={totalSeconds} />
         <button
           type="button"
           onClick={handleResend}
-          disabled={resending}
-          className="font-medium text-brand hover:text-brand-dark disabled:opacity-50"
+          disabled={resending || !canSend}
+          className="font-medium text-brand hover:text-brand-dark disabled:cursor-not-allowed disabled:opacity-50"
         >
           {resending ? t('auth.sending') : t('auth.resendCode')}
         </button>

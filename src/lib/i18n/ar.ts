@@ -1313,6 +1313,7 @@ export const ar = {
   'auth.verifyEmail': 'تحقق',
   'auth.verifying': 'جاري التحقق…',
   'auth.resendCode': 'إعادة إرسال الرمز',
+  'auth.resendCodeTimer': 'يمكنك إعادة إرسال الرمز خلال {time}',
   'auth.verificationCodeSent': 'تم إرسال رمز تحقق جديد.',
   'validation.invalidEmail': 'يرجى إدخال بريد إلكتروني صالح',
   'validation.passwordRequired': 'كلمة المرور مطلوبة',
