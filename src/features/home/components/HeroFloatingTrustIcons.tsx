@@ -24,14 +24,15 @@ type FloatIconDef = {
   variant?: 'pill' | 'icon';
 };
 
+/** Placed on the inline-end side so icons stay clear of hero copy in both LTR and RTL. */
 const ORBIT_ICONS: FloatIconDef[] = [
-  { key: 'trust.verified', icon: BadgeCheck, style: { top: '10%', left: '6%' }, variant: 'pill' },
-  { key: 'trust.maps', icon: MapPin, style: { top: '18%', left: '28%' }, variant: 'icon' },
-  { key: 'trust.search', icon: Search, style: { top: '34%', left: '10%' }, variant: 'pill' },
-  { key: 'trust.agents', icon: UserCheck, style: { top: '44%', left: '32%' }, variant: 'pill' },
-  { key: 'trust.secure', icon: Shield, style: { top: '58%', left: '5%' }, variant: 'icon' },
-  { key: 'trust.listings', icon: Building2, style: { bottom: '32%', left: '18%' }, variant: 'pill' },
-  { key: 'trust.saved', icon: Heart, style: { bottom: '18%', left: '8%' }, variant: 'pill' },
+  { key: 'trust.verified', icon: BadgeCheck, style: { top: '10%', insetInlineEnd: '6%' }, variant: 'pill' },
+  { key: 'trust.maps', icon: MapPin, style: { top: '18%', insetInlineEnd: '28%' }, variant: 'icon' },
+  { key: 'trust.search', icon: Search, style: { top: '34%', insetInlineEnd: '10%' }, variant: 'pill' },
+  { key: 'trust.agents', icon: UserCheck, style: { top: '44%', insetInlineEnd: '32%' }, variant: 'pill' },
+  { key: 'trust.secure', icon: Shield, style: { top: '58%', insetInlineEnd: '5%' }, variant: 'icon' },
+  { key: 'trust.listings', icon: Building2, style: { bottom: '32%', insetInlineEnd: '18%' }, variant: 'pill' },
+  { key: 'trust.saved', icon: Heart, style: { bottom: '18%', insetInlineEnd: '8%' }, variant: 'pill' },
 ];
 
 function FloatIcon({ item }: { item: FloatIconDef }) {
@@ -62,6 +63,7 @@ function FloatIcon({ item }: { item: FloatIconDef }) {
 }
 
 export function HeroFloatingTrustIcons() {
+  const { dir } = useLocale();
   const containerRef = useRef<HTMLDivElement>(null);
 
   useGSAP(
@@ -96,7 +98,7 @@ export function HeroFloatingTrustIcons() {
   return (
     <div
       ref={containerRef}
-      dir="ltr"
+      dir={dir}
       className="pointer-events-none absolute inset-0 z-[5] overflow-visible hidden md:block"
       aria-hidden
     >

@@ -16,7 +16,7 @@ export async function parseApiResponse<T>(response: Response): Promise<ApiRespon
   }
 
   if (!response.ok || !json.success) {
-    throw new ApiError(json.message ?? 'Request failed', response.status, json.error?.details);
+    throw new ApiError(json.message ?? 'فشل الطلب', response.status, json.error?.details);
   }
 
   return json;
