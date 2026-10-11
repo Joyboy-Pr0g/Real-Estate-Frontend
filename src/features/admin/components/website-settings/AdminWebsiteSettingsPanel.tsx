@@ -390,7 +390,7 @@ export function AdminWebsiteSettingsPanel({ initialSettings }: AdminWebsiteSetti
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <div className="space-y-2 sm:col-span-2">
               <label htmlFor="site_url">{t('admin.websiteSettings.siteUrl')}</label>
-              <input id="site_url" className={fieldClass} placeholder="https://yemen-land.com" {...register('site_url')} />
+              <input id="site_url" className={fieldClass} placeholder="https://www.yemen-land.com" {...register('site_url')} />
               {errors.site_url ? <p className="text-sm text-red-600">{errors.site_url.message}</p> : null}
             </div>
             <div className="space-y-2 sm:col-span-2">

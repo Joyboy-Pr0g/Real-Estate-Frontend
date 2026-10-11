@@ -7,12 +7,28 @@ import { withWebsiteSettingsDefaults, resolveWebsiteLogo } from '@/lib/website-s
 import { buildFaviconMetadata, STATIC_FAVICON_PATHS } from '@/lib/seo/favicons';
 import type { Locale } from '@/lib/i18n/config';
 
+/** Vercel serves the live site at www; apex redirects with 308. Canonicals must match the 200 URL. */
+export function normalizeCanonicalSiteUrl(url: string): string {
+  const trimmed = url.trim().replace(/\/$/, '');
+  if (!trimmed) return trimmed;
+
+  try {
+    const parsed = new URL(trimmed.startsWith('http') ? trimmed : `https://${trimmed}`);
+    if (parsed.hostname === 'yemen-land.com') {
+      parsed.hostname = 'www.yemen-land.com';
+    }
+    return parsed.origin;
+  } catch {
+    return trimmed;
+  }
+}
+
 export function getSiteUrl(settings: WebsiteSettings): string {
   const fromEnv = env.NEXT_PUBLIC_SITE_URL?.trim() || env.NEXT_PUBLIC_APP_URL?.trim();
-  if (fromEnv) return fromEnv.replace(/\/$/, '');
+  if (fromEnv) return normalizeCanonicalSiteUrl(fromEnv);
   const fromSettings = settings.site_url?.trim();
-  if (fromSettings) return fromSettings.replace(/\/$/, '');
-  return 'https://yemen-land.com';
+  if (fromSettings) return normalizeCanonicalSiteUrl(fromSettings);
+  return 'https://www.yemen-land.com';
 }
 
 export function shouldAllowIndexing(settings: WebsiteSettings): boolean {

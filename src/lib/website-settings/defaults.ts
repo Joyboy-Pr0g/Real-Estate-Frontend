@@ -26,7 +26,7 @@ export const FALLBACK_WEBSITE_SETTINGS: WebsiteSettings = {
   instagram: 'https://instagram.com/yemen.land',
   whatsapp: '+967777000000',
   tiktok: 'https://tiktok.com/@yemen.land',
-  site_url: 'https://yemen-land.com',
+  site_url: 'https://www.yemen-land.com',
   meta_title: 'عقارات اليمن | Real Estate Marketplace in Yemen',
   meta_description:
     'اعثر على منزلك في اليمن — آلاف العقارات المعروضة من مكاتب عقارية موثّقة. بحث متقدم، خرائط تفاعلية، وتواصل مباشر مع الوكلاء.',
