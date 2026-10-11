@@ -440,6 +440,14 @@ export function ProfileSettingsPanel({ user }: ProfileSettingsPanelProps) {
 
         <Tabs.Content value="password" className="p-6 text-start">
           <form onSubmit={handlePasswordSubmit(onPasswordSubmit)} className="space-y-4">
+            <div
+              role="note"
+              className="flex gap-2.5 rounded-xl border border-amber-200/90 bg-amber-50/80 px-4 py-3 text-sm leading-relaxed text-amber-900/90"
+            >
+              <CircleAlert className="mt-0.5 h-4 w-4 shrink-0 text-amber-700" aria-hidden />
+              <p>{t('dashboard.passwordChangeLogoutNotice')}</p>
+            </div>
+
             <div className="space-y-1.5">
               <label htmlFor="current_password" className="text-sm font-medium text-primary-dark">
                 {t('dashboard.currentPassword')}

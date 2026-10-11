@@ -1087,6 +1087,8 @@ export const en: Record<TranslationKey, string> = {
   'dashboard.newPassword': 'New password',
   'dashboard.newPasswordConfirm': 'Confirm new password',
   'dashboard.passwordUpdated': 'Password changed successfully',
+  'dashboard.passwordChangeLogoutNotice':
+    'After you save a new password, you will be signed out on all devices. Sign in again with your new password.',
   'dashboard.submit': 'Submit',
   'dashboard.submitting': 'Submitting…',
   'dashboard.applicationSubmitted': 'Your application was submitted and is awaiting admin review',

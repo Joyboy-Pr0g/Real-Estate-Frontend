@@ -1085,6 +1085,8 @@ export const ar = {
   'dashboard.newPassword': 'كلمة المرور الجديدة',
   'dashboard.newPasswordConfirm': 'تأكيد كلمة المرور الجديدة',
   'dashboard.passwordUpdated': 'تم تغيير كلمة المرور بنجاح',
+  'dashboard.passwordChangeLogoutNotice':
+    'بعد حفظ كلمة المرور الجديدة سيتم تسجيل خروجك من جميع الأجهزة. ستحتاج إلى تسجيل الدخول مرة أخرى بكلمة المرور الجديدة.',
   'dashboard.submit': 'إرسال',
   'dashboard.submitting': 'جاري الإرسال…',
   'dashboard.applicationSubmitted': 'تم إرسال طلبك، بانتظار مراجعة الإدارة',

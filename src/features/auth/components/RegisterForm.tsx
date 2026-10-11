@@ -224,6 +224,11 @@ export function RegisterForm() {
             {t('auth.signIn')}
           </Link>
         </p>
+        <p className="text-center text-sm text-gray-500 mt-2">
+          <Link href="/" className="font-medium text-brand hover:text-brand-dark">
+            {t('admin.backToSite')}
+          </Link>
+        </p>
       </form>
 
       {phoneVerifySession ? (

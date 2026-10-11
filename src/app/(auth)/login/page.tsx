@@ -38,6 +38,11 @@ export default async function LoginPage() {
               {t('auth.createOne')}
             </Link>
           </p>
+          <p className="text-center text-sm text-gray-500 mt-2">
+            <Link href="/" className="font-medium text-brand hover:text-brand-dark">
+              {t('admin.backToSite')}
+            </Link>
+          </p>
         </div>
       </Container>
     </div>
