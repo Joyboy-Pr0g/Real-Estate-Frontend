@@ -9,12 +9,25 @@ import {
   UpdateProfileInput,
   VerifyEmailInput,
 } from '@/features/auth/schemas/auth-schemas';
-import { AuthUser, CreateUserPayload, UserRole } from '@/features/auth/types/user';
+import {
+  AuthUser,
+  CreateUserPayload,
+  PhoneVerificationResult,
+  PhoneVerificationStatusResponse,
+  UserRole,
+} from '@/features/auth/types/user';
+import { RequestVerificationInput } from '@/features/auth/schemas/auth-schemas';
 import { bffPaths } from '@/lib/api/endpoints';
 import { clientFetch } from '@/lib/api/client';
 
 interface AuthUserResponse {
   user: AuthUser;
+  verification_result?: PhoneVerificationResult;
+}
+
+interface RegisterResult {
+  user: AuthUser;
+  verification_result?: PhoneVerificationResult;
 }
 
 export async function login(data: LoginInput): Promise<AuthUser> {
@@ -25,12 +38,45 @@ export async function login(data: LoginInput): Promise<AuthUser> {
   return res.data!.user;
 }
 
-export async function register(data: RegisterInput): Promise<AuthUser> {
+export async function register(data: RegisterInput): Promise<RegisterResult> {
   const res = await clientFetch<AuthUserResponse>(bffPaths.auth.register, {
     method: 'POST',
     body: data,
   });
-  return res.data!.user;
+  return {
+    user: res.data!.user,
+    verification_result: res.data!.verification_result,
+  };
+}
+
+export async function requestVerification(
+  data: RequestVerificationInput,
+): Promise<PhoneVerificationResult | null> {
+  const res = await clientFetch<PhoneVerificationResult | Record<string, never>>(
+    bffPaths.auth.requestVerification,
+    { method: 'POST', body: data },
+  );
+  const payload = res.data;
+  if (
+    payload &&
+    typeof payload === 'object' &&
+    'sessionId' in payload &&
+    'link' in payload &&
+    typeof payload.sessionId === 'string' &&
+    typeof payload.link === 'string'
+  ) {
+    return { sessionId: payload.sessionId, link: payload.link };
+  }
+  return null;
+}
+
+export async function getPhoneVerificationStatus(
+  sessionId: string,
+): Promise<PhoneVerificationStatusResponse> {
+  const res = await clientFetch<PhoneVerificationStatusResponse>(
+    bffPaths.auth.phoneVerification(sessionId),
+  );
+  return res.data!;
 }
 
 export async function logout(): Promise<void> {
@@ -79,8 +125,32 @@ export async function forgotPassword(data: ForgotPasswordInput): Promise<void> {
   });
 }
 
+/** Logged-in user — resend to account email (session). */
 export async function sendVerificationCode(data: SendCodeInput): Promise<void> {
   await clientFetch(bffPaths.auth.sendCode, {
+    method: 'POST',
+    body: data,
+  });
+}
+
+/** Guest / verify-email page — email + rate limit, no session required. */
+export async function resendEmailVerification(data: SendCodeInput): Promise<void> {
+  await clientFetch(bffPaths.auth.resendEmailVerification, {
+    method: 'POST',
+    body: data,
+  });
+}
+
+export async function startPhoneVerification(phone_number?: string): Promise<PhoneVerificationResult> {
+  const res = await clientFetch<PhoneVerificationResult>(bffPaths.auth.verifyPhone, {
+    method: 'POST',
+    body: phone_number ? { phone_number } : {},
+  });
+  return res.data!;
+}
+
+export async function verifyProfileEmailChange(data: VerifyEmailInput): Promise<void> {
+  await clientFetch(bffPaths.auth.profileEmailChangeVerify, {
     method: 'POST',
     body: data,
   });

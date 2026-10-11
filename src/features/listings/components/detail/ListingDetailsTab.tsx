@@ -6,14 +6,15 @@ import { getServerTranslations } from '@/lib/i18n/server';
 
 interface ListingDetailsTabProps {
   description: string;
-  mainFeatures: PublicMainFeature[];
+  // mainFeatures: PublicMainFeature[];
   featuresIds: string[];
 }
 
-export async function ListingDetailsTab({ description, mainFeatures, featuresIds }: ListingDetailsTabProps) {
+export async function ListingDetailsTab({ description, // mainFeatures,
+  featuresIds }: ListingDetailsTabProps) {
   const { t } = await getServerTranslations();
-  const featuresIdSet = new Set(featuresIds);
-  const categoriesWithFeatures = mainFeatures.filter((main) => main.sub_features.length > 0);
+  // const featuresIdSet = new Set(featuresIds);
+  // const categoriesWithFeatures = mainFeatures.filter((main) => main.sub_features.length > 0);
 
   return (
     <div className="space-y-8">
@@ -22,7 +23,7 @@ export async function ListingDetailsTab({ description, mainFeatures, featuresIds
         <p className="whitespace-pre-line text-sm leading-7 text-gray-600">{description}</p>
       </div>
 
-      <div>
+      {/* <div>
         <h3 className="mb-4 text-base font-bold text-primary-dark">{t('detail.details.features')}</h3>
 
         {categoriesWithFeatures.length === 0 ? (
@@ -61,7 +62,7 @@ export async function ListingDetailsTab({ description, mainFeatures, featuresIds
             ))}
           </div>
         )}
-      </div>
+      </div> */}
     </div>
   );
 }

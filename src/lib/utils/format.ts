@@ -39,3 +39,23 @@ export function formatPhoneNumber(value: string): string {
   }
   return formatted;
 }
+
+/** Display phone from stored digit key (e.g. after WhatsApp verification). */
+export function formatPhoneFromDigitKey(digits: string): string {
+  const cleaned = digits.replace(/\D/g, '');
+  const withCountry = cleaned.startsWith('967') ? cleaned : `967${cleaned}`;
+  return formatPhoneNumber(`+${withCountry}`);
+}
+
+/** Compare Yemen phone inputs (formatted or raw). */
+export function phonesMatch(a: string, b: string): boolean {
+  const digits = (value: string) => {
+    const cleaned = value.replace(/\D/g, '');
+    return cleaned.startsWith('967') ? cleaned : `967${cleaned}`;
+  };
+  try {
+    return digits(a) === digits(b);
+  } catch {
+    return false;
+  }
+}

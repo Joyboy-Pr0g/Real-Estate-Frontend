@@ -19,7 +19,7 @@ export async function POST() {
   try {
     const refreshToken = await getRefreshToken();
     if (!refreshToken) {
-      return NextResponse.json({ success: false, message: 'Unauthorized' }, { status: 401 });
+      return NextResponse.json({ success: false, message: 'غير مصرح ' }, { status: 401 });
     }
 
     const response = await fetchBackend<TokenResponse>(backendPaths.auth.refreshToken, {

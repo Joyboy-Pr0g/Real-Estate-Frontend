@@ -8,7 +8,7 @@ import { AdminAuditTrigger } from '@/features/admin/components/audit/AdminAuditT
 import { AdminLatestAction } from '@/features/admin/types/action-logs';
 import { AdminListingSummary } from '@/features/listings/types/listing';
 import { formatDateTime } from '@/lib/utils/format';
-import { formatPriceYER } from '@/lib/utils/currency';
+import { formatPrice } from '@/lib/utils/currency';
 import { useLocale } from '@/lib/i18n/locale-provider';
 import { cn } from '@/lib/utils/cn';
 import type { TranslationKey } from '@/lib/i18n/ar';
@@ -112,7 +112,7 @@ export function ListingTable({
                   </Link>
                 </td>
                 <td className="px-5 py-4 text-gray-600">{listing.seller_name ?? '—'}</td>
-                <td className="px-5 py-4 font-semibold text-brand-dark">{formatPriceYER(listing.price)}</td>
+                <td className="px-5 py-4 font-semibold text-brand-dark">{formatPrice(listing.price, listing.yer_variant)}</td>
                 <td className="px-5 py-4">
                   <div className="flex flex-wrap gap-1.5">
                     <span className={cn('rounded-full px-2.5 py-1 text-xs font-semibold', STATUS_STYLES[listing.status])}>

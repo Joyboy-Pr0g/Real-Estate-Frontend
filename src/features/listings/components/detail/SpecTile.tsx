@@ -6,15 +6,15 @@ interface SpecTileProps {
   label: string;
   value: string;
   wide?: boolean;
-  colspanClass?: string;
+  className?: string;
 }
 
-export function SpecTile({ icon: Icon, label, value, wide = false, colspanClass = 'col-span-1' }: SpecTileProps) {
+export function SpecTile({ icon: Icon, label, value, wide = false, className = '' }: SpecTileProps) {
   return (
     <div
       className={cn(
-        'flex items-start gap-2.5 rounded-xl bg-gray-50/70 p-3',
-        colspanClass,
+        'flex items-start gap-2.5 rounded-xl bg-gray-50/70 px-6 py-1.5',
+        className,
       )}
     >
       <Icon className="mt-0.5 h-4 w-4 shrink-0 text-brand" />

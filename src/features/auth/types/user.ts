@@ -12,6 +12,7 @@ export interface AuthUser {
   l_name: string;
   email: string;
   email_verified_at: string | null;
+  phone_verified_at: string | null;
   phone_number: string;
   user_photo?: UserPhoto | null;
   role: UserRole;
@@ -25,6 +26,11 @@ export interface LoginPayload {
   password: string;
 }
 
+export interface PhoneVerificationResult {
+  sessionId: string;
+  link: string;
+}
+
 export interface AuthLoginResponse {
   token: string;
   refreshToken: string;
@@ -33,9 +39,23 @@ export interface AuthLoginResponse {
   l_name: string;
   email: string;
   email_verified_at: string | null;
+  phone_verified_at: string | null;
   phone_number: string;
   role: UserRole;
   status: UserStatus;
+  verification_result?: PhoneVerificationResult;
+}
+
+export type PhoneVerificationStatus =
+  | 'pending'
+  | 'verified'
+  | 'phone_unconfirmed'
+  | 'phone_mismatch'
+  | 'expired';
+
+export interface PhoneVerificationStatusResponse {
+  status: PhoneVerificationStatus;
+  phone_verified: boolean;
 }
 
 export interface CreateUserPayload {

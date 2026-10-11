@@ -12,6 +12,8 @@ export interface MyOffice {
   name: string;
   phone_number: string;
   email: string;
+  email_verified_at?: string | null;
+  phone_verified_at?: string | null;
   address: string;
   office_photo_url: string;
   verification_status: OfficeVerificationStatus;
@@ -42,6 +44,8 @@ export interface OfficeDetail {
   name: string;
   phone_number: string;
   email: string;
+  email_verified_at?: string | null;
+  phone_verified_at?: string | null;
   address: string;
   verification_status: OfficeVerificationStatus;
   subscription_status: OfficeSubscriptionStatus;

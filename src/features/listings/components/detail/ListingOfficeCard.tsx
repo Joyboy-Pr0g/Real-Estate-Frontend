@@ -2,7 +2,7 @@ import Image from 'next/image';
 import { BadgeCheck, Building2, Mail, Phone, User } from 'lucide-react';
 import { PublicListingSeller } from '@/features/listings/types/listing-detail';
 import { getServerTranslations } from '@/lib/i18n/server';
-import { ButtonLink } from '@/components/ui/button';
+import { Button, ButtonLink } from '@/components/ui/button';
 
 interface ListingOfficeCardProps {
   seller: PublicListingSeller;
@@ -40,7 +40,7 @@ export async function ListingOfficeCard({ seller }: ListingOfficeCardProps) {
           <h3 className="truncate text-base font-bold text-primary-dark">{seller.name}</h3>
           {isOffice ? (
             <p className="truncate text-xs text-gray-500">
-              {seller.neighborhood_name}, {seller.city_name}
+              {seller.city_name}, {seller.neighborhood_name}
             </p>
           ) : null}
         </div>
@@ -71,31 +71,37 @@ export async function ListingOfficeCard({ seller }: ListingOfficeCardProps) {
         </div>
       ) : (
         <div className="flex shrink-0 flex-wrap items-center gap-2 sm:gap-3">
-          <a
+          <ButtonLink
             href={`tel:${seller.phone_number}`}
-            className="flex items-center gap-2 rounded-xl border border-gray-200 bg-white px-3.5 py-2.5 text-sm font-semibold text-primary-dark transition-colors hover:border-brand/30 hover:bg-brand-muted"
+            variant="outline"
+            size="sm"
+            className="flex-1"
           >
             <Phone className="h-4 w-4 text-brand" />
             <span dir="ltr">{seller.phone_number}</span>
-          </a>
+          </ButtonLink>
           {isOffice ? (
-            <a
+            <ButtonLink
               href={`mailto:${seller.email}`}
-              className="inline-flex items-center gap-2 rounded-xl border border-gray-200 bg-white px-3.5 py-2.5 text-sm font-semibold text-primary-dark transition-colors hover:border-brand/30 hover:bg-brand-muted"
+              variant="outline"
+              size="sm"
+              className="flex-1"
             >
               <Mail className="h-4 w-4 text-brand" />
               <span className="truncate">{seller.email}</span>
-            </a>
+            </ButtonLink>
           ) : null}
         </div>
       )}
 
-      <div>
-        <ButtonLink href={`/offices/${seller.name}`} className="w-full">
-          <Building2 className="h-4 w-4" />
-          {t('admin.viewOffice')}
-        </ButtonLink>
-      </div>
+      {isOffice ? (
+        <div>
+          <ButtonLink href={`/offices/${seller.name}`} className="w-full">
+            <Building2 className="h-4 w-4" />
+            {t('admin.viewOffice')}
+          </ButtonLink>
+        </div>
+      ) : null}
     </div>
   );
 }

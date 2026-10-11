@@ -93,4 +93,4 @@ export async function registerDeviceToken(token: string, platform = 'web') {
   });
 }
 
-export type { SocketNotificationPayload };
+export type { SocketNotificationPayload, SocketAppNotificationPayload } from '@/features/messaging/types/messaging';

@@ -17,7 +17,7 @@ export async function proxyToBackend(
   try {
     const token = await getAuthToken({ refresh: true });
     if (requireAuth && !token) {
-      return NextResponse.json({ success: false, message: 'Unauthorized' }, { status: 401 });
+      return NextResponse.json({ success: false, message: 'غير مصرح ' }, { status: 401 });
     }
 
     const contentType = request.headers.get('content-type') ?? '';

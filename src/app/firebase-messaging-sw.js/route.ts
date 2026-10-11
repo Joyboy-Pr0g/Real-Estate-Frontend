@@ -18,14 +18,23 @@ export async function GET() {
     });
   }
 
-  const script = `importScripts('https://www.gstatic.com/firebasejs/12.16.0/firebase-app-compat.js');
-importScripts('https://www.gstatic.com/firebasejs/12.16.0/firebase-messaging-compat.js');
+  const script = `importScripts('https://www.gstatic.com/firebasejs/12.18.0/firebase-app-compat.js');
+importScripts('https://www.gstatic.com/firebasejs/12.18.0/firebase-messaging-compat.js');
 firebase.initializeApp(${JSON.stringify(config)});
 const messaging = firebase.messaging();
-messaging.onBackgroundMessage((payload) => {
+messaging.onBackgroundMessage(async (payload) => {
   const title = payload.notification?.title ?? payload.data?.title ?? 'اليمن للعقارات';
-  const body = payload.notification?.body ?? payload.data?.body ?? '';
-  self.registration.showNotification(title, { body, icon: '/favicon/favicon-96x96.png', badge: '/favicon/favicon-96x96.png' });
+  const body = payload.notification?.body ?? payload.data?.body ?? payload.data?.message ?? '';
+  await self.registration.showNotification(title, {
+    body,
+    icon: '/favicon/favicon-96x96.png',
+    badge: '/favicon/favicon-96x96.png',
+    data: payload.data ?? {},
+  });
+  const clients = await self.clients.matchAll({ type: 'window', includeUncontrolled: true });
+  for (const client of clients) {
+    client.postMessage({ type: 'fcm-push', payload });
+  }
 });
 `;
 

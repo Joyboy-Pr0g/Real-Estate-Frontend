@@ -2,6 +2,7 @@ import { Container } from '@/components/ui/container';
 import { ListingBreadcrumb } from '@/features/listings/components/detail/ListingBreadcrumb';
 import { ListingTitleBar } from '@/features/listings/components/detail/ListingTitleBar';
 import { ListingOfficeCard } from '@/features/listings/components/detail/ListingOfficeCard';
+import { ListingContactAside } from '@/features/listings/components/detail/ListingContactAside';
 import { ListingGallery } from '@/features/listings/components/detail/ListingGallery';
 import { ListingSpecGrid } from '@/features/listings/components/detail/ListingSpecGrid';
 import { ListingContentTabs } from '@/features/listings/components/detail/ListingContentTabs';
@@ -19,7 +20,7 @@ import { PublicListing } from '@/features/listings/types/listing';
 
 interface ListingDetailViewProps {
   listing: PublicListingDetail;
-  mainFeatures: PublicMainFeature[];
+  // mainFeatures: PublicMainFeature[];
   similarListings: PublicListing[];
   isAuthenticated: boolean;
   canStartMessage?: boolean;
@@ -29,7 +30,7 @@ interface ListingDetailViewProps {
 
 export function ListingDetailView({
   listing,
-  mainFeatures,
+  // mainFeatures,
   similarListings,
   isAuthenticated,
   canStartMessage = false,
@@ -37,6 +38,7 @@ export function ListingDetailView({
   similarSavedIds = [],
 }: ListingDetailViewProps) {
   const showMetricsTab = isSaleTransaction(listing.transaction_type.name);
+  const hasSeller = Boolean(listing.seller);
 
   return (
     <div className="py-4">
@@ -48,12 +50,17 @@ export function ListingDetailView({
             listingSlug={listing.slug}
             title={listing.title}
             isAuthenticated={isAuthenticated}
-            canStartMessage={canStartMessage}
             initialSaved={isSaved}
           />
 
-          <div className="grid grid-cols-1 gap-4 lg:grid-cols-[2fr_1.4fr_1.2fr]">
-            <div>
+          <div
+            className={
+              hasSeller
+                ? 'grid grid-cols-1 gap-4 lg:grid-cols-[minmax(0,1fr)_min(22rem,30%)] lg:items-start lg:gap-6'
+                : 'flex flex-col gap-4'
+            }
+          >
+            <div className="min-w-0 lg:col-start-1 lg:row-start-1">
               <ListingGallery
                 title={listing.title}
                 photos={listing.photos}
@@ -66,19 +73,61 @@ export function ListingDetailView({
                 publishedAt={listing.published_at}
                 updatedAt={listing.updated_at}
                 address={listing.address}
+                metaLayout={hasSeller ? 'inline' : 'stacked'}
               />
             </div>
-            <div>
+
+            {listing.seller ? (
+              <aside className="min-w-0 lg:col-start-2 lg:row-start-1 lg:sticky lg:top-24 lg:self-start">
+                <ListingContactAside
+                  price={listing.price}
+                  yerVariant={listing.yer_variant}
+                  priceType={listing.price_type}
+                  listingId={listing.id}
+                  listingSlug={listing.slug}
+                  isAuthenticated={isAuthenticated}
+                  canStartMessage={canStartMessage}
+                >
+                  <ListingOfficeCard seller={listing.seller} />
+                </ListingContactAside>
+              </aside>
+            ) : null}
+
+            <div className="min-w-0 space-y-4 lg:col-start-1 lg:row-start-2">
               <ListingSpecGrid
                 price={listing.price}
                 priceType={listing.price_type}
                 yerVariant={listing.yer_variant}
                 specs={listing.property_specs}
                 schema={listing.property_subtype.spec_schema}
+                showPriceHeader={!hasSeller}
+                specColumnLayout={hasSeller ? 'wide' : 'default'}
               />
-            </div>
-            <div className="w-full">
-              {listing.seller ? <ListingOfficeCard seller={listing.seller} /> : null}
+
+              <ListingContentTabs
+                details={
+                  <ListingDetailsTab
+                    description={listing.description}
+                    // mainFeatures={mainFeatures}
+                    featuresIds={listing.features_ids}
+                  />
+                }
+                location={
+                  <ListingLocationTab
+                    listingId={listing.id}
+                    latitude={Number(listing.latitude)}
+                    longitude={Number(listing.longitude)}
+                    address={listing.address}
+                    neighborhood={listing.neighborhood}
+                  />
+                }
+                history={
+                  listing.histories.length > 0 ? (
+                    <ListingHistoryTab histories={listing.histories} yerVariant={listing.yer_variant} />
+                  ) : undefined
+                }
+                metrics={showMetricsTab ? <ListingMetricsTab listingId={listing.id} /> : undefined}
+              />
             </div>
           </div>
 
@@ -90,40 +139,11 @@ export function ListingDetailView({
               title={listing.title}
               price={listing.price}
               yerVariant={listing.yer_variant}
-              cityName={listing.city.name}
-              neighborhoodName={listing.neighborhood.name}
-              specs={listing.property_specs}
-              specSchema={listing.property_subtype.spec_schema}
-              seller={listing.seller}
               isAuthenticated={isAuthenticated}
+              canStartMessage={canStartMessage}
               initialSaved={isSaved}
             />
           ) : null}
-
-          <ListingContentTabs
-            details={
-              <ListingDetailsTab
-                description={listing.description}
-                mainFeatures={mainFeatures}
-                featuresIds={listing.features_ids}
-              />
-            }
-            location={
-              <ListingLocationTab
-                listingId={listing.id}
-                latitude={Number(listing.latitude)}
-                longitude={Number(listing.longitude)}
-                address={listing.address}
-                neighborhood={listing.neighborhood}
-              />
-            }
-            history={
-              listing.histories.length > 0 ? (
-                <ListingHistoryTab histories={listing.histories} yerVariant={listing.yer_variant} />
-              ) : undefined
-            }
-            metrics={showMetricsTab ? <ListingMetricsTab listingId={listing.id} /> : undefined}
-          />
 
           {listing.seller?.type === 'office' ? (
             <SimilarOfficeListings

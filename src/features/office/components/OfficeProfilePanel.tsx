@@ -5,6 +5,7 @@ import Image from 'next/image';
 import { Building2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { OfficeProfileForm } from '@/features/office/components/OfficeProfileForm';
+import { OfficeContactVerificationStatus } from '@/features/office/components/OfficeContactVerificationStatus';
 import { OfficeDetail, OfficeUserRole } from '@/features/office/types/office';
 import { PublicCity } from '@/features/catalog/types/catalog';
 import { PublicNeighborhood } from '@/features/catalog/types/neighborhood';
@@ -89,6 +90,12 @@ export function OfficeProfilePanel({ office, myRole, cities, initialNeighborhood
             {t('dashboard.suspendedReason')}: {office.rejected_reason}
           </p>
         ) : null}
+
+        <OfficeContactVerificationStatus
+          emailVerifiedAt={office.email_verified_at}
+          phoneVerifiedAt={office.phone_verified_at}
+          className="mt-4"
+        />
 
         <dl className="mt-5 grid gap-4 sm:grid-cols-2">
           <div>

@@ -8,7 +8,7 @@ import { SearchableSelect } from '@/components/ui/searchable-select';
 import { createSearchMyOfficesForSelect } from '@/features/office/services/office-client';
 import { OfficeAnalyticsTrendChart } from '@/features/office/components/OfficeAnalyticsTrendChart';
 import { useLocale } from '@/lib/i18n/locale-provider';
-import { formatPriceYER } from '@/lib/utils/currency';
+import { formatPrice } from '@/lib/utils/currency';
 import type { TranslationKey } from '@/lib/i18n/ar';
 import { cn } from '@/lib/utils/cn';
 
@@ -130,13 +130,13 @@ export function OfficeAnalyticsPanel({
         <div className="rounded-2xl border border-gray-200 bg-white p-6 shadow-[var(--shadow-soft)]">
           <p className="text-xs font-medium text-gray-400">{t('dashboard.office.totalSold')}</p>
           <p className="mt-1 text-2xl font-bold text-primary-dark">{analytics.sold.count}</p>
-          <p className="mt-1 text-sm text-gray-500">{formatPriceYER(analytics.sold.total_price)}</p>
+          <p className="mt-1 text-sm text-gray-500">{formatPrice(analytics.sold.total_price)}</p>
           <p className="mt-2 text-xs text-brand-dark">{soldPct}% · {soldPricePct}% {t('dashboard.office.ofRevenue')}</p>
         </div>
         <div className="rounded-2xl border border-gray-200 bg-white p-6 shadow-[var(--shadow-soft)]">
           <p className="text-xs font-medium text-gray-400">{t('dashboard.office.totalRented')}</p>
           <p className="mt-1 text-2xl font-bold text-primary-dark">{analytics.rented.count}</p>
-          <p className="mt-1 text-sm text-gray-500">{formatPriceYER(analytics.rented.total_price)}</p>
+          <p className="mt-1 text-sm text-gray-500">{formatPrice(analytics.rented.total_price)}</p>
           <p className="mt-2 text-xs text-amber-700">{rentedPct}% · {rentedPricePct}% {t('dashboard.office.ofRevenue')}</p>
         </div>
         <div className="rounded-2xl border border-gray-200 bg-white p-6 shadow-[var(--shadow-soft)] lg:col-span-2">
@@ -208,7 +208,7 @@ export function OfficeAnalyticsPanel({
                 <span className="shrink-0 text-xs text-gray-400">
                   {t(`dashboard.listings.status.${listing.action}` as TranslationKey)}
                 </span>
-                <span className="shrink-0 font-semibold text-brand-dark">{formatPriceYER(listing.price)}</span>
+                <span className="shrink-0 font-semibold text-brand-dark">{formatPrice(listing.price)}</span>
               </Link>
             ))}
           </div>

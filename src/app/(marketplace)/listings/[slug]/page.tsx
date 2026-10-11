@@ -83,8 +83,8 @@ export default async function ListingDetailPage({ params }: ListingDetailPagePro
   const { listing } = resolved;
   if (!hasListingSeller(listing)) notFound();
 
-  const [mainFeatures, similar, user, settings] = await Promise.all([
-    featureService.getMainFeatures(),
+  const [similar, user, settings] = await Promise.all([
+    // featureService.getMainFeatures(),
     listing.seller.type === 'office'
       ? listingService.search({ office_id: listing.seller.id, limit: 12 })
       : Promise.resolve(null),
@@ -104,7 +104,7 @@ export default async function ListingDetailPage({ params }: ListingDetailPagePro
     listing.seller.type === 'individual'
     && individualListerProfile?.id === listing.seller.id;
 
-  const canStartMessage = Boolean(user) && user!.role !== 'office' && !isOwnListing;
+  const canStartMessage = Boolean(user) && user!.role !== 'office' && user!.role !== 'platform_admin' && !isOwnListing;
   const listingSchema = buildRealEstateListingSchema(settings, listing, getSiteUrl(settings));
 
   return (
@@ -112,7 +112,6 @@ export default async function ListingDetailPage({ params }: ListingDetailPagePro
       <JsonLdScript data={listingSchema} />
       <ListingDetailView
         listing={listing}
-        mainFeatures={mainFeatures}
         similarListings={similarListings}
         isAuthenticated={Boolean(user)}
         canStartMessage={canStartMessage}

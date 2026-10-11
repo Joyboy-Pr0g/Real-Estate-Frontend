@@ -1,7 +1,7 @@
 import Link from 'next/link';
 import { OfficeListingAnalytics } from '@/features/office/types/office';
 import { getServerTranslations } from '@/lib/i18n/server';
-import { formatPriceYER } from '@/lib/utils/currency';
+import { formatPrice } from '@/lib/utils/currency';
 import type { TranslationKey } from '@/lib/i18n/ar';
 
 interface OfficeAnalyticsViewProps {
@@ -18,12 +18,12 @@ export async function OfficeAnalyticsView({ analytics }: OfficeAnalyticsViewProp
         <div className="rounded-2xl border border-gray-200 bg-white p-6 shadow-[var(--shadow-soft)]">
           <p className="text-xs font-medium text-gray-400">{t('dashboard.office.totalSold')}</p>
           <p className="mt-1 text-2xl font-bold text-primary-dark">{analytics.sold.count}</p>
-          <p className="mt-1 text-sm text-gray-500">{formatPriceYER(analytics.sold.total_price)}</p>
+          <p className="mt-1 text-sm text-gray-500">{formatPrice(analytics.sold.total_price)}</p>
         </div>
         <div className="rounded-2xl border border-gray-200 bg-white p-6 shadow-[var(--shadow-soft)]">
           <p className="text-xs font-medium text-gray-400">{t('dashboard.office.totalRented')}</p>
           <p className="mt-1 text-2xl font-bold text-primary-dark">{analytics.rented.count}</p>
-          <p className="mt-1 text-sm text-gray-500">{formatPriceYER(analytics.rented.total_price)}</p>
+          <p className="mt-1 text-sm text-gray-500">{formatPrice(analytics.rented.total_price)}</p>
         </div>
       </div>
 
@@ -76,7 +76,7 @@ export async function OfficeAnalyticsView({ analytics }: OfficeAnalyticsViewProp
                 <span className="shrink-0 text-xs text-gray-400">
                   {t(`dashboard.listings.status.${listing.action}` as TranslationKey)}
                 </span>
-                <span className="shrink-0 font-semibold text-brand-dark">{formatPriceYER(listing.price)}</span>
+                <span className="shrink-0 font-semibold text-brand-dark">{formatPrice(listing.price)}</span>
               </Link>
             ))}
           </div>

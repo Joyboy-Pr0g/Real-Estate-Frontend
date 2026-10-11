@@ -14,6 +14,7 @@ import { cn } from '@/lib/utils/cn';
 import { PasswordInput } from '@/features/auth/components/PasswordInput';
 import { markEmailCodeSent } from '@/lib/auth/email-send-cooldown';
 import { formatPhoneNumber } from '@/lib/utils/format';
+import { VerifyPhoneModal } from '@/features/auth/components/VerifyPhoneModal';
 
 const fieldClassName =
   'h-11 w-full rounded-xl border border-gray-200 bg-gray-50 px-4 text-sm outline-none transition-colors focus:border-brand/40 focus:bg-white focus:ring-2 focus:ring-brand/15';
@@ -27,31 +28,49 @@ export function RegisterForm() {
   const router = useRouter();
   const { t } = useLocale();
   const [error, setError] = useState('');
+  const [phoneVerifySession, setPhoneVerifySession] = useState<{ sessionId: string; link: string } | null>(
+    null,
+  );
   const registerSchema = useMemo(() => createRegisterSchema(t), [t]);
 
   const {
     register,
     handleSubmit,
     setValue,
+    watch,
     formState: { errors, isSubmitting },
   } = useForm<RegisterInput>({
     resolver: zodResolver(registerSchema),
+    defaultValues: {
+      verification_channel: 'email',
+    },
   });
+
+  const verificationType = watch('verification_channel');
 
   const onSubmit = async (values: RegisterInput) => {
     setError('');
 
     try {
-      const user = await registerUser(values);
-      markEmailCodeSent(user.email);
-      router.push(`/verify-email?email=${encodeURIComponent(user.email)}&sent=1`);
-      router.refresh();
+      const { user, verification_result } = await registerUser(values);
+
+      if (values.verification_channel === 'phone' && verification_result) {
+        setPhoneVerifySession({
+          sessionId: verification_result.sessionId,
+          link: verification_result.link,
+        });
+      } else {
+        markEmailCodeSent(user.email);
+        router.push(`/verify-email?email=${encodeURIComponent(user.email)}&sent=1`);
+        router.refresh();
+      }
     } catch (err) {
       setError(getErrorMessage(err));
     }
   };
 
   return (
+    <>
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
       {error ? (
         <p className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">{error}</p>
@@ -122,6 +141,35 @@ export function RegisterForm() {
         <FieldError message={errors.phone_number?.message} />
       </div>
 
+      <fieldset className="space-y-2">
+        <legend className="text-sm font-medium text-primary-dark">{t('auth.verificationMethod')}</legend>
+        <div className="grid grid-cols-2 gap-2">
+          <label
+            className={cn(
+              'flex cursor-pointer items-center justify-center rounded-xl border px-3 py-2.5 text-sm font-medium transition-colors',
+              verificationType === 'email'
+                ? 'border-brand bg-brand-muted text-brand-dark'
+                : 'border-gray-200 bg-gray-50 text-gray-600 hover:border-gray-300',
+            )}
+          >
+            <input type="radio" value="email" className="sr-only" {...register('verification_channel')} />
+            {t('auth.verifyByEmail')}
+          </label>
+          <label
+            className={cn(
+              'flex cursor-pointer items-center justify-center rounded-xl border px-3 py-2.5 text-sm font-medium transition-colors',
+              verificationType === 'phone'
+                ? 'border-brand bg-brand-muted text-brand-dark'
+                : 'border-gray-200 bg-gray-50 text-gray-600 hover:border-gray-300',
+            )}
+          >
+            <input type="radio" value="phone" className="sr-only" {...register('verification_channel')} />
+            {t('auth.verifyByPhone')}
+          </label>
+        </div>
+        <FieldError message={errors.verification_channel?.message} />
+      </fieldset>
+
       <div className="space-y-1.5">
         <label htmlFor="password" className="text-sm font-medium text-primary-dark">
           {t('auth.password')}
@@ -162,5 +210,21 @@ export function RegisterForm() {
         </Link>
       </p>
     </form>
+
+    {phoneVerifySession ? (
+      <VerifyPhoneModal
+        open={Boolean(phoneVerifySession)}
+        onOpenChange={(open) => {
+          if (!open) setPhoneVerifySession(null);
+        }}
+        sessionId={phoneVerifySession.sessionId}
+        whatsAppLink={phoneVerifySession.link}
+        onVerified={() => {
+          router.push('/login');
+          router.refresh();
+        }}
+      />
+    ) : null}
+    </>
   );
 }

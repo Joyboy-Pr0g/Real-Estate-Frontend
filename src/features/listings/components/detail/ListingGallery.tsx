@@ -37,6 +37,7 @@ interface ListingGalleryProps {
   publishedAt: string | null;
   updatedAt: string | null;
   address: string;
+  metaLayout?: 'stacked' | 'inline';
 }
 
 type ViewMode = 'photos' | 'video';
@@ -168,6 +169,7 @@ export function ListingGallery({
   publishedAt,
   updatedAt,
   address,
+  metaLayout = 'stacked',
 }: ListingGalleryProps) {
   const { t, dir } = useLocale();
   const sortedPhotos = [...photos].sort((a, b) => a.order - b.order);
@@ -217,7 +219,7 @@ export function ListingGallery({
 
   return (
     <div className="space-y-3">
-      <div className="w-full max-w-[550px] mx-auto overflow-hidden rounded-2xl bg-white shadow-(--shadow-soft) ring-1 ring-gray-100">
+      <div className="w-full mx-auto overflow-hidden rounded-2xl bg-white shadow-(--shadow-soft) ring-1 ring-gray-100">
         <div className="relative mx-auto aspect-[4/3] w-full bg-gray-100">
           {mode === 'photos' ? (
             activePhoto ? (
@@ -336,31 +338,32 @@ export function ListingGallery({
       </div>
 
       <div className="rounded-2xl bg-white p-5 shadow-(--shadow-soft) ring-1 ring-gray-100">
-        <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+        <div
+          className={cn('grid grid-cols-2 lg:flex lg:flex-wrap gap-3')}
+        >
           <SpecTile icon={Hash} label={t('detail.specs.listingNumber')} value={String(customId)} />
           <SpecTile icon={PropertyTypeIcon} label={t('filters.propertyType')} value={propertyType.name} />
           <SpecTile icon={SubtypeIcon} label={t('filters.subtype')} value={subtype.name} />
-          <SpecTile
-            icon={TransactionTypeIcon}
-            label={t('filters.transactionType')}
-            value={transactionType.display_name_ar}
-          />
+          <SpecTile icon={TransactionTypeIcon} label={t('filters.transactionType')} value={transactionType.display_name_ar} />
           <SpecTile
             icon={Calendar}
             label={t('detail.specs.publishedAt')}
             value={publishedAt ? formatDateTime(publishedAt) : '—'}
             wide
-            colspanClass="col-span-2"
           />
           <SpecTile
             icon={Calendar}
             label={t('detail.specs.updatedAt')}
             value={updatedAt ? formatDateTime(updatedAt) : '—'}
             wide
-            colspanClass="col-span-2"
           />
-          <SpecTile icon={MapPinned} label={t('detail.specs.address')} value={address || '—'} colspanClass="col-span-4" />
-
+          <SpecTile
+            icon={MapPinned}
+            label={t('detail.specs.address')}
+            value={address || '—'}
+            wide
+            className={metaLayout === 'inline' ? 'col-span-2 sm:col-span-3 lg:col-span-4' : 'col-span-2 sm:col-span-4'}
+          />
         </div>
       </div>
     </div>

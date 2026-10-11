@@ -8,7 +8,10 @@ import {
   fetchSocketTicket,
   type SocketNotificationPayload,
 } from '@/features/messaging/services/messaging-client';
+import type { SocketAppNotificationPayload } from '@/features/messaging/types/messaging';
 import { InAppMessageNotification } from '@/features/messaging/components/InAppMessageNotification';
+import { dispatchNotificationsRefresh } from '@/features/notifications/services/notification-client';
+import { handleFcmPush } from '@/lib/firebase/handle-fcm-push';
 
 interface MessagingSocketContextValue {
   socket: Socket | null;
@@ -65,7 +68,20 @@ export function MessagingSocketProvider({
 
         client.on('notification:message', (payload: SocketNotificationPayload) => {
           if (payload.conversationId === activeConversationIdRef.current) return;
+          dispatchNotificationsRefresh();
           setNotification(payload);
+        });
+
+        client.on('notification:app', (payload: SocketAppNotificationPayload) => {
+          handleFcmPush({
+            notification: { title: payload.title, body: payload.message },
+            data: {
+              title: payload.title,
+              body: payload.message,
+              linkPath: payload.linkPath?.trim() ?? '',
+              type: payload.type,
+            },
+          });
         });
 
         if (active) setSocket(client);

@@ -11,7 +11,7 @@ export async function GET() {
   try {
     const token = await getAuthToken({ refresh: true });
     if (!token) {
-      return NextResponse.json({ success: false, message: 'Unauthorized' }, { status: 401 });
+      return NextResponse.json({ success: false, message: 'غير مصرح ' }, { status: 401 });
     }
 
     const response = await fetchBackend<AuthUser>(backendPaths.auth.me, {

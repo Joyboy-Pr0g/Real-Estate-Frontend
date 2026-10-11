@@ -14,7 +14,7 @@ import {
   DownPaymentChart,
   RentSourcesChart,
 } from '@/features/listings/components/detail/ListingMetricsCharts';
-import { formatPriceYER } from '@/lib/utils/currency';
+import { formatPrice } from '@/lib/utils/currency';
 import { formatDateTime } from '@/lib/utils/format';
 import { useLocale } from '@/lib/i18n/locale-provider';
 import { cn } from '@/lib/utils/cn';
@@ -151,7 +151,7 @@ export function ListingMetricsTab({ listingId }: ListingMetricsTabProps) {
                 <span className="font-semibold text-primary-dark">{t(labelKey)}: </span>
                 {source.available && source.value ? (
                   <>
-                    {formatPriceYER(source.value, metrics.yer_variant)}
+                    {formatPrice(source.value, metrics.yer_variant)}
                     <span className="mt-0.5 block text-[11px] text-gray-400">
                       {getRentSourceHint(source, t)}
                     </span>
@@ -168,7 +168,7 @@ export function ListingMetricsTab({ listingId }: ListingMetricsTabProps) {
           <div className="rounded-xl border border-brand/20 bg-brand-muted/40 px-4 py-3">
             <p className="text-xs font-medium text-gray-500">{t('detail.metrics.finalRent')}</p>
             <p className="text-xl font-bold text-brand-dark">
-              {formatPriceYER(metrics.final_estimated_rent ?? '0', metrics.yer_variant)}
+              {formatPrice(metrics.final_estimated_rent ?? '0', metrics.yer_variant)}
             </p>
             <p className="mt-1 text-xs text-gray-500">{t('detail.metrics.finalRentHint')}</p>
           </div>
@@ -202,7 +202,7 @@ export function ListingMetricsTab({ listingId }: ListingMetricsTabProps) {
                 className="h-2 w-full cursor-pointer accent-brand"
               />
               <p className="text-xs text-gray-500">
-                {formatPriceYER((price * downPct) / 100, metrics.yer_variant)}
+                {formatPrice((price * downPct) / 100, metrics.yer_variant)}
               </p>
               <p className="text-xs text-gray-500">
                 {t('detail.metrics.minDownPctHint').replace('{pct}', String(minDownPct))}
@@ -245,7 +245,7 @@ export function ListingMetricsTab({ listingId }: ListingMetricsTabProps) {
             <div className="rounded-xl border border-gray-100 bg-gray-50/60 px-4 py-3">
               <p className="text-xs font-medium text-gray-500">{t('detail.metrics.monthlyInstallment')}</p>
               <p className="text-xl font-bold text-primary-dark">
-                {formatPriceYER(monthlyInstallment, metrics.yer_variant)}
+                {formatPrice(monthlyInstallment, metrics.yer_variant)}
               </p>
               <p className="mt-1 text-xs text-gray-400">{t('detail.metrics.zeroInterestNote')}</p>
             </div>
@@ -266,7 +266,7 @@ export function ListingMetricsTab({ listingId }: ListingMetricsTabProps) {
                     netMonthly <= 0 ? 'text-emerald-700' : 'text-amber-700',
                   )}
                 >
-                  {formatPriceYER(Math.abs(netMonthly), metrics.yer_variant)}
+                  {formatPrice(Math.abs(netMonthly), metrics.yer_variant)}
                 </p>
                 <p className="mt-1 text-xs text-gray-500">
                   {netMonthly <= 0

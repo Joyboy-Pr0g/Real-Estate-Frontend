@@ -5,7 +5,12 @@ import { useRouter } from 'next/navigation';
 import { CheckCircle2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { toast } from '@/components/ui/toaster';
-import { applyAsOffice, resubmitOffice, sendOfficeEmailVerification } from '@/features/office/services/office-client';
+import {
+  applyAsOffice,
+  resubmitOffice,
+  sendOfficeEmailVerification,
+  startOfficePhoneVerification,
+} from '@/features/office/services/office-client';
 import { OfficeEmailVerificationModal } from '@/features/office/components/OfficeEmailVerificationModal';
 import { MyOffice } from '@/features/office/types/office';
 import { PublicCity } from '@/features/catalog/types/catalog';
@@ -15,11 +20,15 @@ import { bffPaths } from '@/lib/api/endpoints';
 import { getErrorMessage } from '@/lib/errors/api-error';
 import { useLocale } from '@/lib/i18n/locale-provider';
 import { FileUploadField } from '@/components/ui/file-upload-field';
-import { formatPhoneNumber } from '@/lib/utils/format';
+import { formatPhoneFromDigitKey, formatPhoneNumber } from '@/lib/utils/format';
+import { markPendingPhoneVerification, phoneDigitsKey } from '@/lib/auth/pending-phone-verification';
+import { VerifyPhoneModal } from '@/features/auth/components/VerifyPhoneModal';
 import { z } from 'zod';
 import { cn } from '@/lib/utils/cn';
 import { EmailSendCooldownBar } from '@/components/auth/EmailSendCooldownBar';
 import { useEmailSendCooldown } from '@/hooks/use-email-send-cooldown';
+import { OfficeEmailVerifyHint } from '@/features/office/components/OfficeEmailVerifyHint';
+import { OfficeContactVerificationStatus } from '@/features/office/components/OfficeContactVerificationStatus';
 
 interface OfficeApplicationFormProps {
   cities: PublicCity[];
@@ -57,10 +66,17 @@ export function OfficeApplicationForm({ cities, existingOffice, onCancel, onSucc
   });
   const [submitting, setSubmitting] = useState(false);
   const [verifiedEmail, setVerifiedEmail] = useState<string | null>(
-    existingOffice?.email?.toLowerCase() ?? null,
+    existingOffice?.email_verified_at ? existingOffice.email.toLowerCase().trim() : null,
   );
   const [verificationModalOpen, setVerificationModalOpen] = useState(false);
   const [sendingVerification, setSendingVerification] = useState(false);
+  const [verifiedPhone, setVerifiedPhone] = useState<string | null>(
+    existingOffice?.phone_verified_at ? phoneDigitsKey(existingOffice.phone_number) : null,
+  );
+  const [verifyingPhone, setVerifyingPhone] = useState(false);
+  const [phoneVerifySession, setPhoneVerifySession] = useState<{ sessionId: string; link: string } | null>(
+    null,
+  );
 
   const normalizedEmail = email.trim().toLowerCase();
   const { remainingSeconds, totalSeconds, canSend, startCooldown } = useEmailSendCooldown(normalizedEmail);
@@ -69,6 +85,12 @@ export function OfficeApplicationForm({ cities, existingOffice, onCancel, onSucc
     [email],
   );
   const emailIsVerified = verifiedEmail === normalizedEmail && emailIsValid;
+  const phoneIsValid = useMemo(
+    () => z.string().trim().regex(/^\+?[\d\s\-()]+$/).min(7).max(20).safeParse(phoneNumber).success,
+    [phoneNumber],
+  );
+  const phoneIsVerified =
+    phoneIsValid && verifiedPhone !== null && phoneDigitsKey(phoneNumber) === verifiedPhone;
 
   useEffect(() => {
     if (!existingOffice) return;
@@ -112,6 +134,24 @@ export function OfficeApplicationForm({ cities, existingOffice, onCancel, onSucc
   const handlePhoneNumberChange = (e: ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
     setPhoneNumber(formatPhoneNumber(value));
+    if (verifiedPhone && phoneDigitsKey(value) !== verifiedPhone) {
+      setVerifiedPhone(null);
+    }
+  };
+
+  const handleStartPhoneVerification = async () => {
+    if (!phoneIsValid) return;
+
+    setVerifyingPhone(true);
+    try {
+      markPendingPhoneVerification(phoneNumber);
+      const result = await startOfficePhoneVerification(phoneNumber.trim(), existingOffice?.id);
+      setPhoneVerifySession({ sessionId: result.sessionId, link: result.link });
+    } catch (err) {
+      toast.error(getErrorMessage(err));
+    } finally {
+      setVerifyingPhone(false);
+    }
   };
 
   const handleEmailChange = (value: string) => {
@@ -140,8 +180,8 @@ export function OfficeApplicationForm({ cities, existingOffice, onCancel, onSucc
   const handleSubmit = async (event: FormEvent) => {
     event.preventDefault();
 
-    if (!emailIsVerified) {
-      toast.error(t('dashboard.office.emailNotVerified'));
+    if (!phoneIsVerified) {
+      toast.error(t('dashboard.office.phoneNotVerified'));
       return;
     }
 
@@ -182,6 +222,25 @@ export function OfficeApplicationForm({ cities, existingOffice, onCancel, onSucc
   return (
     <>
     <form onSubmit={handleSubmit} className="mt-4 space-y-4">
+      {existingOffice ? (
+        <OfficeContactVerificationStatus
+          emailVerifiedAt={
+            emailIsVerified && emailIsValid
+              ? existingOffice.email_verified_at ?? new Date().toISOString()
+              : normalizedEmail === existingOffice.email.toLowerCase().trim()
+                ? existingOffice.email_verified_at
+                : null
+          }
+          phoneVerifiedAt={
+            phoneIsVerified && phoneIsValid
+              ? existingOffice.phone_verified_at ?? new Date().toISOString()
+              : phoneDigitsKey(existingOffice.phone_number) === phoneDigitsKey(phoneNumber)
+                ? existingOffice.phone_verified_at
+                : null
+          }
+          layout="stack"
+        />
+      ) : null}
       <label className="block space-y-1.5">
         <span className="text-sm font-medium text-primary-dark">{t('dashboard.office.name')}</span>
         <input required value={name} onChange={(e) => setName(e.target.value)} className={fieldClass} />
@@ -190,17 +249,44 @@ export function OfficeApplicationForm({ cities, existingOffice, onCancel, onSucc
       <div className="grid gap-4 sm:grid-cols-2">
         <label className="block space-y-1.5">
           <span className="text-sm font-medium text-primary-dark">{t('auth.phone')}</span>
-          <input
-            required
-            type="tel"
-            dir="ltr"
-            value={phoneNumber}
-            onChange={handlePhoneNumberChange}
-            className={fieldClass}
-          />
+          <div className="flex gap-2">
+            <input
+              required
+              type="tel"
+              dir="ltr"
+              value={phoneNumber}
+              onChange={handlePhoneNumberChange}
+              className={cn(fieldClass, 'min-w-0 flex-1')}
+            />
+            {phoneIsValid ? (
+              phoneIsVerified ? (
+                <div className="flex h-11 shrink-0 items-center gap-1.5 rounded-xl border border-emerald-200 bg-emerald-50 px-3 text-emerald-700">
+                  <CheckCircle2 className="h-4 w-4" />
+                  <span className="hidden text-xs font-medium sm:inline">{t('dashboard.office.phoneVerifiedBadge')}</span>
+                </div>
+              ) : (
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  className="h-11 shrink-0 whitespace-nowrap"
+                  disabled={verifyingPhone}
+                  onClick={() => void handleStartPhoneVerification()}
+                >
+                  {verifyingPhone ? t('dashboard.office.sendingCode') : t('dashboard.office.verifyPhone')}
+                </Button>
+              )
+            ) : null}
+          </div>
+          {phoneIsValid && !phoneIsVerified ? (
+            <p className="text-xs text-gray-500">{t('dashboard.office.verifyPhoneHint')}</p>
+          ) : null}
         </label>
         <label className="block space-y-1.5">
-          <span className="text-sm font-medium text-primary-dark">{t('dashboard.emailLabel')}</span>
+          <span className="flex items-center gap-1.5 text-sm font-medium text-primary-dark">
+            {t('dashboard.emailLabel')}
+            <OfficeEmailVerifyHint />
+          </span>
           <div className="flex gap-2">
             <input
               required
@@ -314,7 +400,7 @@ export function OfficeApplicationForm({ cities, existingOffice, onCancel, onSucc
         <Button type="button" variant="outline" onClick={onCancel} disabled={submitting}>
           {t('admin.cancel')}
         </Button>
-        <Button type="submit" disabled={submitting || !emailIsVerified}>
+        <Button type="submit" disabled={submitting || !phoneIsVerified}>
           {submitting ? t('dashboard.submitting') : t('dashboard.submit')}
         </Button>
       </div>
@@ -327,6 +413,24 @@ export function OfficeApplicationForm({ cities, existingOffice, onCancel, onSucc
         excludeOfficeId={existingOffice?.id}
         onVerified={(verified) => setVerifiedEmail(verified.toLowerCase())}
       />
+
+      {phoneVerifySession ? (
+        <VerifyPhoneModal
+          open={Boolean(phoneVerifySession)}
+          onOpenChange={(open) => {
+            if (!open) setPhoneVerifySession(null);
+          }}
+          sessionId={phoneVerifySession.sessionId}
+          whatsAppLink={phoneVerifySession.link}
+          onVerified={(digitKey) => {
+            if (digitKey) {
+              setVerifiedPhone(digitKey);
+              setPhoneNumber(formatPhoneFromDigitKey(digitKey));
+            }
+            toast.success(t('auth.verifyPhoneSuccess'));
+          }}
+        />
+      ) : null}
     </>
   );
 }

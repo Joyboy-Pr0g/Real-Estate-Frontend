@@ -2,7 +2,8 @@
 
 import { useCallback, useMemo, useState } from 'react';
 import { GoogleMap, MarkerF, useJsApiLoader } from '@react-google-maps/api';
-import { MapPin } from 'lucide-react';
+import { LocateFixed, MapPin } from 'lucide-react';
+import { toast } from '@/components/ui/toaster';
 import { env } from '@/env';
 import { Button } from '@/components/ui/button';
 import { YEMEN_MAP_CENTER, MAP_ZOOM } from '@/features/listings/constants/map-config';
@@ -31,6 +32,7 @@ export function ListingLocationPicker({
   const [open, setOpen] = useState(false);
   const [draftLat, setDraftLat] = useState(latitude);
   const [draftLng, setDraftLng] = useState(longitude);
+  const [locating, setLocating] = useState(false);
 
   const { isLoaded } = useJsApiLoader({
     id: GOOGLE_MAPS_LOADER_ID,
@@ -75,15 +77,57 @@ export function ListingLocationPicker({
     setDraftLng(event.latLng.lng().toFixed(6));
   }, []);
 
+  const applyCurrentLocation = useCallback(
+    (confirmImmediately: boolean) => {
+      if (disabled) return;
+      if (!navigator.geolocation) {
+        toast.error(t('dashboard.listings.currentLocationUnavailable'));
+        return;
+      }
+
+      setLocating(true);
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          const lat = position.coords.latitude.toFixed(6);
+          const lng = position.coords.longitude.toFixed(6);
+          setDraftLat(lat);
+          setDraftLng(lng);
+          setLocating(false);
+          if (confirmImmediately) {
+            onConfirm(lat, lng);
+          }
+        },
+        () => {
+          setLocating(false);
+          toast.error(t('dashboard.listings.currentLocationDenied'));
+        },
+        { enableHighAccuracy: true, timeout: 15000, maximumAge: 0 },
+      );
+    },
+    [disabled, onConfirm, t],
+  );
+
   const hasSelection = Boolean(draftLat && draftLng);
 
   return (
     <>
       <div className="space-y-2">
-        <Button type="button" variant="outline" onClick={handleOpen} disabled={disabled} className="gap-2">
-          <MapPin className="h-4 w-4" />
-          {latitude && longitude ? t('dashboard.listings.changeLocation') : t('dashboard.listings.pickLocation')}
-        </Button>
+        <div className="flex flex-wrap gap-2">
+          <Button type="button" variant="outline" onClick={handleOpen} disabled={disabled} className="gap-2">
+            <MapPin className="h-4 w-4" />
+            {latitude && longitude ? t('dashboard.listings.changeLocation') : t('dashboard.listings.pickLocation')}
+          </Button>
+          <Button
+            type="button"
+            variant="outline"
+            disabled={disabled || locating}
+            className="gap-2"
+            onClick={() => applyCurrentLocation(true)}
+          >
+            <LocateFixed className="h-4 w-4" />
+            {t('dashboard.listings.useCurrentLocation')}
+          </Button>
+        </div>
         {disabled ? (
           <p className="text-xs text-gray-500">{t('dashboard.listings.pickLocationRequiresNeighborhood')}</p>
         ) : latitude && longitude ? (
@@ -130,7 +174,17 @@ export function ListingLocationPicker({
               </p>
             ) : null}
 
-            <div className="mt-4 flex justify-end gap-2">
+            <div className="mt-4 flex flex-wrap justify-end gap-2">
+              <Button
+                type="button"
+                variant="outline"
+                disabled={locating}
+                className="gap-2 me-auto"
+                onClick={() => applyCurrentLocation(false)}
+              >
+                <LocateFixed className="h-4 w-4" />
+                {t('dashboard.listings.useCurrentLocation')}
+              </Button>
               <Button type="button" variant="outline" onClick={() => setOpen(false)}>
                 {t('admin.cancel')}
               </Button>

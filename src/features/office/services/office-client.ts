@@ -22,6 +22,20 @@ export async function sendOfficeEmailVerification(
   });
 }
 
+export async function startOfficePhoneVerification(
+  phone_number: string,
+  excludeOfficeId?: string,
+): Promise<{ sessionId: string; link: string }> {
+  const res = await clientFetch<{ sessionId: string; link: string }>(bffPaths.offices.phoneVerificationStart, {
+    method: 'POST',
+    body: {
+      phone_number: phone_number.trim(),
+      ...(excludeOfficeId ? { exclude_office_id: excludeOfficeId } : {}),
+    },
+  });
+  return res.data!;
+}
+
 export async function verifyOfficeEmail(
   email: string,
   code: string,

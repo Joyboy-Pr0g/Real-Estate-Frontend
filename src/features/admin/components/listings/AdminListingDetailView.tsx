@@ -18,7 +18,7 @@ import {
   getSpecFieldLabel,
 } from '@/features/listings/lib/property-spec-display';
 import { formatDateTime } from '@/lib/utils/format';
-import { formatPriceYER } from '@/lib/utils/currency';
+import { formatPrice } from '@/lib/utils/currency';
 import { getErrorMessage } from '@/lib/errors/api-error';
 import { usePermissions } from '@/features/admin/providers/permissions-provider';
 import { useLocale } from '@/lib/i18n/locale-provider';
@@ -194,7 +194,7 @@ export function AdminListingDetailView({
                     <span className="font-medium text-primary-dark">
                       {t(`dashboard.listings.status.${entry.action}` as TranslationKey)}
                     </span>
-                    <span className="text-brand-dark">{formatPriceYER(entry.price)}</span>
+                    <span className="text-brand-dark">{formatPrice(entry.price, listing.yer_variant)}</span>
                     <span className="text-xs text-gray-400">
                       {formatDateTime(entry.started_at)}
                       {entry.ended_at ? ` – ${formatDateTime(entry.ended_at)}` : ''}
@@ -240,7 +240,7 @@ export function AdminListingDetailView({
             <dl className="space-y-3 text-sm">
               <div className="flex justify-between gap-3">
                 <dt className="text-gray-400">{t('dashboard.listings.price')}</dt>
-                <dd className="font-semibold text-brand-dark">{formatPriceYER(listing.price)}</dd>
+                <dd className="font-semibold text-brand-dark">{formatPrice(listing.price, listing.yer_variant)}</dd>
               </div>
               <div className="flex justify-between gap-3">
                 <dt className="text-gray-400">{t('dashboard.listings.propertyType')}</dt>

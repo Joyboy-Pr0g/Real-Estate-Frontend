@@ -14,12 +14,12 @@ export async function GET(_request: NextRequest) {
   try {
     const token = await getAuthToken({ refresh: true });
     if (!token) {
-      return NextResponse.json({ success: false, message: 'Unauthorized' }, { status: 401 });
+      return NextResponse.json({ success: false, message: 'غير مصرح ' }, { status: 401 });
     }
 
     const user = await getSession();
     if (!user) {
-      return NextResponse.json({ success: false, message: 'Unauthorized' }, { status: 401 });
+      return NextResponse.json({ success: false, message: 'غير مصرح ' }, { status: 401 });
     }
 
     const response = await fetchBackend<UserPermissionAccess[]>(backendPaths.auth.permissionsMe, {
@@ -43,6 +43,6 @@ export async function GET(_request: NextRequest) {
         { status: err.status },
       );
     }
-    return NextResponse.json({ success: false, message: 'Internal server error' }, { status: 500 });
+    return NextResponse.json({ success: false, message: 'حدث خطأ ما' }, { status: 500 });
   }
 }

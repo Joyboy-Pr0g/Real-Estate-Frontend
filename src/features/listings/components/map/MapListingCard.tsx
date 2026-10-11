@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { Building2 } from 'lucide-react';
 import { useState } from 'react';
 import { PublicListing } from '@/features/listings/types/listing';
-import { formatPriceYER } from '@/lib/utils/currency';
+import { formatPrice } from '@/lib/utils/currency';
 import { cn } from '@/lib/utils/cn';
 
 interface MapListingCardProps {
@@ -44,7 +44,7 @@ export function MapListingCard({ listing, compact = false }: MapListingCardProps
       </div>
       <div className="min-w-0 flex-1 space-y-0.5">
         <p className="truncate text-sm font-semibold text-primary-dark">{listing.title}</p>
-        <p className="text-xs font-semibold text-brand-dark">{formatPriceYER(listing.price)}</p>
+        <p className="text-xs font-semibold text-brand-dark">{formatPrice(listing.price, listing.yer_variant)}</p>
         <p className="line-clamp-1 text-xs text-gray-500">
           {listing.property_type.name} · {listing.property_subtype.name} · {listing.transaction_type.display_name_ar}
         </p>

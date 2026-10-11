@@ -32,7 +32,7 @@ async function fetchAccessToken(retried = false): Promise<string> {
   const json = await parseApiResponse<{ token: string }>(response);
   const token = json.data?.token;
   if (!token) {
-    throw new ApiError('Unauthorized', 401);
+    throw new ApiError('غير مصرح ', 401);
   }
   return token;
 }

@@ -11,6 +11,7 @@ export class ApiError extends Error {
 
 export const AUTH_ERROR_CODE = {
   EMAIL_NOT_VERIFIED: 'EMAIL_NOT_VERIFIED',
+  NOT_VERIFIED: 'NOT_VERIFIED',
   SERVICE_UNAVAILABLE: 'SERVICE_UNAVAILABLE',
 } as const;
 
@@ -26,9 +27,15 @@ export function getErrorMessage(err: unknown): string {
   return 'An unexpected error occurred';
 }
 
-export function isEmailNotVerifiedError(err: unknown): boolean {
+export function isAccountNotVerifiedError(err: unknown): boolean {
   if (!(err instanceof ApiError)) return false;
   const details = err.details as { code?: string } | undefined;
+  if (details?.code === AUTH_ERROR_CODE.NOT_VERIFIED) return true;
   if (details?.code === AUTH_ERROR_CODE.EMAIL_NOT_VERIFIED) return true;
-  return err.status === 403 && err.message.includes('غير مُحقق');
+  return err.status === 403 && /تحقق|مُحقق/.test(err.message);
+}
+
+/** @deprecated Use isAccountNotVerifiedError */
+export function isEmailNotVerifiedError(err: unknown): boolean {
+  return isAccountNotVerifiedError(err);
 }

@@ -65,6 +65,7 @@ export function ForgotPasswordForm() {
           {...register('email')}
         />
         {errors.email ? <p className="text-xs text-red-600">{errors.email.message}</p> : null}
+        <p className="text-xs text-gray-500">{t('auth.forgotPasswordEmailVerifiedSubtitle')}</p>
       </div>
 
       <Button type="submit" size="lg" className="w-full rounded-xl" disabled={isSubmitting}>

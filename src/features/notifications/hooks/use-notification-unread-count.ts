@@ -23,10 +23,8 @@ export function useNotificationUnreadCount(enabled = true) {
     void load();
     const onRefresh = () => void load();
     window.addEventListener(NOTIFICATIONS_REFRESH_EVENT, onRefresh);
-    const interval = setInterval(load, 60000);
     return () => {
       window.removeEventListener(NOTIFICATIONS_REFRESH_EVENT, onRefresh);
-      clearInterval(interval);
     };
   }, [load]);
 

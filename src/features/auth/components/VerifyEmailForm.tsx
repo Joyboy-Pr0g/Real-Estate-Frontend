@@ -7,7 +7,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Button } from '@/components/ui/button';
 import { createVerifyEmailSchema, VerifyEmailInput } from '@/features/auth/schemas/auth-schemas';
-import { sendVerificationCode, verifyEmail } from '@/features/auth/services/auth-service';
+import { resendEmailVerification, verifyEmail } from '@/features/auth/services/auth-service';
 import { getErrorMessage } from '@/lib/errors/api-error';
 import { useLocale } from '@/lib/i18n/locale-provider';
 import { cn } from '@/lib/utils/cn';
@@ -81,7 +81,7 @@ export function VerifyEmailForm() {
     setResending(true);
 
     try {
-      await sendVerificationCode({ email: getValues('email').trim() });
+      await resendEmailVerification({ email: getValues('email').trim() });
       startCooldown();
       setResendMessage(t('auth.verificationCodeSent'));
     } catch (err) {

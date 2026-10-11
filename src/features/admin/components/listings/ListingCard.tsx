@@ -6,7 +6,7 @@ import { Building2 } from 'lucide-react';
 import { ListingActionsMenu } from '@/features/admin/components/listings/ListingActionsMenu';
 import { AdminListingSummary } from '@/features/listings/types/listing';
 import { formatDateTime } from '@/lib/utils/format';
-import { formatPriceYER } from '@/lib/utils/currency';
+import { formatPrice } from '@/lib/utils/currency';
 import { useLocale } from '@/lib/i18n/locale-provider';
 import { cn } from '@/lib/utils/cn';
 import type { TranslationKey } from '@/lib/i18n/ar';
@@ -47,7 +47,7 @@ export function ListingCard({ listing, actionId, onDraft, onSoftDelete, onRestor
             {listing.title}
           </Link>
           <p className="text-xs text-gray-500">{listing.seller_name ?? '—'}</p>
-          <p className="mt-0.5 text-sm font-semibold text-brand-dark">{formatPriceYER(listing.price)}</p>
+          <p className="mt-0.5 text-sm font-semibold text-brand-dark">{formatPrice(listing.price, listing.yer_variant)}</p>
         </div>
         <ListingActionsMenu
           listing={listing}

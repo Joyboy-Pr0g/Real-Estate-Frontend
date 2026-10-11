@@ -14,7 +14,7 @@ import {
 } from '@/features/listings/lib/property-spec-display';
 import { formatDateTime } from '@/lib/utils/format';
 import { ListingPriceLine } from '@/features/listings/components/ListingPriceLine';
-import { formatPriceYER } from '@/lib/utils/currency';
+import { formatPrice } from '@/lib/utils/currency';
 import { useLocale } from '@/lib/i18n/locale-provider';
 import { cn } from '@/lib/utils/cn';
 import type { TranslationKey } from '@/lib/i18n/ar';
@@ -31,7 +31,7 @@ function isPdfUrl(url: string) {
   return /\.pdf($|\?)/i.test(url);
 }
 
-function ListingHistoryCard({ entry }: { entry: ListingHistoryEntry }) {
+function ListingHistoryCard({ entry, yerVariant }: { entry: ListingHistoryEntry; yerVariant: PublicListingDetail['yer_variant'] }) {
   const { t } = useLocale();
   const hasDetails =
     entry.actor
@@ -46,7 +46,7 @@ function ListingHistoryCard({ entry }: { entry: ListingHistoryEntry }) {
         <span className="font-medium text-primary-dark">
           {t(`dashboard.listings.status.${entry.action}` as TranslationKey)}
         </span>
-        <span className="font-semibold text-brand-dark">{formatPriceYER(entry.price)}</span>
+        <span className="font-semibold text-brand-dark">{formatPrice(entry.price, yerVariant)}</span>
         <span className="text-xs text-gray-400">
           {formatDateTime(entry.started_at)}
           {entry.ended_at ? ` – ${formatDateTime(entry.ended_at)}` : ''}
@@ -210,7 +210,7 @@ export function OfficeListingDetailView({ listing, editHref, initialOfficeLogs }
               <h2 className="text-sm font-bold text-primary-dark">{t('admin.listingHistory')}</h2>
               <div className="mt-4 space-y-3">
                 {listing.histories.map((entry) => (
-                  <ListingHistoryCard key={entry.id} entry={entry} />
+                  <ListingHistoryCard key={entry.id} entry={entry} yerVariant={listing.yer_variant} />
                 ))}
               </div>
             </section>

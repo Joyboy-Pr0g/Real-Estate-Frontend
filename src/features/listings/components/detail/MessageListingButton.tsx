@@ -6,6 +6,7 @@ import { MessageCircle } from 'lucide-react';
 import { createConversation } from '@/features/messaging/services/messaging-client';
 import { useLocale } from '@/lib/i18n/locale-provider';
 import { cn } from '@/lib/utils/cn';
+import { Button } from '@/components/ui/button';
 
 interface MessageListingButtonProps {
   listingId: string;
@@ -13,6 +14,7 @@ interface MessageListingButtonProps {
   isAuthenticated: boolean;
   canStartMessage: boolean;
   className?: string;
+  variant?: 'icon' | 'bar';
 }
 
 export function MessageListingButton({
@@ -21,6 +23,7 @@ export function MessageListingButton({
   isAuthenticated,
   canStartMessage,
   className,
+  variant = 'icon',
 }: MessageListingButtonProps) {
   const { t } = useLocale();
   const router = useRouter();
@@ -47,19 +50,32 @@ export function MessageListingButton({
     }
   };
 
+  if (variant === 'bar') {
+    return (
+      <Button
+        onClick={() => void handleClick()}
+        disabled={loading}
+        size="lg"
+        className="w-full"
+        aria-label={t('dashboard.messages')}
+        title={t('dashboard.messages')}
+      >
+        <MessageCircle className="h-4 w-4 shrink-0" />
+        {isAuthenticated ? t('detail.office.sendMessage') : t('nav.login')}
+      </Button>
+    );
+  }
+
   return (
-    <button
-      type="button"
+    <Button
       onClick={() => void handleClick()}
       disabled={loading}
-      className={cn(
-        'flex h-10 w-10 items-center justify-center rounded-full border border-gray-200 bg-white text-gray-500 transition-colors hover:bg-brand-muted hover:text-brand-dark disabled:opacity-60',
-        className,
-      )}
+      size="icon"
+      className="w-10 h-10"
       aria-label={t('dashboard.messages')}
       title={t('dashboard.messages')}
     >
       <MessageCircle className="h-4 w-4" />
-    </button>
+    </Button>
   );
 }

@@ -24,12 +24,13 @@ export async function POST(request: NextRequest) {
     });
 
     const user = await setSessionFromAuthResponse(response.data!);
+    const verification_result = response.data?.verification_result;
 
     return NextResponse.json(
       {
         success: true,
         message: response.message,
-        data: { user },
+        data: { user, verification_result },
       },
       { status: 201 },
     );

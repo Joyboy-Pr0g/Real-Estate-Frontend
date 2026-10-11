@@ -10,6 +10,7 @@ import { AdminCity, CityFormFields } from '@/features/admin/types/locations';
 import { toast } from '@/components/ui/toaster';
 import { getErrorMessage } from '@/lib/errors/api-error';
 import { useLocale } from '@/lib/i18n/locale-provider';
+import { AdminLatLonFields } from '@/features/admin/components/locations/AdminLatLonFields';
 
 interface CityFormDialogProps {
   open: boolean;
@@ -20,13 +21,6 @@ interface CityFormDialogProps {
 
 const fieldClass =
   'h-11 w-full rounded-xl border border-gray-200 bg-gray-50 px-4 text-sm outline-none focus:border-brand/40 focus:bg-white';
-
-function parseOptionalFloat(value: string): number | null {
-  const trimmed = value.trim();
-  if (!trimmed) return null;
-  const num = Number(trimmed);
-  return Number.isNaN(num) ? null : num;
-}
 
 export function CityFormDialog({ open, item, onClose, onSaved }: CityFormDialogProps) {
   const { t } = useLocale();
@@ -169,26 +163,14 @@ export function CityFormDialog({ open, item, onClose, onSaved }: CityFormDialogP
               className={fieldClass}
             />
           </label>
-          <label className="block space-y-1.5">
-            <span className="text-sm font-medium text-primary-dark">{t('admin.latitude')}</span>
-            <input
-              type="number"
-              step="any"
-              value={form.latitude ?? ''}
-              onChange={(e) => setForm({ ...form, latitude: parseOptionalFloat(e.target.value) })}
-              className={fieldClass}
-            />
-          </label>
-          <label className="block space-y-1.5">
-            <span className="text-sm font-medium text-primary-dark">{t('admin.longitude')}</span>
-            <input
-              type="number"
-              step="any"
-              value={form.longitude ?? ''}
-              onChange={(e) => setForm({ ...form, longitude: parseOptionalFloat(e.target.value) })}
-              className={fieldClass}
-            />
-          </label>
+          <AdminLatLonFields
+            className="sm:col-span-2"
+            mode="city"
+            matchCityPcode={form.pcode.trim() || undefined}
+            latitude={form.latitude}
+            longitude={form.longitude}
+            onChange={(latitude, longitude) => setForm({ ...form, latitude, longitude })}
+          />
           <label className="block space-y-1.5">
             <span className="text-sm font-medium text-primary-dark">{t('admin.cityPhoto')}</span>
             {photoPreview ? (

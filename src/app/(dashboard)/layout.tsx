@@ -8,7 +8,7 @@ import { NotificationProviders } from '@/features/notifications/components/Notif
 
 export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
   const user = await getSession();
-  if (!user) redirect('/login');
+  if (!user || (user.email_verified_at === null && user.phone_verified_at === null)) redirect('/login');
   if (isAdminPanelRole(user.role)) redirect('/admin');
 
   const individualListerProfile = user.role === 'office' ? null : await getMyIndividualListerProfile();

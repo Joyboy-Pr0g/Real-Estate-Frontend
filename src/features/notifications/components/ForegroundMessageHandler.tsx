@@ -2,26 +2,15 @@
 
 import { useEffect } from 'react';
 import firebase from 'firebase/compat/app';
-import { toast } from '@/components/ui/toaster';
 import { isFirebaseClientConfigured, subscribeForegroundMessages } from '@/lib/firebase/client';
-import { dispatchNotificationsRefresh } from '@/features/notifications/services/notification-client';
+import { handleFcmPush } from '@/lib/firebase/handle-fcm-push';
 
-function parsePushPayload(payload: firebase.messaging.MessagePayload): {
-  title: string;
-  message: string;
-  href: string | null;
-} | null {
-  const title = payload.notification?.title ?? payload.data?.title ?? '';
-  const message = payload.notification?.body ?? payload.data?.body ?? '';
-  const href = payload.data?.linkPath?.trim() || payload.data?.link_path?.trim() || null;
+const FCM_SW_MESSAGE_TYPE = 'fcm-push';
 
-  if (!title && !message) return null;
-
-  return {
-    title: title || message,
-    message: title ? message : '',
-    href,
-  };
+function isFcmSwMessage(data: unknown): data is { type: string; payload: firebase.messaging.MessagePayload } {
+  if (!data || typeof data !== 'object') return false;
+  const record = data as { type?: unknown; payload?: unknown };
+  return record.type === FCM_SW_MESSAGE_TYPE && record.payload != null && typeof record.payload === 'object';
 }
 
 export function ForegroundMessageHandler() {
@@ -29,19 +18,21 @@ export function ForegroundMessageHandler() {
     if (!isFirebaseClientConfigured()) return;
 
     const unsubscribe = subscribeForegroundMessages((payload) => {
-      dispatchNotificationsRefresh();
-
-      const parsed = parsePushPayload(payload);
-      if (!parsed) return;
-
-      toast.notification({
-        title: parsed.title,
-        message: parsed.message,
-        href: parsed.href,
-      });
+      handleFcmPush(payload);
     });
 
-    return unsubscribe;
+    const onServiceWorkerMessage = (event: MessageEvent) => {
+      if (!isFcmSwMessage(event.data)) return;
+      const showToast = typeof document !== 'undefined' && document.visibilityState === 'visible';
+      handleFcmPush(event.data.payload, { showToast });
+    };
+
+    navigator.serviceWorker?.addEventListener('message', onServiceWorkerMessage);
+
+    return () => {
+      unsubscribe();
+      navigator.serviceWorker?.removeEventListener('message', onServiceWorkerMessage);
+    };
   }, []);
 
   return null;

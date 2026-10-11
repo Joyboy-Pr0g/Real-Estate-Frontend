@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
@@ -38,6 +38,7 @@ import {
   softDeleteOffice,
 } from '@/features/office/services/office-client';
 import { MyOffice } from '@/features/office/types/office';
+import { OfficeContactVerificationStatus } from '@/features/office/components/OfficeContactVerificationStatus';
 import { PublicCity } from '@/features/catalog/types/catalog';
 import { getErrorMessage } from '@/lib/errors/api-error';
 import { useDebounce } from '@/lib/hooks/use-debounce';
@@ -131,6 +132,12 @@ function OfficeCard({ office, isAdmin, onDelete }: OfficeCardProps) {
           </span>
         </div>
 
+        <OfficeContactVerificationStatus
+          emailVerifiedAt={office.email_verified_at}
+          phoneVerifiedAt={office.phone_verified_at}
+          className="mb-1"
+        />
+
         <dl className="space-y-2 text-sm">
           <div className="flex items-center gap-2 min-w-0">
             <Mail className="h-4 w-4 shrink-0 text-gray-400" />
@@ -163,47 +170,65 @@ interface DeletedOfficesModalProps {
   onChanged: () => void;
 }
 
-function DeletedOfficesModal({ open, onClose, onChanged }: DeletedOfficesModalProps) {
+interface DeletedOfficesListProps {
+  debouncedSearch: string;
+  statusFilter: string;
+  onMutated: () => void;
+}
+
+function DeletedOfficesList({ debouncedSearch, statusFilter, onMutated }: DeletedOfficesListProps) {
   const { t } = useLocale();
   const [items, setItems] = useState<MyOffice[]>([]);
   const [cursor, setCursor] = useState<string | null>(null);
   const [hasMore, setHasMore] = useState(false);
-  const [loading, setLoading] = useState(false);
-  const [searchInput, setSearchInput] = useState('');
-  const [statusFilter, setStatusFilter] = useState('');
-  const debouncedSearch = useDebounce(searchInput, 400);
+  const [loading, setLoading] = useState(true);
+  const [loadingMore, setLoadingMore] = useState(false);
   const [actionId, setActionId] = useState<string | null>(null);
   const [confirm, setConfirm] = useState<{ office: MyOffice; action: 'restore' | 'hard_delete' } | null>(null);
 
-  const load = useCallback(
-    async (reset: boolean) => {
-      setLoading(true);
-      try {
-        const params: Record<string, string> = {};
-        if (!reset && cursor) params.cursor = cursor;
-        if (debouncedSearch.trim()) params.search = debouncedSearch.trim();
-        if (statusFilter) params.verificationStatus = statusFilter;
+  useEffect(() => {
+    let cancelled = false;
+    const params: Record<string, string> = {};
+    if (debouncedSearch.trim()) params.search = debouncedSearch.trim();
+    if (statusFilter) params.verificationStatus = statusFilter;
 
-        const page = await fetchMyDeletedOffices(params);
-        setItems((prev) => (reset ? page.items : [...prev, ...page.items]));
+    fetchMyDeletedOffices(params)
+      .then((page) => {
+        if (cancelled) return;
+        setItems(page.items);
         setCursor(page.next_cursor);
         setHasMore(page.has_more);
-      } catch (err) {
-        toast.error(getErrorMessage(err));
-      } finally {
-        setLoading(false);
-      }
-    },
-    [cursor, debouncedSearch, statusFilter],
-  );
+      })
+      .catch((err) => {
+        if (!cancelled) toast.error(getErrorMessage(err));
+      })
+      .finally(() => {
+        if (!cancelled) setLoading(false);
+      });
 
-  useEffect(() => {
-    if (!open) return;
-    setItems([]);
-    setCursor(null);
-    void load(true);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [open, debouncedSearch, statusFilter]);
+    return () => {
+      cancelled = true;
+    };
+  }, [debouncedSearch, statusFilter]);
+
+  const loadMore = async () => {
+    if (!cursor || loadingMore) return;
+    setLoadingMore(true);
+    try {
+      const params: Record<string, string> = { cursor };
+      if (debouncedSearch.trim()) params.search = debouncedSearch.trim();
+      if (statusFilter) params.verificationStatus = statusFilter;
+
+      const page = await fetchMyDeletedOffices(params);
+      setItems((prev) => [...prev, ...page.items]);
+      setCursor(page.next_cursor);
+      setHasMore(page.has_more);
+    } catch (err) {
+      toast.error(getErrorMessage(err));
+    } finally {
+      setLoadingMore(false);
+    }
+  };
 
   const runConfirm = async () => {
     if (!confirm) return;
@@ -217,10 +242,7 @@ function DeletedOfficesModal({ open, onClose, onChanged }: DeletedOfficesModalPr
         toast.success(t('dashboard.office.hardDeleted'));
       }
       setConfirm(null);
-      setItems([]);
-      setCursor(null);
-      onChanged();
-      await load(true);
+      onMutated();
     } catch (err) {
       toast.error(getErrorMessage(err));
     } finally {
@@ -228,7 +250,100 @@ function DeletedOfficesModal({ open, onClose, onChanged }: DeletedOfficesModalPr
     }
   };
 
+  return (
+    <>
+      <div className="flex-1 overflow-y-auto px-6 py-4">
+        {items.length === 0 && !loading ? (
+          <p className="py-8 text-center text-sm text-gray-500">{t('dashboard.office.deletedOfficesEmpty')}</p>
+        ) : loading && items.length === 0 ? (
+          <div className="flex justify-center py-12">
+            <Loader2 className="h-6 w-6 animate-spin text-gray-400" />
+          </div>
+        ) : (
+          <div className="space-y-3">
+            {items.map((office) => (
+              <div
+                key={office.id}
+                className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-gray-200 px-4 py-3"
+              >
+                <div className="min-w-0">
+                  <p className="truncate font-semibold text-primary-dark">{office.name}</p>
+                  <p className="text-xs text-gray-500">
+                    {office.city.name}, {office.neighborhood.name}
+                  </p>
+                </div>
+                <div className="flex shrink-0 gap-2">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    disabled={actionId === office.id}
+                    onClick={() => setConfirm({ office, action: 'restore' })}
+                  >
+                    <RotateCcw className="h-4 w-4" />
+                    {t('admin.restore')}
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="dangerOutline"
+                    size="sm"
+                    disabled={actionId === office.id}
+                    onClick={() => setConfirm({ office, action: 'hard_delete' })}
+                  >
+                    <Trash2 className="h-4 w-4" />
+                    {t('admin.hardDelete')}
+                  </Button>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+
+      {hasMore ? (
+        <div className="flex shrink-0 justify-center border-t border-gray-100 p-4">
+          <Button type="button" variant="outline" disabled={loadingMore} onClick={() => void loadMore()}>
+            {loadingMore ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
+            {t('admin.loadMore')}
+          </Button>
+        </div>
+      ) : null}
+
+      {confirm ? (
+        <ConfirmModal
+          open
+          title={t(
+            confirm.action === 'restore'
+              ? 'dashboard.office.confirmRestoreTitle'
+              : 'dashboard.office.confirmHardDeleteTitle',
+          )}
+          description={t(
+            confirm.action === 'restore'
+              ? 'dashboard.office.confirmRestoreDescription'
+              : 'dashboard.office.confirmHardDeleteDescription',
+          )}
+          confirmText={confirm.action === 'restore' ? t('admin.restore') : t('admin.hardDelete')}
+          cancelText={t('admin.cancel')}
+          danger={confirm.action === 'hard_delete'}
+          loading={actionId === confirm.office.id}
+          onConfirm={() => void runConfirm()}
+          onCancel={() => setConfirm(null)}
+        />
+      ) : null}
+    </>
+  );
+}
+
+function DeletedOfficesModal({ open, onClose, onChanged }: DeletedOfficesModalProps) {
+  const { t } = useLocale();
+  const [searchInput, setSearchInput] = useState('');
+  const [statusFilter, setStatusFilter] = useState('');
+  const debouncedSearch = useDebounce(searchInput, 400);
+  const [listKey, setListKey] = useState(0);
+
   if (!open) return null;
+
+  const listQueryKey = `${debouncedSearch}|${statusFilter}|${listKey}`;
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
@@ -270,80 +385,15 @@ function DeletedOfficesModal({ open, onClose, onChanged }: DeletedOfficesModalPr
           </select>
         </div>
 
-        <div className="flex-1 overflow-y-auto px-6 py-4">
-          {items.length === 0 && !loading ? (
-            <p className="py-8 text-center text-sm text-gray-500">{t('dashboard.office.deletedOfficesEmpty')}</p>
-          ) : (
-            <div className="space-y-3">
-              {items.map((office) => (
-                <div
-                  key={office.id}
-                  className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-gray-200 px-4 py-3"
-                >
-                  <div className="min-w-0">
-                    <p className="truncate font-semibold text-primary-dark">{office.name}</p>
-                    <p className="text-xs text-gray-500">
-                      {office.city.name}, {office.neighborhood.name}
-                    </p>
-                  </div>
-                  <div className="flex shrink-0 gap-2">
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="sm"
-                      disabled={actionId === office.id}
-                      onClick={() => setConfirm({ office, action: 'restore' })}
-                    >
-                      <RotateCcw className="h-4 w-4" />
-                      {t('admin.restore')}
-                    </Button>
-                    <Button
-                      type="button"
-                      variant="dangerOutline"
-                      size="sm"
-                      disabled={actionId === office.id}
-                      onClick={() => setConfirm({ office, action: 'hard_delete' })}
-                    >
-                      <Trash2 className="h-4 w-4" />
-                      {t('admin.hardDelete')}
-                    </Button>
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
-
-        {hasMore ? (
-          <div className="flex shrink-0 justify-center border-t border-gray-100 p-4">
-            <Button type="button" variant="outline" disabled={loading} onClick={() => void load(false)}>
-              {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
-              {t('admin.loadMore')}
-            </Button>
-          </div>
-        ) : null}
-
-        {confirm ? (
-          <ConfirmModal
-            open
-            title={t(
-              confirm.action === 'restore'
-                ? 'dashboard.office.confirmRestoreTitle'
-                : 'dashboard.office.confirmHardDeleteTitle',
-            )}
-            description={t(
-              confirm.action === 'restore'
-                ? 'dashboard.office.confirmRestoreDescription'
-                : 'dashboard.office.confirmHardDeleteDescription',
-            )}
-            confirmText={confirm.action === 'restore' ? t('admin.restore') : t('admin.hardDelete')}
-            cancelText={t('admin.cancel')}
-            danger={confirm.action === 'hard_delete'}
-            loading={actionId === confirm.office.id}
-            onConfirm={() => void runConfirm()}
-            onCancel={() => setConfirm(null)}
-          />
-        ) : null}
+        <DeletedOfficesList
+          key={listQueryKey}
+          debouncedSearch={debouncedSearch}
+          statusFilter={statusFilter}
+          onMutated={() => {
+            setListKey((k) => k + 1);
+            onChanged();
+          }}
+        />
       </div>
     </div>
   );

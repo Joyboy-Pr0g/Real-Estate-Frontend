@@ -6,7 +6,11 @@ import { CheckCircle2 } from 'lucide-react';
 import { z } from 'zod';
 import { Button } from '@/components/ui/button';
 import { toast } from '@/components/ui/toaster';
-import { sendOfficeEmailVerification, updateOffice } from '@/features/office/services/office-client';
+import {
+  sendOfficeEmailVerification,
+  startOfficePhoneVerification,
+  updateOffice,
+} from '@/features/office/services/office-client';
 import { OfficeEmailVerificationModal } from '@/features/office/components/OfficeEmailVerificationModal';
 import { OfficeDetail } from '@/features/office/types/office';
 import { PublicCity } from '@/features/catalog/types/catalog';
@@ -15,10 +19,14 @@ import { clientFetch } from '@/lib/api/client';
 import { bffPaths } from '@/lib/api/endpoints';
 import { getErrorMessage } from '@/lib/errors/api-error';
 import { useLocale } from '@/lib/i18n/locale-provider';
-import { formatPhoneNumber } from '@/lib/utils/format';
+import { formatPhoneFromDigitKey, formatPhoneNumber, phonesMatch } from '@/lib/utils/format';
+import { markPendingPhoneVerification, phoneDigitsKey } from '@/lib/auth/pending-phone-verification';
+import { VerifyPhoneModal } from '@/features/auth/components/VerifyPhoneModal';
 import { cn } from '@/lib/utils/cn';
 import { EmailSendCooldownBar } from '@/components/auth/EmailSendCooldownBar';
 import { useEmailSendCooldown } from '@/hooks/use-email-send-cooldown';
+import { OfficeEmailVerifyHint } from '@/features/office/components/OfficeEmailVerifyHint';
+import { OfficeContactVerificationStatus } from '@/features/office/components/OfficeContactVerificationStatus';
 
 interface OfficeProfileFormProps {
   office: OfficeDetail;
@@ -36,6 +44,7 @@ export function OfficeProfileForm({ office, cities, initialNeighborhoods, onDone
   const { t } = useLocale();
   const router = useRouter();
   const originalEmail = useMemo(() => office.email.trim().toLowerCase(), [office.email]);
+  const originalPhoneFormatted = useMemo(() => formatPhoneNumber(office.phone_number), [office.phone_number]);
 
   const [name, setName] = useState(office.name);
   const [phoneNumber, setPhoneNumber] = useState(formatPhoneNumber(office.phone_number));
@@ -53,6 +62,11 @@ export function OfficeProfileForm({ office, cities, initialNeighborhoods, onDone
   const [verifiedNewEmail, setVerifiedNewEmail] = useState<string | null>(null);
   const [verificationModalOpen, setVerificationModalOpen] = useState(false);
   const [sendingVerification, setSendingVerification] = useState(false);
+  const [verifiedNewPhone, setVerifiedNewPhone] = useState<string | null>(null);
+  const [verifyingPhone, setVerifyingPhone] = useState(false);
+  const [phoneVerifySession, setPhoneVerifySession] = useState<{ sessionId: string; link: string } | null>(
+    null,
+  );
 
   const normalizedEmail = email.trim().toLowerCase();
   const { remainingSeconds, totalSeconds, canSend, startCooldown } = useEmailSendCooldown(normalizedEmail);
@@ -61,7 +75,21 @@ export function OfficeProfileForm({ office, cities, initialNeighborhoods, onDone
     () => z.string().trim().email().safeParse(email).success,
     [email],
   );
-  const emailIsVerified = !emailChanged || (emailIsValid && verifiedNewEmail === normalizedEmail);
+  const emailIsVerified =
+    emailIsValid &&
+    (verifiedNewEmail === normalizedEmail ||
+      (!emailChanged && Boolean(office.email_verified_at)));
+  const showEmailVerifyAction = emailIsValid && !emailIsVerified;
+  const phoneChanged = !phonesMatch(phoneNumber, originalPhoneFormatted);
+  const phoneIsValid = useMemo(
+    () => z.string().trim().regex(/^\+?[\d\s\-()]+$/).min(7).max(20).safeParse(phoneNumber).success,
+    [phoneNumber],
+  );
+  const phoneIsVerified =
+    !phoneChanged ||
+    (phoneIsValid &&
+      verifiedNewPhone !== null &&
+      phoneDigitsKey(phoneNumber) === verifiedNewPhone);
 
   const handleCityChange = async (value: string) => {
     setCityId(value);
@@ -83,7 +111,26 @@ export function OfficeProfileForm({ office, cities, initialNeighborhoods, onDone
   };
 
   const handlePhoneNumberChange = (e: ChangeEvent<HTMLInputElement>) => {
-    setPhoneNumber(formatPhoneNumber(e.target.value));
+    const next = formatPhoneNumber(e.target.value);
+    setPhoneNumber(next);
+    if (verifiedNewPhone && phoneDigitsKey(next) !== verifiedNewPhone) {
+      setVerifiedNewPhone(null);
+    }
+  };
+
+  const handleStartPhoneVerification = async () => {
+    if (!phoneIsValid || !phoneChanged) return;
+
+    setVerifyingPhone(true);
+    try {
+      markPendingPhoneVerification(phoneNumber);
+      const result = await startOfficePhoneVerification(phoneNumber.trim(), office.id);
+      setPhoneVerifySession({ sessionId: result.sessionId, link: result.link });
+    } catch (err) {
+      toast.error(getErrorMessage(err));
+    } finally {
+      setVerifyingPhone(false);
+    }
   };
 
   const handleEmailChange = (value: string) => {
@@ -95,7 +142,7 @@ export function OfficeProfileForm({ office, cities, initialNeighborhoods, onDone
   };
 
   const handleSendVerification = async () => {
-    if (!emailIsValid || !emailChanged || !canSend) return;
+    if (!emailIsValid || !canSend) return;
 
     setSendingVerification(true);
     try {
@@ -113,8 +160,8 @@ export function OfficeProfileForm({ office, cities, initialNeighborhoods, onDone
   const handleSubmit = async (event: FormEvent) => {
     event.preventDefault();
 
-    if (!emailIsVerified) {
-      toast.error(t('dashboard.office.emailNotVerified'));
+    if (!phoneIsVerified) {
+      toast.error(t('dashboard.office.phoneNotVerified'));
       return;
     }
 
@@ -146,6 +193,22 @@ export function OfficeProfileForm({ office, cities, initialNeighborhoods, onDone
   return (
     <>
       <form onSubmit={handleSubmit} className="mt-4 space-y-4">
+        <OfficeContactVerificationStatus
+          emailVerifiedAt={
+            !emailChanged
+              ? office.email_verified_at
+              : emailIsVerified
+                ? office.email_verified_at ?? new Date().toISOString()
+                : null
+          }
+          phoneVerifiedAt={
+            !phoneChanged
+              ? office.phone_verified_at
+              : phoneIsVerified
+                ? office.phone_verified_at ?? new Date().toISOString()
+                : null
+          }
+        />
         <label className="block space-y-1.5">
           <span className="text-sm font-medium text-primary-dark">{t('dashboard.office.name')}</span>
           <input required value={name} onChange={(e) => setName(e.target.value)} className={fieldClass} />
@@ -154,17 +217,44 @@ export function OfficeProfileForm({ office, cities, initialNeighborhoods, onDone
         <div className="grid gap-4 sm:grid-cols-2">
           <label className="block space-y-1.5">
             <span className="text-sm font-medium text-primary-dark">{t('auth.phone')}</span>
-            <input
-              required
-              type="tel"
-              dir="ltr"
-              value={phoneNumber}
-              onChange={handlePhoneNumberChange}
-              className={fieldClass}
-            />
+            <div className="flex gap-2">
+              <input
+                required
+                type="tel"
+                dir="ltr"
+                value={phoneNumber}
+                onChange={handlePhoneNumberChange}
+                className={cn(fieldClass, 'min-w-0 flex-1')}
+              />
+              {phoneChanged && phoneIsValid ? (
+                phoneIsVerified ? (
+                  <div className="flex h-11 shrink-0 items-center gap-1.5 rounded-xl border border-emerald-200 bg-emerald-50 px-3 text-emerald-700">
+                    <CheckCircle2 className="h-4 w-4" />
+                    <span className="hidden text-xs font-medium sm:inline">{t('dashboard.office.phoneVerifiedBadge')}</span>
+                  </div>
+                ) : (
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    className="h-11 shrink-0 whitespace-nowrap"
+                    disabled={verifyingPhone}
+                    onClick={() => void handleStartPhoneVerification()}
+                  >
+                    {verifyingPhone ? t('dashboard.office.sendingCode') : t('dashboard.office.verifyPhone')}
+                  </Button>
+                )
+              ) : null}
+            </div>
+            {phoneChanged && phoneIsValid && !phoneIsVerified ? (
+              <p className="text-xs text-gray-500">{t('dashboard.office.verifyPhoneHint')}</p>
+            ) : null}
           </label>
           <label className="block space-y-1.5">
-            <span className="text-sm font-medium text-primary-dark">{t('dashboard.emailLabel')}</span>
+            <span className="flex items-center gap-1.5 text-sm font-medium text-primary-dark">
+              {t('dashboard.emailLabel')}
+              <OfficeEmailVerifyHint />
+            </span>
             <div className="flex gap-2">
               <input
                 required
@@ -173,13 +263,13 @@ export function OfficeProfileForm({ office, cities, initialNeighborhoods, onDone
                 onChange={(e) => handleEmailChange(e.target.value)}
                 className={cn(fieldClass, 'min-w-0 flex-1')}
               />
-              {emailChanged && emailIsValid ? (
+              {emailIsValid ? (
                 emailIsVerified ? (
                   <div className="flex h-11 shrink-0 items-center gap-1.5 rounded-xl border border-emerald-200 bg-emerald-50 px-3 text-emerald-700">
                     <CheckCircle2 className="h-4 w-4" />
                     <span className="hidden text-xs font-medium sm:inline">{t('dashboard.office.emailVerifiedBadge')}</span>
                   </div>
-                ) : (
+                ) : showEmailVerifyAction ? (
                   <Button
                     type="button"
                     variant="outline"
@@ -190,10 +280,10 @@ export function OfficeProfileForm({ office, cities, initialNeighborhoods, onDone
                   >
                     {sendingVerification ? t('dashboard.office.sendingCode') : t('dashboard.office.verifyEmail')}
                   </Button>
-                )
+                ) : null
               ) : null}
             </div>
-            {emailChanged && emailIsValid && !emailIsVerified ? (
+            {showEmailVerifyAction ? (
               <>
                 <p className="text-xs text-gray-500">{t('dashboard.office.verifyEmailHint')}</p>
                 <EmailSendCooldownBar remainingSeconds={remainingSeconds} totalSeconds={totalSeconds} />
@@ -286,7 +376,7 @@ export function OfficeProfileForm({ office, cities, initialNeighborhoods, onDone
           <Button type="button" variant="outline" onClick={onDone} disabled={submitting}>
             {t('admin.cancel')}
           </Button>
-          <Button type="submit" disabled={submitting || !emailIsVerified}>
+          <Button type="submit" disabled={submitting || !phoneIsVerified}>
             {submitting ? t('dashboard.submitting') : t('dashboard.submit')}
           </Button>
         </div>
@@ -299,6 +389,24 @@ export function OfficeProfileForm({ office, cities, initialNeighborhoods, onDone
         excludeOfficeId={office.id}
         onVerified={(verified) => setVerifiedNewEmail(verified.toLowerCase())}
       />
+
+      {phoneVerifySession ? (
+        <VerifyPhoneModal
+          open={Boolean(phoneVerifySession)}
+          onOpenChange={(open) => {
+            if (!open) setPhoneVerifySession(null);
+          }}
+          sessionId={phoneVerifySession.sessionId}
+          whatsAppLink={phoneVerifySession.link}
+          onVerified={(digitKey) => {
+            if (digitKey) {
+              setVerifiedNewPhone(digitKey);
+              setPhoneNumber(formatPhoneFromDigitKey(digitKey));
+            }
+            toast.success(t('auth.verifyPhoneSuccess'));
+          }}
+        />
+      ) : null}
     </>
   );
 }

@@ -5,7 +5,7 @@ import { getAuthToken } from '@/lib/auth/session';
 export async function GET() {
   const token = await getAuthToken({ refresh: true });
   if (!token) {
-    return NextResponse.json({ success: false, message: 'Unauthorized' }, { status: 401 });
+    return NextResponse.json({ success: false, message: 'غير مصرح ' }, { status: 401 });
   }
 
   return NextResponse.json({ success: true, data: { token } });

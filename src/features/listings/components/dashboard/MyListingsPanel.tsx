@@ -35,7 +35,7 @@ import { getErrorMessage } from '@/lib/errors/api-error';
 import { invalidateListingsQueries } from '@/lib/query/invalidate-listings';
 import { useLocale } from '@/lib/i18n/locale-provider';
 import { ListingPriceLine } from '@/features/listings/components/ListingPriceLine';
-import { formatPriceYER } from '@/lib/utils/currency';
+import { formatPrice } from '@/lib/utils/currency';
 import { cn } from '@/lib/utils/cn';
 import { useDebounce } from '@/lib/hooks/use-debounce';
 import type { TranslationKey } from '@/lib/i18n/ar';
@@ -184,7 +184,7 @@ function DeletedListingsModal({ open, onClose, onChanged }: DeletedListingsModal
                   <div className="min-w-0">
                     <p className="truncate font-semibold text-primary-dark">{listing.title}</p>
                     <p className="text-xs text-gray-500">
-                      {listing.neighborhood_name}, {listing.city_name} · {formatPriceYER(listing.price, listing.yer_variant)}
+                      {listing.neighborhood_name}, {listing.city_name} · {formatPrice(listing.price, listing.yer_variant)}
                     </p>
                   </div>
                   <div className="flex shrink-0 gap-2">

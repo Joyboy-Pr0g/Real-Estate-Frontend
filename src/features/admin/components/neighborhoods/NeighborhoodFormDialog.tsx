@@ -16,6 +16,7 @@ import {
 import { toast } from '@/components/ui/toaster';
 import { getErrorMessage } from '@/lib/errors/api-error';
 import { useLocale } from '@/lib/i18n/locale-provider';
+import { AdminLatLonFields } from '@/features/admin/components/locations/AdminLatLonFields';
 
 interface NeighborhoodFormDialogProps {
   open: boolean;
@@ -84,6 +85,8 @@ export function NeighborhoodFormDialog({
   }, [open, item, cities]);
 
   if (!open) return null;
+
+  const selectedCity = cities.find((city) => city.id === form.city_id);
 
   const handleSubmit = (event: FormEvent) => {
     event.preventDefault();
@@ -166,26 +169,15 @@ export function NeighborhoodFormDialog({
             <span className="text-sm font-medium text-primary-dark">{t('admin.neighborhoodPcode')}</span>
             <input required value={form.neighb_pcode} onChange={(e) => setForm({ ...form, neighb_pcode: e.target.value })} className={fieldClass} />
           </label>
-          <label className="block space-y-1.5">
-            <span className="text-sm font-medium text-primary-dark">{t('admin.latitude')}</span>
-            <input
-              type="number"
-              step="any"
-              value={form.latitude ?? ''}
-              onChange={(e) => setForm({ ...form, latitude: parseOptionalInt(e.target.value) })}
-              className={fieldClass}
-            />
-          </label>
-          <label className="block space-y-1.5">
-            <span className="text-sm font-medium text-primary-dark">{t('admin.longitude')}</span>
-            <input
-              type="number"
-              step="any"
-              value={form.longitude ?? ''}
-              onChange={(e) => setForm({ ...form, longitude: parseOptionalInt(e.target.value) })}
-              className={fieldClass}
-            />
-          </label>
+          <AdminLatLonFields
+            className="sm:col-span-2"
+            mode="neighborhood"
+            cityPcode={selectedCity?.pcode}
+            fallbackCities={cities}
+            latitude={form.latitude}
+            longitude={form.longitude}
+            onChange={(latitude, longitude) => setForm({ ...form, latitude, longitude })}
+          />
           <label className="block space-y-1.5">
             <span className="text-sm font-medium text-primary-dark">{t('admin.population')}</span>
             <input

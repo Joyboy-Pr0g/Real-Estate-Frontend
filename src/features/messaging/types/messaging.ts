@@ -102,6 +102,13 @@ export interface SocketNotificationPayload {
   senderName: string;
 }
 
+export interface SocketAppNotificationPayload {
+  type: string;
+  title: string;
+  message: string;
+  linkPath?: string | null;
+}
+
 export interface CursorPage<T> {
   items: T[];
   next_cursor: string | null;

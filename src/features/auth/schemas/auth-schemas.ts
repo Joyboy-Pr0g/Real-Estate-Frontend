@@ -40,6 +40,9 @@ export function createRegisterSchema(t: SchemaTranslate) {
         .regex(/^\+?[\d\s\-()]+$/, t('validation.invalidPhone'))
         .min(7, t('validation.invalidPhone'))
         .max(20),
+      verification_channel: z.enum(['email', 'phone'], {
+        message: t('auth.verificationMethodRequired'),
+      }),
       password: createPasswordFieldSchema(t),
       password_confirmation: z.string().min(1, t('validation.confirmPasswordRequired')),
     })
@@ -62,6 +65,7 @@ export const registerBodySchema = z
       .regex(/^\+?[\d\s\-()]+$/)
       .min(7)
       .max(20),
+    verification_channel: z.enum(['email', 'phone']),
     password: z
       .string()
       .min(8)
@@ -151,6 +155,14 @@ export type SendCodeInput = z.infer<ReturnType<typeof createSendCodeSchema>>;
 export const sendCodeBodySchema = z.object({
   email: z.string().trim().email(),
 });
+
+export const requestVerificationBodySchema = z.object({
+  email: z.string().trim().email(),
+  password: z.string().min(1),
+  channel: z.enum(['email', 'phone']),
+});
+
+export type RequestVerificationInput = z.infer<typeof requestVerificationBodySchema>;
 
 export function createUpdateProfileSchema(t: SchemaTranslate) {
   return z.object({
