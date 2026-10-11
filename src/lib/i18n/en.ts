@@ -1326,6 +1326,7 @@ export const en: Record<TranslationKey, string> = {
   'dashboard.listings.moveImageLater': 'Move later',
   'dashboard.listings.videoRemoved': 'Video removed successfully',
   'dashboard.listings.office': 'Office',
+  'auth.turnstileRequired': 'Please complete the security verification before proceeding.',
   'auth.loginTitle': 'Sign in',
   'auth.loginSubtitle': 'Real Estate Yemen admin panel',
   'auth.email': 'Email',

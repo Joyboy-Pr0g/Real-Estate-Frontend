@@ -1325,6 +1325,7 @@ export const ar = {
   'dashboard.listings.videoRemoved': 'تم حذف الفيديو بنجاح',
   'dashboard.listings.office': 'المكتب',
   'auth.loginTitle': 'تسجيل الدخول',
+  'auth.turnstileRequired': 'يرجى إكمال التحقق الأمني قبل المتابعة.',
   'auth.loginSubtitle': 'لوحة إدارة عقارات اليمن',
   'auth.email': 'البريد الإلكتروني',
   'auth.password': 'كلمة المرور',

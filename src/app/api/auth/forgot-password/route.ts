@@ -3,10 +3,18 @@ import { proxyToBackend } from '@/lib/api/route-handler';
 import { backendPaths } from '@/lib/api/endpoints';
 import { forgotPasswordBodySchema } from '@/features/auth/schemas/auth-schemas';
 import { NextResponse } from 'next/server';
+import { assertTurnstileFromBody } from '@/lib/security/turnstile';
 
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
+    const turnstile = await assertTurnstileFromBody(body, request);
+    if (!turnstile.ok) {
+      return NextResponse.json(
+        { success: false, message: turnstile.message },
+        { status: 400 },
+      );
+    }
     const parsed = forgotPasswordBodySchema.safeParse(body);
     if (!parsed.success) {
       return NextResponse.json(

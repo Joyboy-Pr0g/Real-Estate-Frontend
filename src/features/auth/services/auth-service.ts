@@ -30,15 +30,15 @@ interface RegisterResult {
   verification_result?: PhoneVerificationResult;
 }
 
-export async function login(data: LoginInput): Promise<AuthUser> {
+export async function login(data: LoginInput, turnstileToken?: string | null): Promise<AuthUser> {
   const res = await clientFetch<AuthUserResponse>(bffPaths.auth.login, {
     method: 'POST',
-    body: data,
+    body: { ...data, turnstileToken },
   });
   return res.data!.user;
 }
 
-export async function register(data: RegisterInput): Promise<RegisterResult> {
+export async function register(data: RegisterInput, turnstileToken?: string | null): Promise<RegisterResult> {
   const res = await clientFetch<AuthUserResponse>(bffPaths.auth.register, {
     method: 'POST',
     body: data,
@@ -118,10 +118,10 @@ export async function verifyEmail(data: VerifyEmailInput): Promise<void> {
   });
 }
 
-export async function forgotPassword(data: ForgotPasswordInput): Promise<void> {
+export async function forgotPassword(data: ForgotPasswordInput, turnstileToken?: string | null): Promise<void> {
   await clientFetch(bffPaths.auth.forgotPassword, {
     method: 'POST',
-    body: data,
+    body: { ...data, turnstileToken },
   });
 }
 

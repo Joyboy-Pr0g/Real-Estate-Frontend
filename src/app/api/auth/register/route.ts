@@ -5,10 +5,18 @@ import { registerBodySchema } from '@/features/auth/schemas/auth-schemas';
 import { AuthLoginResponse } from '@/features/auth/types/user';
 import { setSessionFromAuthResponse } from '@/lib/auth/auth-bff';
 import { ApiError } from '@/lib/errors/api-error';
+import { assertTurnstileFromBody } from '@/lib/security/turnstile';
 
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
+    const turnstile = await assertTurnstileFromBody(body, request);
+    if (!turnstile.ok) {
+      return NextResponse.json(
+        { success: false, message: turnstile.message },
+        { status: 400 },
+      );
+    }
     const parsed = registerBodySchema.safeParse(body);
     if (!parsed.success) {
       return NextResponse.json(

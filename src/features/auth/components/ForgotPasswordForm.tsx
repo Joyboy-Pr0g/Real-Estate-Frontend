@@ -13,6 +13,8 @@ import { forgotPassword } from '@/features/auth/services/auth-service';
 import { getErrorMessage } from '@/lib/errors/api-error';
 import { useLocale } from '@/lib/i18n/locale-provider';
 import { cn } from '@/lib/utils/cn';
+import { useTurnstile } from '../hooks/use-turnstile';
+import { TurnstileField } from './Turnstile';
 
 const fieldClassName =
   'h-11 w-full rounded-xl border border-gray-200 bg-gray-50 px-4 text-sm outline-none transition-colors focus:border-brand/40 focus:bg-white focus:ring-2 focus:ring-brand/15';
@@ -22,6 +24,7 @@ export function ForgotPasswordForm() {
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const schema = useMemo(() => createForgotPasswordSchema(t), [t]);
+  const { enabled: turnstileEnabled, token: turnstileToken, setToken: setTurnstileToken, reset: resetTurnstile, registerReset, isReady: turnstileReady } = useTurnstile();
 
   const {
     register,
@@ -35,10 +38,16 @@ export function ForgotPasswordForm() {
     setError('');
     setSuccess('');
 
+    if (turnstileEnabled && !turnstileToken) {
+      setError(t('auth.turnstileRequired'));
+      return;
+    }
+
     try {
-      await forgotPassword(values);
+      await forgotPassword(values, turnstileToken);
       setSuccess(t('auth.forgotPasswordSuccess'));
     } catch (err) {
+      resetTurnstile();
       setError(getErrorMessage(err));
     }
   };
@@ -68,7 +77,13 @@ export function ForgotPasswordForm() {
         <p className="text-xs text-gray-500">{t('auth.forgotPasswordEmailVerifiedSubtitle')}</p>
       </div>
 
-      <Button type="submit" size="lg" className="w-full rounded-xl" disabled={isSubmitting}>
+      <TurnstileField
+        onTokenChange={setTurnstileToken}
+        onResetReady={registerReset}
+        className="pt-1"
+      />
+
+      <Button type="submit" size="lg" className="w-full rounded-xl" disabled={isSubmitting || !turnstileReady}>
         {isSubmitting ? t('auth.sending') : t('auth.sendResetLink')}
       </Button>
 

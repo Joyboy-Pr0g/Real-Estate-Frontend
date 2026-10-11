@@ -18,6 +18,8 @@ const envSchema = z.object({
   NEXT_PUBLIC_AUTH_EMAIL_SEND_COOLDOWN_SEC: z.coerce.number().int().positive().default(60),
   ACCESS_TOKEN_MAX_AGE_SEC: z.coerce.number().int().positive().default(900),
   REFRESH_TOKEN_MAX_AGE_SEC: z.coerce.number().int().positive().default(604800),
+  NEXT_PUBLIC_TURNSTILE_SITE_KEY: z.string().optional(),
+  NEXT_PUBLIC_TURNSTILE_SECRET_KEY: z.string().optional(),
 });
 
 export const env = envSchema.parse({
@@ -38,4 +40,6 @@ export const env = envSchema.parse({
   NEXT_PUBLIC_AUTH_EMAIL_SEND_COOLDOWN_SEC: process.env.NEXT_PUBLIC_AUTH_EMAIL_SEND_COOLDOWN_SEC,
   ACCESS_TOKEN_MAX_AGE_SEC: process.env.ACCESS_TOKEN_MAX_AGE_SEC,
   REFRESH_TOKEN_MAX_AGE_SEC: process.env.REFRESH_TOKEN_MAX_AGE_SEC,
+  NEXT_PUBLIC_TURNSTILE_SITE_KEY: process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY ?? process.env.TURNSTILE_SITE_KEY,
+  NEXT_PUBLIC_TURNSTILE_SECRET_KEY: process.env.NEXT_PUBLIC_TURNSTILE_SECRET_KEY ?? process.env.TURNSTILE_SECRET_KEY,
 });
