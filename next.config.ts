@@ -20,6 +20,14 @@ function resolvePublicGoogleMapsKey(): string {
   );
 }
 
+function resolvePublicTurnstileSiteKey(): string {
+  return (
+    process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY?.trim() ??
+    process.env.TURNSTILE_SITE_KEY?.trim() ??
+    ''
+  );
+}
+
 /** Firebase web config must be inlined for client bundles; `FIREBASE_*` alone is server-only. */
 function resolvePublicFirebaseEnv(): Record<string, string> {
   const pick = (nextKey: string, fallbackKey: string) =>
@@ -46,6 +54,7 @@ const nextConfig: NextConfig = {
   env: {
     NEXT_PUBLIC_SOCKET_URL: resolvePublicSocketUrl(),
     NEXT_PUBLIC_GOOGLE_MAPS_KEY: resolvePublicGoogleMapsKey(),
+    NEXT_PUBLIC_TURNSTILE_SITE_KEY: resolvePublicTurnstileSiteKey(),
     ...resolvePublicFirebaseEnv(),
   },
   images: {

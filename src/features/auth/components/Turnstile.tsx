@@ -23,7 +23,7 @@ export function TurnstileField({ onTokenChange, onResetReady, className }: Turns
     onResetReady?.(reset);
   }, [onResetReady, reset]);
 
-  const siteKey = env.NEXT_PUBLIC_TURNSTILE_SITE_KEY;
+  const siteKey = env.NEXT_PUBLIC_TURNSTILE_SITE_KEY?.trim();
   if (!siteKey) {
     return null;
   }

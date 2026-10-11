@@ -6,7 +6,11 @@ interface TurnstileVerifyResponse {
 }
 
 export function getTurnstileSiteKey(): string | undefined {
-  return process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY?.trim() || undefined;
+  return (
+    process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY?.trim()
+    || process.env.TURNSTILE_SITE_KEY?.trim()
+    || undefined
+  );
 }
 
 /** Prefer server-only TURNSTILE_SECRET_KEY; NEXT_PUBLIC fallback for local dev only. */
