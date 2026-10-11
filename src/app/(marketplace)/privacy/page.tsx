@@ -1,13 +1,18 @@
 import type { Metadata } from 'next';
 import { LegalDocumentPage } from '@/features/legal/components/LegalDocumentPage';
 import { getPageMetadataFromSettings } from '@/lib/seo/metadata';
+import { getServerTranslations } from '@/lib/i18n/server';
 
 export async function generateMetadata(): Promise<Metadata> {
-  return getPageMetadataFromSettings({
-    title: 'سياسة الخصوصية',
-    description: 'سياسة الخصوصية التي يتم تطبيقها على الموقع.',
-    path: '/privacy',
-  });
+  const { t, locale } = await getServerTranslations();
+  return getPageMetadataFromSettings(
+    {
+      title: t('seo.page.privacy'),
+      description: t('home.seo.metaDescription'),
+      path: '/privacy',
+    },
+    locale,
+  );
 }
 
 export default function PrivacyPage() {

@@ -18,6 +18,7 @@ import {
   resolveWebsiteLogo,
   withWebsiteSettingsDefaults,
 } from '@/lib/website-settings/defaults';
+import { shouldNofollowInternalHref } from '@/lib/seo/crawl-hints';
 interface SiteFooterProps {
   settings?: WebsiteSettings | null;
 }
@@ -169,6 +170,7 @@ export function SiteFooter({ settings = null }: SiteFooterProps) {
                   <li key={`${section.key}-${link.href}-${link.label}`}>
                     <Link
                       href={link.href}
+                      rel={shouldNofollowInternalHref(link.href) ? 'nofollow' : undefined}
                       className="text-sm text-gray-500 hover:text-primary transition-colors"
                     >
                       {link.label}

@@ -49,7 +49,6 @@ export const FOOTER_LINKS = {
   account: [
     { href: '/login', labelKey: 'footer.signIn' as const },
     { href: '/register', labelKey: 'footer.register' as const },
-    { href: '/login', labelKey: 'footer.myAccount' as const },
     { href: '/host', labelKey: 'nav.host' as const },
   ],
 } as const;

@@ -8,6 +8,7 @@ import { PublicListing } from '@/features/listings/types/listing';
 import { ListingPriceLine } from '@/features/listings/components/ListingPriceLine';
 import { useLocale } from '@/lib/i18n/locale-provider';
 import { cn } from '@/lib/utils/cn';
+import { LISTING_PHOTO_QUALITY } from '@/lib/seo/listing-images';
 
 interface ListingCardProps {
   listing: PublicListing;
@@ -48,6 +49,7 @@ export function ListingCard({ listing, priority = false }: ListingCardProps) {
               src={listing.main_photo}
               alt={listing.title}
               fill
+              quality={LISTING_PHOTO_QUALITY}
               priority={priority}
               className={cn(
                 'object-cover transition-transform duration-500 ease-out group-hover:scale-105',

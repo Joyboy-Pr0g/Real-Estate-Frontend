@@ -7,6 +7,7 @@ import { useState } from 'react';
 import { PublicListing } from '@/features/listings/types/listing';
 import { formatPrice } from '@/lib/utils/currency';
 import { cn } from '@/lib/utils/cn';
+import { LISTING_PHOTO_QUALITY } from '@/lib/seo/listing-images';
 
 interface MapListingCardProps {
   listing: PublicListing;
@@ -31,6 +32,7 @@ export function MapListingCard({ listing, compact = false }: MapListingCardProps
             src={listing.main_photo}
             alt={listing.title}
             fill
+            quality={LISTING_PHOTO_QUALITY}
             loading="lazy"
             className={cn('object-cover', loaded ? 'opacity-100' : 'opacity-0')}
             sizes="96px"

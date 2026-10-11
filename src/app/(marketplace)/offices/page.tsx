@@ -3,6 +3,7 @@ import type { Metadata } from 'next';
 import { OfficesContent } from '@/features/office/components/public/OfficesContent';
 import { getPageMetadataFromSettings } from '@/lib/seo/metadata';
 import { getOfficesCanonicalPath } from '@/lib/seo/indexing';
+import { getServerTranslations } from '@/lib/i18n/server';
 
 interface OfficesPageProps {
   searchParams: Promise<{
@@ -14,11 +15,15 @@ interface OfficesPageProps {
 }
 
 export async function generateMetadata(): Promise<Metadata> {
-  return getPageMetadataFromSettings({
-    title: 'مكاتب العقارات المعتمدة',
-    description: 'تصفح مكاتب العقارات المعتمدة في اليمن واستكشف القوائم المنشورة بواسطتها.',
-    path: getOfficesCanonicalPath(),
-  });
+  const { t, locale } = await getServerTranslations();
+  return getPageMetadataFromSettings(
+    {
+      title: t('seo.page.offices'),
+      description: t('home.seo.metaDescription'),
+      path: getOfficesCanonicalPath(),
+    },
+    locale,
+  );
 }
 
 export default function OfficesPage({ searchParams }: OfficesPageProps) {

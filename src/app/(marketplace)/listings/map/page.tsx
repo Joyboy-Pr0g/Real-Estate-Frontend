@@ -4,6 +4,7 @@ import { ListingsMapContent } from '@/features/listings/components/ListingsMapCo
 import { ListingSearchUrlParams } from '@/features/listings/types/listing-search-url';
 import { getWebsiteSettingsForMetadata, buildPageMetadata } from '@/lib/seo/metadata';
 import { getListingsMapCanonicalPath, hasSearchFilters } from '@/lib/seo/indexing';
+import { getServerTranslations } from '@/lib/i18n/server';
 
 interface ListingsMapPageProps {
   searchParams: Promise<ListingSearchUrlParams>;
@@ -11,16 +12,21 @@ interface ListingsMapPageProps {
 
 export async function generateMetadata({ searchParams }: ListingsMapPageProps): Promise<Metadata> {
   const params = await searchParams;
+  const { t, locale } = await getServerTranslations();
   const settings = await getWebsiteSettingsForMetadata();
   const filtered = hasSearchFilters(params);
   const allowSearchIndexing = settings.index_listing_search_pages && !filtered;
 
-  return buildPageMetadata(settings, {
-    title: 'خريطة العقارات',
-    description: 'استكشف قوائم العقارات على خريطة متفاعلة لليمن.',
-    path: getListingsMapCanonicalPath(),
-    robots: allowSearchIndexing ? undefined : { index: false, follow: true },
-  });
+  return buildPageMetadata(
+    settings,
+    {
+      title: t('seo.page.listingsMap'),
+      description: t('home.seo.metaDescription'),
+      path: getListingsMapCanonicalPath(),
+      robots: allowSearchIndexing ? undefined : { index: false, follow: true },
+    },
+    locale,
+  );
 }
 
 function MapPageFallback() {

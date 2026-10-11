@@ -5,6 +5,7 @@ import { ListingGridSkeleton } from '@/features/shared/components/LoadingSkeleto
 import { ListingSearchUrlParams } from '@/features/listings/types/listing-search-url';
 import { getWebsiteSettingsForMetadata, buildPageMetadata } from '@/lib/seo/metadata';
 import { getListingsCanonicalPath, hasSearchFilters } from '@/lib/seo/indexing';
+import { getServerTranslations } from '@/lib/i18n/server';
 
 interface ListingsPageProps {
   searchParams: Promise<ListingSearchUrlParams>;
@@ -12,16 +13,21 @@ interface ListingsPageProps {
 
 export async function generateMetadata({ searchParams }: ListingsPageProps): Promise<Metadata> {
   const params = await searchParams;
+  const { t, locale } = await getServerTranslations();
   const settings = await getWebsiteSettingsForMetadata();
   const filtered = hasSearchFilters(params);
   const allowSearchIndexing = settings.index_listing_search_pages && !filtered;
 
-  return buildPageMetadata(settings, {
-    title: 'قوائم العقارات',
-    description: 'تصفح العقارات المعروضة للبيع والإيجار في اليمن.',
+  return buildPageMetadata(
+    settings,
+    {
+    title: t('seo.page.listings'),
+    description: t('home.seo.metaDescription'),
     path: getListingsCanonicalPath(params),
     robots: allowSearchIndexing ? undefined : { index: false, follow: true },
-  });
+    },
+    locale,
+  );
 }
 
 export default function ListingsPage(props: ListingsPageProps) {

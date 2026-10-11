@@ -16,6 +16,7 @@ import { useSiteHeaderOverride } from '@/features/layout/context/site-header-ove
 import { useLocale } from '@/lib/i18n/locale-provider';
 import type { TranslationKey } from '@/lib/i18n/ar';
 import { cn } from '@/lib/utils/cn';
+import { shouldNofollowInternalHref } from '@/lib/seo/crawl-hints';
 
 interface SiteHeaderProps {
   user?: AuthUser | null;
@@ -137,6 +138,7 @@ export function SiteHeader({ user = null, settings = null }: SiteHeaderProps) {
               {!user ? (
                 <ButtonLink
                   href="/register"
+                  rel={shouldNofollowInternalHref('/register') ? 'nofollow' : undefined}
                   size="sm"
                   className={cn(
                     'hidden rounded-full sm:inline-flex',
@@ -167,6 +169,7 @@ export function SiteHeader({ user = null, settings = null }: SiteHeaderProps) {
               ) : (
                 <ButtonLink
                   href="/login"
+                  rel={shouldNofollowInternalHref('/login') ? 'nofollow' : undefined}
                   size="sm"
                   className={cn(
                     'hidden rounded-full sm:inline-flex',
@@ -224,12 +227,13 @@ export function SiteHeader({ user = null, settings = null }: SiteHeaderProps) {
                 <div className="flex gap-2 px-1 pt-2 sm:hidden">
                   <ButtonLink
                     href="/login"
+                    rel="nofollow"
                     variant="outline"
                     className={cn('flex-1 rounded-xl', isHome && 'border-white/30 text-white')}
                   >
                     {t('nav.login')}
                   </ButtonLink>
-                  <ButtonLink href="/register" className="flex-1 rounded-xl">
+                  <ButtonLink href="/register" rel="nofollow" className="flex-1 rounded-xl">
                     {t('nav.register')}
                   </ButtonLink>
                 </div>

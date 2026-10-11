@@ -1,13 +1,18 @@
 import type { Metadata } from 'next';
 import { LegalDocumentPage } from '@/features/legal/components/LegalDocumentPage';
 import { getPageMetadataFromSettings } from '@/lib/seo/metadata';
+import { getServerTranslations } from '@/lib/i18n/server';
 
 export async function generateMetadata(): Promise<Metadata> {
-  return getPageMetadataFromSettings({
-    title: 'شروط الخدمة',
-    description: 'شروط الخدمة التي يتم تطبيقها على الموقع.',
-    path: '/terms',
-  });
+  const { t, locale } = await getServerTranslations();
+  return getPageMetadataFromSettings(
+    {
+      title: t('seo.page.terms'),
+      description: t('home.seo.metaDescription'),
+      path: '/terms',
+    },
+    locale,
+  );
 }
 
 export default function TermsPage() {

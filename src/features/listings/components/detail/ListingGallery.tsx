@@ -18,6 +18,7 @@ import {
   X,
 } from 'lucide-react';
 import { CarouselArrow } from '@/features/home/components/CarouselArrow';
+import { LISTING_PHOTO_QUALITY } from '@/lib/seo/listing-images';
 import { getPropertyTypeIcon, getTransactionTypeIcon } from '@/features/catalog/utils/catalog-icons';
 import { SpecTile } from '@/features/listings/components/detail/SpecTile';
 import { ListingDetailPhoto, PublicListingCatalogItemDetailed } from '@/features/listings/types/listing-detail';
@@ -234,6 +235,7 @@ export function ListingGallery({
                   alt={title}
                   fill
                   priority
+                  quality={LISTING_PHOTO_QUALITY}
                   className="object-cover"
                   sizes="(max-width: 1024px) 100vw, 66vw"
                 />
@@ -316,7 +318,14 @@ export function ListingGallery({
                     i === activeIndex ? 'ring-brand' : 'ring-transparent opacity-80 hover:opacity-100',
                   )}
                 >
-                  <Image src={photo.url} alt="" fill className="object-cover" sizes="96px" />
+                  <Image
+                    src={photo.url}
+                    alt=""
+                    fill
+                    quality={LISTING_PHOTO_QUALITY}
+                    className="object-cover"
+                    sizes="96px"
+                  />
                 </button>
               ))}
             </div>

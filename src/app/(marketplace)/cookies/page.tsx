@@ -1,13 +1,18 @@
 import type { Metadata } from 'next';
 import { LegalDocumentPage } from '@/features/legal/components/LegalDocumentPage';
 import { getPageMetadataFromSettings } from '@/lib/seo/metadata';
+import { getServerTranslations } from '@/lib/i18n/server';
 
 export async function generateMetadata(): Promise<Metadata> {
-  return getPageMetadataFromSettings({
-    title: 'سياسة الكوكيز',
-    description: 'سياسة الكوكيز التي يتم تطبيقها على الموقع.',
-    path: '/cookies',
-  });
+  const { t, locale } = await getServerTranslations();
+  return getPageMetadataFromSettings(
+    {
+      title: t('seo.page.cookies'),
+      description: t('home.seo.metaDescription'),
+      path: '/cookies',
+    },
+    locale,
+  );
 }
 
 export default function CookiesPage() {

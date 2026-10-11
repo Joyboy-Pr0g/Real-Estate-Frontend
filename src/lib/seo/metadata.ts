@@ -6,6 +6,7 @@ import { getListingCanonicalPath } from '@/lib/seo/indexing';
 import { withWebsiteSettingsDefaults, resolveWebsiteLogo } from '@/lib/website-settings/defaults';
 import { buildFaviconMetadata, STATIC_FAVICON_PATHS } from '@/lib/seo/favicons';
 import type { Locale } from '@/lib/i18n/config';
+import { buildAbsoluteDocumentTitle } from '@/lib/seo/titles';
 
 /** Vercel serves the live site at www; apex redirects with 308. Canonicals must match the 200 URL. */
 export function normalizeCanonicalSiteUrl(url: string): string {
@@ -59,14 +60,27 @@ function resolveHreflangKey(locale?: Locale): 'ar-YE' | 'en' {
   return locale === 'en' ? 'en' : 'ar-YE';
 }
 
+function isRobotsIndexable(settings: WebsiteSettings, robots?: Metadata['robots']): boolean {
+  if (!shouldAllowIndexing(settings)) return false;
+  const resolved = robots ?? settings.robots ?? 'index, follow';
+  if (typeof resolved === 'string') {
+    return !/\bnoindex\b/i.test(resolved);
+  }
+  return resolved.index !== false;
+}
+
 function buildHreflangAlternates(
   siteUrl: string,
-  path?: string,
-  locale?: Locale,
+  path: string | undefined,
+  locale: Locale | undefined,
+  indexable: boolean,
 ): NonNullable<Metadata['alternates']> {
   const url = buildCanonicalUrl(siteUrl, path);
-  const selfHreflang = resolveHreflangKey(locale);
+  if (!indexable) {
+    return { canonical: url };
+  }
 
+  const selfHreflang = resolveHreflangKey(locale);
   return {
     canonical: url,
     languages: {
@@ -212,7 +226,8 @@ export function buildSiteMetadata(settings: WebsiteSettings, overrides?: Metadat
   const s = withWebsiteSettingsDefaults(settings);
   const siteUrl = getSiteUrl(s);
   const siteName = s.title;
-  const title = s.meta_title?.trim() || siteName;
+  const rawTitle = s.meta_title?.trim() || siteName;
+  const defaultTitle = buildAbsoluteDocumentTitle(rawTitle, siteName);
   const description = s.meta_description?.trim() || s.description || '';
   const ogImage = absoluteAssetUrl(siteUrl, s.og_image_url || s.header_logo_url);
   const keywords = s.meta_keywords
@@ -220,17 +235,19 @@ export function buildSiteMetadata(settings: WebsiteSettings, overrides?: Metadat
     .map((item) => item.trim())
     .filter(Boolean);
   const faviconMeta = buildFaviconMetadata(siteUrl, s.favicon_url);
+  const robots = resolveRobots(s);
+  const indexable = isRobotsIndexable(s, robots);
 
   return {
     metadataBase: new URL(siteUrl),
     title: {
-      default: title,
+      default: defaultTitle,
       template: `%s | ${siteName}`,
     },
     description,
     keywords: keywords?.length ? keywords : undefined,
-    robots: resolveRobots(s),
-    alternates: buildHreflangAlternates(siteUrl),
+    robots,
+    alternates: buildHreflangAlternates(siteUrl, undefined, undefined, indexable),
     verification: buildVerificationMeta(s),
     ...faviconMeta,
     openGraph: {
@@ -239,14 +256,14 @@ export function buildSiteMetadata(settings: WebsiteSettings, overrides?: Metadat
       alternateLocale: ['en'],
       url: siteUrl,
       siteName,
-      title,
+      title: defaultTitle,
       description,
       images: [{ url: ogImage, width: 1200, height: 630, alt: siteName }],
     },
     twitter: {
       card: (s.twitter_card as 'summary' | 'summary_large_image') ?? 'summary_large_image',
       site: s.twitter_handle ?? undefined,
-      title,
+      title: defaultTitle,
       description,
       images: [ogImage],
     },
@@ -272,16 +289,20 @@ export function buildPageMetadata(
   const image = absoluteAssetUrl(siteUrl, page.image || s.og_image_url || s.header_logo_url);
   const path = page.path ?? '';
   const url = buildCanonicalUrl(siteUrl, path);
+  const robots = resolveRobots(s, page.robots);
+  const indexable = isRobotsIndexable(s, robots);
+  const documentTitle = buildAbsoluteDocumentTitle(page.title, s.title);
+  const ogTitle = page.title;
 
   return {
-    title: page.title,
+    title: { absolute: documentTitle },
     description,
-    robots: resolveRobots(s, page.robots),
-    alternates: buildHreflangAlternates(siteUrl, path, locale),
+    robots,
+    alternates: buildHreflangAlternates(siteUrl, path, locale, indexable),
     openGraph: {
       type: page.type ?? 'website',
       url,
-      title: page.title,
+      title: ogTitle,
       description,
       siteName: s.title,
       locale: s.default_locale ?? 'ar_YE',
@@ -290,7 +311,7 @@ export function buildPageMetadata(
     },
     twitter: {
       card: (s.twitter_card as 'summary' | 'summary_large_image') ?? 'summary_large_image',
-      title: page.title,
+      title: ogTitle,
       description,
       images: [image],
     },

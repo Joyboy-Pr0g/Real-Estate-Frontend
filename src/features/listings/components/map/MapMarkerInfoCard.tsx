@@ -6,6 +6,7 @@ import { useState } from 'react';
 import { PublicListing } from '@/features/listings/types/listing';
 import { formatPrice } from '@/lib/utils/currency';
 import { cn } from '@/lib/utils/cn';
+import { LISTING_PHOTO_QUALITY } from '@/lib/seo/listing-images';
 
 interface MapMarkerInfoCardProps {
   listing: PublicListing;
@@ -29,6 +30,7 @@ export function MapMarkerInfoCard({ listing, className }: MapMarkerInfoCardProps
             src={listing.main_photo}
             alt={listing.title}
             fill
+            quality={LISTING_PHOTO_QUALITY}
             loading="lazy"
             className={cn('object-cover', loaded ? 'opacity-100' : 'opacity-0')}
             sizes="80px"

@@ -1,13 +1,18 @@
 import type { Metadata } from 'next';
 import { LegalDocumentPage } from '@/features/legal/components/LegalDocumentPage';
 import { getPageMetadataFromSettings } from '@/lib/seo/metadata';
+import { getServerTranslations } from '@/lib/i18n/server';
 
 export async function generateMetadata(): Promise<Metadata> {
-  return getPageMetadataFromSettings({
-    title: 'سياسة القوائم',
-    description: 'سياسة القوائم التي يتم تطبيقها على الموقع.',
-    path: '/listing-policy',
-  });
+  const { t, locale } = await getServerTranslations();
+  return getPageMetadataFromSettings(
+    {
+      title: t('seo.page.listingPolicy'),
+      description: t('home.seo.metaDescription'),
+      path: '/listing-policy',
+    },
+    locale,
+  );
 }
 
 export default function ListingPolicyPage() {

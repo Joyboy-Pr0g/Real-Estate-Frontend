@@ -3,6 +3,7 @@ import { Container } from '@/components/ui/container';
 import { ContactForm } from '@/features/contact/components/ContactForm';
 import { ContactInfoCards } from '@/features/contact/components/ContactInfoCards';
 import { getPageMetadataFromSettings } from '@/lib/seo/metadata';
+import { getServerTranslations } from '@/lib/i18n/server';
 import { getWebsiteSettingsServer } from '@/features/website-settings/services/website-settings-server';
 import { withWebsiteSettingsDefaults } from '@/lib/website-settings/defaults';
 import { getSession } from '@/lib/auth/session';
@@ -10,11 +11,15 @@ import { ContactHeader } from '@/features/contact/components/ContactHeader';
 import { ContactSchedule } from '@/features/contact/components/ContactSchedule';
 
 export async function generateMetadata(): Promise<Metadata> {
-  return getPageMetadataFromSettings({
-    title: 'تواصل معنا',
-    description: 'تواصل معنا للحصول على الدعم أو الأسئلة المتعلقة بالتحقق من مكتب العقارات أو الاستفسارات حول الشركة.',
-    path: '/contact',
-  });
+  const { t, locale } = await getServerTranslations();
+  return getPageMetadataFromSettings(
+    {
+      title: t('seo.page.contact'),
+      description: t('home.seo.metaDescription'),
+      path: '/contact',
+    },
+    locale,
+  );
 }
 
 export default async function ContactPage() {

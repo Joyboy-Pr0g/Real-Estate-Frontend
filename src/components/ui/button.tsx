@@ -48,13 +48,11 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(function Button
   );
 });
 
-interface ButtonLinkProps {
-  href: string;
-  children: React.ReactNode;
+type ButtonLinkProps = Omit<React.ComponentProps<typeof Link>, 'className'> & {
   className?: string;
   variant?: ButtonVariant;
   size?: ButtonSize;
-}
+};
 
 export function ButtonLink({
   href,
@@ -62,10 +60,12 @@ export function ButtonLink({
   className,
   variant = 'primary',
   size = 'md',
+  ...linkProps
 }: ButtonLinkProps) {
   return (
     <Link
       href={href}
+      {...linkProps}
       className={cn(
         'inline-flex items-center justify-center gap-2 rounded-lg font-medium transition-colors cursor-pointer',
         variants[variant],
