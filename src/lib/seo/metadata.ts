@@ -6,30 +6,13 @@ import { getListingCanonicalPath } from '@/lib/seo/indexing';
 import { withWebsiteSettingsDefaults, resolveWebsiteLogo } from '@/lib/website-settings/defaults';
 import { buildFaviconMetadata, STATIC_FAVICON_PATHS } from '@/lib/seo/favicons';
 import type { Locale } from '@/lib/i18n/config';
-import { buildAbsoluteDocumentTitle } from '@/lib/seo/titles';
-
-/** Vercel serves the live site at www; apex redirects with 308. Canonicals must match the 200 URL. */
-export function normalizeCanonicalSiteUrl(url: string): string {
-  const trimmed = url.trim().replace(/\/$/, '');
-  if (!trimmed) return trimmed;
-
-  try {
-    const parsed = new URL(trimmed.startsWith('http') ? trimmed : `https://${trimmed}`);
-    if (parsed.hostname === 'yemen-land.com') {
-      parsed.hostname = 'www.yemen-land.com';
-    }
-    return parsed.origin;
-  } catch {
-    return trimmed;
-  }
-}
 
 export function getSiteUrl(settings: WebsiteSettings): string {
   const fromEnv = env.NEXT_PUBLIC_SITE_URL?.trim() || env.NEXT_PUBLIC_APP_URL?.trim();
-  if (fromEnv) return normalizeCanonicalSiteUrl(fromEnv);
+  if (fromEnv) return fromEnv.replace(/\/$/, '');
   const fromSettings = settings.site_url?.trim();
-  if (fromSettings) return normalizeCanonicalSiteUrl(fromSettings);
-  return 'https://www.yemen-land.com';
+  if (fromSettings) return fromSettings.replace(/\/$/, '');
+  return 'https://yemen-land.com';
 }
 
 export function shouldAllowIndexing(settings: WebsiteSettings): boolean {
@@ -60,27 +43,14 @@ function resolveHreflangKey(locale?: Locale): 'ar-YE' | 'en' {
   return locale === 'en' ? 'en' : 'ar-YE';
 }
 
-function isRobotsIndexable(settings: WebsiteSettings, robots?: Metadata['robots']): boolean {
-  if (!shouldAllowIndexing(settings)) return false;
-  const resolved = robots ?? settings.robots ?? 'index, follow';
-  if (typeof resolved === 'string') {
-    return !/\bnoindex\b/i.test(resolved);
-  }
-  return resolved.index !== false;
-}
-
 function buildHreflangAlternates(
   siteUrl: string,
-  path: string | undefined,
-  locale: Locale | undefined,
-  indexable: boolean,
+  path?: string,
+  locale?: Locale,
 ): NonNullable<Metadata['alternates']> {
   const url = buildCanonicalUrl(siteUrl, path);
-  if (!indexable) {
-    return { canonical: url };
-  }
-
   const selfHreflang = resolveHreflangKey(locale);
+
   return {
     canonical: url,
     languages: {
@@ -226,8 +196,7 @@ export function buildSiteMetadata(settings: WebsiteSettings, overrides?: Metadat
   const s = withWebsiteSettingsDefaults(settings);
   const siteUrl = getSiteUrl(s);
   const siteName = s.title;
-  const rawTitle = s.meta_title?.trim() || siteName;
-  const defaultTitle = buildAbsoluteDocumentTitle(rawTitle, siteName);
+  const title = s.meta_title?.trim() || siteName;
   const description = s.meta_description?.trim() || s.description || '';
   const ogImage = absoluteAssetUrl(siteUrl, s.og_image_url || s.header_logo_url);
   const keywords = s.meta_keywords
@@ -235,19 +204,17 @@ export function buildSiteMetadata(settings: WebsiteSettings, overrides?: Metadat
     .map((item) => item.trim())
     .filter(Boolean);
   const faviconMeta = buildFaviconMetadata(siteUrl, s.favicon_url);
-  const robots = resolveRobots(s);
-  const indexable = isRobotsIndexable(s, robots);
 
   return {
     metadataBase: new URL(siteUrl),
     title: {
-      default: defaultTitle,
+      default: title,
       template: `%s | ${siteName}`,
     },
     description,
     keywords: keywords?.length ? keywords : undefined,
-    robots,
-    alternates: buildHreflangAlternates(siteUrl, undefined, undefined, indexable),
+    robots: resolveRobots(s),
+    alternates: buildHreflangAlternates(siteUrl),
     verification: buildVerificationMeta(s),
     ...faviconMeta,
     openGraph: {
@@ -256,14 +223,14 @@ export function buildSiteMetadata(settings: WebsiteSettings, overrides?: Metadat
       alternateLocale: ['en'],
       url: siteUrl,
       siteName,
-      title: defaultTitle,
+      title,
       description,
       images: [{ url: ogImage, width: 1200, height: 630, alt: siteName }],
     },
     twitter: {
       card: (s.twitter_card as 'summary' | 'summary_large_image') ?? 'summary_large_image',
       site: s.twitter_handle ?? undefined,
-      title: defaultTitle,
+      title,
       description,
       images: [ogImage],
     },
@@ -289,20 +256,16 @@ export function buildPageMetadata(
   const image = absoluteAssetUrl(siteUrl, page.image || s.og_image_url || s.header_logo_url);
   const path = page.path ?? '';
   const url = buildCanonicalUrl(siteUrl, path);
-  const robots = resolveRobots(s, page.robots);
-  const indexable = isRobotsIndexable(s, robots);
-  const documentTitle = buildAbsoluteDocumentTitle(page.title, s.title);
-  const ogTitle = page.title;
 
   return {
-    title: { absolute: documentTitle },
+    title: page.title,
     description,
-    robots,
-    alternates: buildHreflangAlternates(siteUrl, path, locale, indexable),
+    robots: resolveRobots(s, page.robots),
+    alternates: buildHreflangAlternates(siteUrl, path, locale),
     openGraph: {
       type: page.type ?? 'website',
       url,
-      title: ogTitle,
+      title: page.title,
       description,
       siteName: s.title,
       locale: s.default_locale ?? 'ar_YE',
@@ -311,7 +274,7 @@ export function buildPageMetadata(
     },
     twitter: {
       card: (s.twitter_card as 'summary' | 'summary_large_image') ?? 'summary_large_image',
-      title: ogTitle,
+      title: page.title,
       description,
       images: [image],
     },
