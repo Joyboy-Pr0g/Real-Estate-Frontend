@@ -34,6 +34,7 @@ import { ProfileEmailVerificationModal } from '@/features/dashboard/components/P
 import { formatPhoneFromDigitKey, formatPhoneNumber, phonesMatch } from '@/lib/utils/format';
 import { markPendingPhoneVerification, phoneDigitsKey } from '@/lib/auth/pending-phone-verification';
 import { VerifyPhoneModal } from '@/features/auth/components/VerifyPhoneModal';
+import { logout } from '@/features/auth/services/auth-service';
 
 const fieldClassName =
   'h-11 w-full rounded-xl border border-gray-200 bg-gray-50 px-4 text-sm outline-none transition-colors focus:border-brand/40 focus:bg-white focus:ring-2 focus:ring-brand/15';
@@ -160,6 +161,8 @@ export function ProfileSettingsPanel({ user }: ProfileSettingsPanelProps) {
       await changePassword(values);
       toast.success(t('dashboard.passwordUpdated'));
       resetPasswordForm();
+      await logout();
+      router.push('/login');
     } catch (err) {
       toast.error(getErrorMessage(err));
     }
