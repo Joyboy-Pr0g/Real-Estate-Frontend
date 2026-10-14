@@ -41,7 +41,7 @@ export async function login(data: LoginInput, turnstileToken?: string | null): P
 export async function register(data: RegisterInput, turnstileToken?: string | null): Promise<RegisterResult> {
   const res = await clientFetch<AuthUserResponse>(bffPaths.auth.register, {
     method: 'POST',
-    body: data,
+    body: {...data, turnstileToken},
   });
   return {
     user: res.data!.user,
