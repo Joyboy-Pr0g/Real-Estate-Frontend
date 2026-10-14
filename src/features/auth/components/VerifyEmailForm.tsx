@@ -8,6 +8,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { Button } from '@/components/ui/button';
 import { createVerifyEmailSchema, VerifyEmailInput } from '@/features/auth/schemas/auth-schemas';
 import { resendEmailVerification, verifyEmail } from '@/features/auth/services/auth-service';
+import { getSafeRedirectPath } from '@/lib/auth/safe-redirect';
 import { getErrorMessage } from '@/lib/errors/api-error';
 import { useLocale } from '@/lib/i18n/locale-provider';
 import { cn } from '@/lib/utils/cn';
@@ -26,7 +27,7 @@ export function VerifyEmailForm() {
   const [resending, setResending] = useState(false);
   const verifySchema = useMemo(() => createVerifyEmailSchema(t), [t]);
   const fromLogin = searchParams.get('sent') === '1';
-  const redirectAfterLogin = searchParams.get('redirect');
+  const redirectAfterLogin = getSafeRedirectPath(searchParams.get('redirect'));
 
   const {
     register,

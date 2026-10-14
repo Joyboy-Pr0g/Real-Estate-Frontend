@@ -7,6 +7,7 @@ import { Mail, MessageCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { requestVerification } from '@/features/auth/services/auth-service';
 import { markEmailCodeSent } from '@/lib/auth/email-send-cooldown';
+import { getSafeRedirectPath } from '@/lib/auth/safe-redirect';
 import { getErrorMessage } from '@/lib/errors/api-error';
 import { useLocale } from '@/lib/i18n/locale-provider';
 
@@ -41,7 +42,7 @@ export function LoginVerificationChoiceModal({
       await requestVerification({ email, password, channel: 'email' });
       markEmailCodeSent(email);
       const params = new URLSearchParams({ email, sent: '1' });
-      const redirect = searchParams.get('redirect');
+      const redirect = getSafeRedirectPath(searchParams.get('redirect'));
       if (redirect) params.set('redirect', redirect);
       router.push(`/verify-email?${params.toString()}`);
       onClose();
@@ -71,7 +72,7 @@ export function LoginVerificationChoiceModal({
   };
 
   const loginRedirect = () => {
-    const redirect = searchParams.get('redirect');
+    const redirect = getSafeRedirectPath(searchParams.get('redirect'));
     if (redirect) {
       router.push(`/login?redirect=${encodeURIComponent(redirect)}`);
     } else {

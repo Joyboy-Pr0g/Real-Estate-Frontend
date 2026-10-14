@@ -22,6 +22,8 @@ import { getErrorMessage, isAccountNotVerifiedError } from '@/lib/errors/api-err
 
 import { isAdminPanelRole, isSubAdminRole } from '@/lib/auth/constants';
 
+import { getSafeRedirectPath } from '@/lib/auth/safe-redirect';
+
 import { useLocale } from '@/lib/i18n/locale-provider';
 
 import { cn } from '@/lib/utils/cn';
@@ -94,7 +96,7 @@ export function LoginForm() {
 
       const user = await login(values, turnstileToken);
 
-      const redirect = searchParams.get('redirect');
+      const redirect = getSafeRedirectPath(searchParams.get('redirect'));
 
 
 
