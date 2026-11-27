@@ -4,6 +4,7 @@ import { backendPaths } from '@/lib/api/endpoints';
 import { requestVerificationBodySchema } from '@/features/auth/schemas/auth-schemas';
 import { PhoneVerificationResult } from '@/features/auth/types/user';
 import { ApiError } from '@/lib/errors/api-error';
+import { getClientIp } from '@/lib/security/client-ip';
 
 export async function POST(request: NextRequest) {
   try {
@@ -22,6 +23,7 @@ export async function POST(request: NextRequest) {
         method: 'POST',
         body: parsed.data,
         cacheProfile: 'none',
+        clientIp: getClientIp(request),
       },
     );
 

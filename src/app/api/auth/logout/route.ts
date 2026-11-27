@@ -3,6 +3,7 @@ import { fetchBackend } from '@/lib/api/fetch';
 import { backendPaths } from '@/lib/api/endpoints';
 import { clearSession, getRawAuthToken, getRefreshToken } from '@/lib/auth/session';
 import { ApiError } from '@/lib/errors/api-error';
+import { getRequestClientIp } from '@/lib/security/client-ip';
 
 export async function POST() {
   try {
@@ -16,6 +17,7 @@ export async function POST() {
           token,
           body: refreshToken ? { refreshToken } : undefined,
           cacheProfile: 'none',
+          clientIp: await getRequestClientIp(),
         });
       } catch {
         // Still clear cookies if backend logout fails

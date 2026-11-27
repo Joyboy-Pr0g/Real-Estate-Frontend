@@ -3,10 +3,11 @@ import { fetchBackend } from '@/lib/api/fetch';
 import { backendPaths } from '@/lib/api/endpoints';
 import { PhoneVerificationStatusResponse } from '@/features/auth/types/user';
 import { ApiError } from '@/lib/errors/api-error';
+import { getClientIp } from '@/lib/security/client-ip';
 
 type RouteContext = { params: Promise<{ sessionId: string }> };
 
-export async function GET(_request: NextRequest, context: RouteContext) {
+export async function GET(request: NextRequest, context: RouteContext) {
   try {
     const { sessionId } = await context.params;
     if (!sessionId?.trim()) {
@@ -15,7 +16,7 @@ export async function GET(_request: NextRequest, context: RouteContext) {
 
     const response = await fetchBackend<PhoneVerificationStatusResponse>(
       backendPaths.auth.phoneVerification(sessionId),
-      { cacheProfile: 'none' },
+      { cacheProfile: 'none', clientIp: getClientIp(request) },
     );
 
     return NextResponse.json({

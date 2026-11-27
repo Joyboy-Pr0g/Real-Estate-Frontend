@@ -1,45 +1,30 @@
+import 'server-only';
 import type { NextRequest } from 'next/server';
+import { getClientIp } from '@/lib/security/client-ip';
 
 interface TurnstileVerifyResponse {
   success: boolean;
   'error-codes'?: string[];
 }
 
-export function getTurnstileSiteKey(): string | undefined {
-  return (
-    process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY?.trim()
-    || process.env.TURNSTILE_SITE_KEY?.trim()
-    || undefined
-  );
-}
+type TurnstileResult = { ok: true } | { ok: false; message: string };
 
-/** Prefer server-only TURNSTILE_SECRET_KEY; NEXT_PUBLIC fallback for local dev only. */
-export function getTurnstileSecretKey(): string | undefined {
-  return (
-    process.env.TURNSTILE_SECRET_KEY?.trim()
-    || process.env.NEXT_PUBLIC_TURNSTILE_SECRET_KEY?.trim()
-    || undefined
-  );
-}
+const VERIFICATION_FAILED_MESSAGE = 'Security verification failed. Please try again.';
+const VERIFICATION_UNAVAILABLE_MESSAGE = 'Security verification is unavailable. Please try again later.';
 
-export function isTurnstileConfigured(): boolean {
-  return Boolean(getTurnstileSiteKey() && getTurnstileSecretKey());
-}
-
-export function getClientIp(request: NextRequest): string | undefined {
-  return (
-    request.headers.get('cf-connecting-ip')
-    || request.headers.get('x-forwarded-for')?.split(',')[0]?.trim()
-    || request.headers.get('x-real-ip')
-    || undefined
-  );
+function getTurnstileSecretKey(): string | undefined {
+  return process.env.TURNSTILE_SECRET_KEY?.trim() || undefined;
 }
 
 export async function verifyTurnstileToken(
   token: string | undefined | null,
   remoteIp?: string,
-): Promise<{ ok: true } | { ok: false; message: string }> {
-  if (!isTurnstileConfigured()) {
+): Promise<TurnstileResult> {
+  const secret = getTurnstileSecretKey();
+  if (!secret) {
+    if (process.env.NODE_ENV === 'production') {
+      return { ok: false, message: VERIFICATION_UNAVAILABLE_MESSAGE };
+    }
     return { ok: true };
   }
 
@@ -48,7 +33,7 @@ export async function verifyTurnstileToken(
   }
 
   const form = new URLSearchParams();
-  form.set('secret', getTurnstileSecretKey()!);
+  form.set('secret', secret);
   form.set('response', token.trim());
   if (remoteIp) {
     form.set('remoteip', remoteIp);
@@ -59,6 +44,7 @@ export async function verifyTurnstileToken(
       method: 'POST',
       headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
       body: form.toString(),
+      cache: 'no-store',
     });
 
     const data = (await response.json()) as TurnstileVerifyResponse;
@@ -66,10 +52,10 @@ export async function verifyTurnstileToken(
       return { ok: true };
     }
   } catch {
-    return { ok: false, message: 'Security verification failed. Please try again.' };
+    return { ok: false, message: VERIFICATION_FAILED_MESSAGE };
   }
 
-  return { ok: false, message: 'Security verification failed. Please try again.' };
+  return { ok: false, message: VERIFICATION_FAILED_MESSAGE };
 }
 
 export async function assertTurnstileFromBody(

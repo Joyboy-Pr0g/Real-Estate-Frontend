@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { fetchBackend } from '@/lib/api/fetch';
 import { getAuthToken } from '@/lib/auth/session';
 import { ApiError } from '@/lib/errors/api-error';
+import { getClientIp } from '@/lib/security/client-ip';
 
 interface ProxyOptions {
   path: string;
@@ -44,6 +45,7 @@ export async function proxyToBackend(
       body,
       searchParams: queryParams,
       cacheProfile: 'none',
+      clientIp: getClientIp(request),
     });
 
     return NextResponse.json(response);

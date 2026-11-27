@@ -1,14 +1,11 @@
 import { cache } from 'react';
-import { cookies, headers } from 'next/headers';
+import { cookies } from 'next/headers';
 import { fetchBackend } from '@/lib/api/fetch';
 import { backendPaths } from '@/lib/api/endpoints';
 import { AuthUser } from '@/features/auth/types/user';
 import { UserPermissionAccess } from '@/features/admin/types/permission';
-import {
-  AUTH_COOKIE_NAME,
-  REFRESH_COOKIE_NAME,
-  REFRESHED_ACCESS_TOKEN_HEADER,
-} from '@/lib/auth/constants';
+import { AUTH_COOKIE_NAME, REFRESH_COOKIE_NAME } from '@/lib/auth/constants';
+import { getRequestClientIp } from '@/lib/security/client-ip';
 import {
   ADMIN_PERMISSIONS_COOKIE,
   decodePermissionsCookie,
@@ -125,6 +122,7 @@ export async function refreshSession(): Promise<string | undefined> {
       method: 'POST',
       body: { refreshToken },
       cacheProfile: 'none',
+      clientIp: await getRequestClientIp(),
     });
 
     const tokens = response.data;
@@ -156,14 +154,6 @@ interface GetAuthTokenOptions {
  * Server Components must use the default read-only mode (no cookie writes).
  */
 export async function getAuthToken(options?: GetAuthTokenOptions): Promise<string | undefined> {
-  if (!options?.refresh) {
-    const headerStore = await headers();
-    const middlewareToken = headerStore.get(REFRESHED_ACCESS_TOKEN_HEADER);
-    if (middlewareToken) {
-      return middlewareToken;
-    }
-  }
-
   const accessToken = await getRawAuthToken();
   if (accessToken && !isAccessTokenExpired(accessToken)) {
     return accessToken;

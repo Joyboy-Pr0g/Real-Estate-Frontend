@@ -9,6 +9,7 @@ import {
 } from '@/lib/auth/session';
 import { decodeJwtPayload } from '@/lib/auth/token-config';
 import { ApiError } from '@/lib/errors/api-error';
+import { getRequestClientIp } from '@/lib/security/client-ip';
 
 interface TokenResponse {
   token: string;
@@ -26,6 +27,7 @@ export async function POST() {
       method: 'POST',
       body: { refreshToken },
       cacheProfile: 'none',
+      clientIp: await getRequestClientIp(),
     });
 
     const tokens = response.data;

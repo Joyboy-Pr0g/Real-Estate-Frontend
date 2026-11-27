@@ -1,4 +1,3 @@
-import { Analytics } from '@vercel/analytics/next';
 import { SiteHeader } from '@/features/layout/components/SiteHeader';
 import { SiteFooter } from '@/features/layout/components/SiteFooter';
 import { SiteHeaderOverrideProvider } from '@/features/layout/context/site-header-override';
@@ -19,7 +18,6 @@ export default async function MarketplaceLayout({
     return (
       <>
         <MaintenancePage settings={settings} />
-        <Analytics />
       </>
     );
   }
@@ -28,7 +26,6 @@ export default async function MarketplaceLayout({
     return (
       <>
         <ComingSoonPage settings={settings} />
-        <Analytics />
       </>
     );
   }
@@ -45,7 +42,6 @@ export default async function MarketplaceLayout({
     return (
       <>
         {content}
-        <Analytics />
       </>
     );
   }
@@ -53,7 +49,6 @@ export default async function MarketplaceLayout({
   return (
     <>
       <MessagingSocketProvider enabled>{content}</MessagingSocketProvider>
-      <Analytics />
     </>
   );
 }

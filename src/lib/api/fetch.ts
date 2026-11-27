@@ -11,7 +11,10 @@ export interface FetchBackendOptions extends Omit<RequestInit, 'body'> {
   searchParams?: Record<string, string | number | boolean | undefined>;
   body?: BodyInit | Record<string, unknown> | null;
   tags?: string[];
+  clientIp?: string;
 }
+
+const FORWARDED_FOR_HEADER = 'X-Forwarded-For';
 
 function buildUrl(path: string, searchParams?: FetchBackendOptions['searchParams']): string {
   const base = path.startsWith('http') ? path : `${env.BACKEND_URL}${path}`;
@@ -42,6 +45,30 @@ function resolveFetchCache(
   return { next: { revalidate: seconds, tags } };
 }
 
+function isUncachedFetch(fetchCache: Pick<RequestInit, 'cache' | 'next'>): boolean {
+  return fetchCache.cache === 'no-store' && (fetchCache.next?.tags?.length ?? 0) === 0;
+}
+
+function buildHeaders(
+  headers: HeadersInit | undefined,
+  options: { isJsonBody: boolean; token?: string; clientIp?: string; uncached: boolean },
+): Headers {
+  const merged = new Headers({ Accept: 'application/json' });
+  if (options.isJsonBody) {
+    merged.set('Content-Type', 'application/json');
+  }
+  if (options.token) {
+    merged.set('Authorization', `Bearer ${options.token}`);
+  }
+  new Headers(headers).forEach((value, key) => merged.set(key, value));
+
+  merged.delete(FORWARDED_FOR_HEADER);
+  if (options.uncached && options.clientIp) {
+    merged.set(FORWARDED_FOR_HEADER, options.clientIp);
+  }
+  return merged;
+}
+
 function prepareBody(body: FetchBackendOptions['body']): BodyInit | null {
   if (body === undefined || body === null) return null;
   if (body instanceof FormData || body instanceof URLSearchParams || typeof body === 'string') {
@@ -54,7 +81,7 @@ export async function fetchBackend<T = unknown>(
   path: string,
   options: FetchBackendOptions = {},
 ): Promise<ApiResponse<T>> {
-  const { token, searchParams, headers, body, ...rest } = options;
+  const { token, searchParams, headers, body, clientIp, ...rest } = options;
   const preparedBody = prepareBody(body);
   const isJsonBody = preparedBody !== null && !(body instanceof FormData);
   const fetchCache = resolveFetchCache(options, options.tags ?? []);
@@ -65,12 +92,12 @@ export async function fetchBackend<T = unknown>(
       ...rest,
       ...fetchCache,
       body: preparedBody,
-      headers: {
-        Accept: 'application/json',
-        ...(isJsonBody ? { 'Content-Type': 'application/json' } : {}),
-        ...(token ? { Authorization: `Bearer ${token}` } : {}),
-        ...headers,
-      },
+      headers: buildHeaders(headers, {
+        isJsonBody,
+        token,
+        clientIp,
+        uncached: isUncachedFetch(fetchCache),
+      }),
     });
   } catch {
     throw new ApiError('الخدمة غير متاحة', 503);

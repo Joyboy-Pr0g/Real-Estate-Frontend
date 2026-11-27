@@ -18,6 +18,7 @@ import {
   REFRESH_TOKEN_MAX_AGE_SEC,
   isAccessTokenExpired,
 } from '@/lib/auth/token-config';
+import { getClientIp } from '@/lib/security/client-ip';
 
 const secureCookies = process.env.NODE_ENV === 'production';
 
@@ -58,12 +59,15 @@ async function refreshTokensIfNeeded(request: NextRequest): Promise<RefreshedTok
     return null;
   }
 
+  const clientIp = getClientIp(request);
+
   try {
     const response = await fetch(`${resolveBackendUrl()}/auth/refresh-token`, {
       method: 'POST',
       headers: {
         Accept: 'application/json',
         'Content-Type': 'application/json',
+        ...(clientIp ? { 'X-Forwarded-For': clientIp } : {}),
       },
       body: JSON.stringify({ refreshToken }),
     });
@@ -107,10 +111,13 @@ function clearSessionCookies(response: NextResponse): NextResponse {
 }
 
 function nextResponse(request: NextRequest, refreshed: RefreshedTokens | null): NextResponse {
-  const requestHeaders = new Headers(request.headers);
   if (refreshed) {
-    requestHeaders.set(REFRESHED_ACCESS_TOKEN_HEADER, refreshed.accessToken);
+    request.cookies.set(AUTH_COOKIE_NAME, refreshed.accessToken);
+    request.cookies.set(REFRESH_COOKIE_NAME, refreshed.refreshToken);
   }
+
+  const requestHeaders = new Headers(request.headers);
+  requestHeaders.delete(REFRESHED_ACCESS_TOKEN_HEADER);
 
   return applyRefreshedTokens(
     NextResponse.next({
