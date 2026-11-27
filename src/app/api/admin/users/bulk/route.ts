@@ -1,7 +1,12 @@
 import { NextRequest } from 'next/server';
-import { proxyToBackend } from '@/lib/api/route-handler';
+import { proxyMarketplaceMutation } from '@/lib/api/marketplace-mutation-route';
+import { revalidateUsersMarketplace } from '@/lib/marketplace/revalidate';
 import { backendPaths } from '@/lib/api/endpoints';
 
 export async function DELETE(request: NextRequest) {
-  return proxyToBackend(request, { path: backendPaths.auth.usersBulk, method: 'DELETE' });
+  return proxyMarketplaceMutation(
+    request,
+    { path: backendPaths.auth.usersBulk, method: 'DELETE' },
+    revalidateUsersMarketplace,
+  );
 }

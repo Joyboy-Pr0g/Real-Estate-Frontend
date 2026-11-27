@@ -3,6 +3,7 @@ import { serverFetch } from '@/lib/api/server';
 import { backendPaths } from '@/lib/api/endpoints';
 import { HomePropertyTypeSection } from '@/features/home/types/home-listings';
 import { HOME_LISTINGS_PER_TYPE } from '@/features/home/constants/home-listings';
+import { CACHE_TAGS } from '@/lib/cache/tags';
 
 async function fetchHomeListingsByPropertyType(
   limitPerType = HOME_LISTINGS_PER_TYPE,
@@ -11,6 +12,7 @@ async function fetchHomeListingsByPropertyType(
     backendPaths.propertyTypes.publicHomeListings,
     {
       cacheProfile: 'medium',
+      tags: [CACHE_TAGS.listingsSearch],
       searchParams: { limit_per_type: limitPerType },
     },
   );

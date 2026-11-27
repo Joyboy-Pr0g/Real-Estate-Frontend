@@ -2,6 +2,7 @@
 
 import type { ReactNode } from 'react';
 import { MessageListingButton } from '@/features/listings/components/detail/MessageListingButton';
+import { useListingViewer } from '@/features/listings/components/detail/ListingViewerProvider';
 import { ListingPriceType, ListingPriceTypeEnum, YerVariant } from '@/features/listings/types/listing';
 import { formatPriceYER } from '@/lib/utils/currency';
 import { useLocale } from '@/lib/i18n/locale-provider';
@@ -13,8 +14,6 @@ interface ListingContactAsideProps {
   priceType: ListingPriceType;
   listingId: string;
   listingSlug: string;
-  isAuthenticated: boolean;
-  canStartMessage: boolean;
   children: ReactNode;
   className?: string;
 }
@@ -25,12 +24,11 @@ export function ListingContactAside({
   priceType,
   listingId,
   listingSlug,
-  isAuthenticated,
-  canStartMessage,
   children,
   className,
 }: ListingContactAsideProps) {
   const { t } = useLocale();
+  const { isAuthenticated, canStartMessage } = useListingViewer();
   const formattedPrice = formatPriceYER(price, yerVariant);
 
   return (

@@ -7,6 +7,10 @@ import { Container } from '@/components/ui/container';
 import { useSiteHeaderOverride } from '@/features/layout/context/site-header-override';
 import { SaveButton } from '@/features/listings/components/detail/SaveButton';
 import { MessageListingButton } from '@/features/listings/components/detail/MessageListingButton';
+import {
+  useListingViewer,
+  type ListingViewerState,
+} from '@/features/listings/components/detail/ListingViewerProvider';
 import { YerVariant } from '@/features/listings/types/listing';
 import { formatPrice } from '@/lib/utils/currency';
 import { cn } from '@/lib/utils/cn';
@@ -21,9 +25,6 @@ interface StickyListingHeaderProps {
   title: string;
   price: string;
   yerVariant: YerVariant;
-  isAuthenticated: boolean;
-  canStartMessage: boolean;
-  initialSaved?: boolean;
 }
 
 function CondensedBar({
@@ -35,8 +36,8 @@ function CondensedBar({
   yerVariant,
   isAuthenticated,
   canStartMessage,
-  initialSaved = false,
-}: StickyListingHeaderProps) {
+  isSaved,
+}: StickyListingHeaderProps & ListingViewerState) {
   const formattedPrice = formatPrice(price, yerVariant);
 
   return (
@@ -66,7 +67,7 @@ function CondensedBar({
               listingId={listingId}
               listingSlug={listingSlug}
               isAuthenticated={isAuthenticated}
-              initialSaved={initialSaved}
+              initialSaved={isSaved}
             />
             <MessageListingButton
               listingId={listingId}
@@ -84,6 +85,7 @@ function CondensedBar({
 
 export function StickyListingHeader(props: StickyListingHeaderProps) {
   const { setOverride } = useSiteHeaderOverride();
+  const viewer = useListingViewer();
   const sentinelRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -93,7 +95,7 @@ export function StickyListingHeader(props: StickyListingHeaderProps) {
     const observer = new IntersectionObserver(
       ([entry]) => {
         const scrolledPast = entry.boundingClientRect.top < STICKY_BAR_OFFSET_PX;
-        setOverride(<CondensedBar {...props} />, scrolledPast);
+        setOverride(<CondensedBar {...props} {...viewer} />, scrolledPast);
       },
       { rootMargin: `-${STICKY_BAR_OFFSET_PX}px 0px 0px 0px` },
     );
@@ -108,8 +110,9 @@ export function StickyListingHeader(props: StickyListingHeaderProps) {
     props.title,
     props.price,
     props.yerVariant,
-    props.isAuthenticated,
-    props.canStartMessage,
+    viewer.isAuthenticated,
+    viewer.canStartMessage,
+    viewer.isSaved,
     props.listingId,
     props.listingSlug,
   ]);

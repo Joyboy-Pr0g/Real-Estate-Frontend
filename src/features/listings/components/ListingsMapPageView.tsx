@@ -34,7 +34,6 @@ interface ListingsMapPageViewProps {
   nextCursor: string | null;
   hasMore: boolean;
   initialSearchKey: string;
-  isAuthenticated: boolean;
 }
 
 export function ListingsMapPageView({
@@ -43,7 +42,6 @@ export function ListingsMapPageView({
   nextCursor,
   hasMore,
   initialSearchKey,
-  isAuthenticated,
 }: ListingsMapPageViewProps) {
   const { t } = useLocale();
   const searchParams = useListingsSearchParams();
@@ -141,7 +139,6 @@ export function ListingsMapPageView({
             <div className="shrink-0 border-b border-gray-100 px-2 py-2 md:px-3">
               <ListingsFilterBar
                 catalog={catalog}
-                isAuthenticated={isAuthenticated}
                 basePath={MAP_PATH}
                 className="shadow-none ring-0"
               />

@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { proxyToBackend } from '@/lib/api/route-handler';
+import { proxyMarketplaceMutation } from '@/lib/api/marketplace-mutation-route';
+import { revalidatePublicFeatures } from '@/lib/marketplace/revalidate';
 import { backendPaths } from '@/lib/api/endpoints';
 import { mainFeatureUpdateBodySchema } from '@/features/admin/schemas/features-schemas';
 
@@ -19,13 +20,14 @@ export async function PUT(request: NextRequest, context: RouteContext) {
       );
     }
 
-    return proxyToBackend(
+    return proxyMarketplaceMutation(
       new NextRequest(request.url, {
         method: 'PUT',
         headers: request.headers,
         body: JSON.stringify(parsed.data),
       }),
       { path: backendPaths.features.adminById(id), method: 'PUT' },
+      revalidatePublicFeatures,
     );
   } catch {
     return NextResponse.json({ success: false, message: 'Invalid request body' }, { status: 400 });
@@ -34,8 +36,12 @@ export async function PUT(request: NextRequest, context: RouteContext) {
 
 export async function DELETE(request: NextRequest, context: RouteContext) {
   const { id } = await context.params;
-  return proxyToBackend(request, {
-    path: backendPaths.features.adminById(id),
-    method: 'DELETE',
-  });
+  return proxyMarketplaceMutation(
+    request,
+    {
+      path: backendPaths.features.adminById(id),
+      method: 'DELETE',
+    },
+    revalidatePublicFeatures,
+  );
 }

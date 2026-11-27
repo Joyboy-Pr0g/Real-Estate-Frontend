@@ -4,24 +4,22 @@ import { useState } from 'react';
 import { Printer, Share2 } from 'lucide-react';
 import { SaveButton } from '@/features/listings/components/detail/SaveButton';
 import { ReportListingButton } from '@/features/listings/components/detail/ReportListingButton';
+import { useListingViewer } from '@/features/listings/components/detail/ListingViewerProvider';
 import { useLocale } from '@/lib/i18n/locale-provider';
 
 interface ListingTitleBarProps {
   listingId: string;
   listingSlug: string;
   title: string;
-  isAuthenticated: boolean;
-  initialSaved?: boolean;
 }
 
 export function ListingTitleBar({
   listingId,
   listingSlug,
   title,
-  isAuthenticated,
-  initialSaved = false,
 }: ListingTitleBarProps) {
   const { t } = useLocale();
+  const { isAuthenticated, isSaved } = useListingViewer();
   const [copied, setCopied] = useState(false);
 
   const handleShare = async () => {
@@ -53,7 +51,7 @@ export function ListingTitleBar({
           listingId={listingId}
           listingSlug={listingSlug}
           isAuthenticated={isAuthenticated}
-          initialSaved={initialSaved}
+          initialSaved={isSaved}
         />
         <button
           type="button"

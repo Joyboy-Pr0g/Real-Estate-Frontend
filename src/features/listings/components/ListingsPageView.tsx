@@ -12,7 +12,6 @@ interface ListingsPageViewProps {
   nextCursor: string | null;
   hasMore: boolean;
   initialSearchKey: string;
-  isAuthenticated?: boolean;
 }
 
 export function ListingsPageView({
@@ -21,11 +20,10 @@ export function ListingsPageView({
   nextCursor,
   hasMore,
   initialSearchKey,
-  isAuthenticated = false,
 }: ListingsPageViewProps) {
   return (
     <div className="space-y-8">
-      <ListingsFilterBar catalog={catalog} isAuthenticated={isAuthenticated} />
+      <ListingsFilterBar catalog={catalog} />
 
       <ListingsInfiniteGrid
         initialListings={listings}

@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { proxyToBackend } from '@/lib/api/route-handler';
+import { proxyMarketplaceMutation } from '@/lib/api/marketplace-mutation-route';
+import { revalidatePublicFeatures } from '@/lib/marketplace/revalidate';
 import { backendPaths } from '@/lib/api/endpoints';
 import { subFeatureBulkDeleteSchema } from '@/features/admin/schemas/features-schemas';
 
@@ -14,13 +15,14 @@ export async function DELETE(request: NextRequest) {
       );
     }
 
-    return proxyToBackend(
+    return proxyMarketplaceMutation(
       new NextRequest(request.url, {
         method: 'DELETE',
         headers: request.headers,
         body: JSON.stringify(parsed.data),
       }),
       { path: backendPaths.features.adminSubBulkDelete, method: 'DELETE' },
+      revalidatePublicFeatures,
     );
   } catch {
     return NextResponse.json({ success: false, message: 'Invalid request body' }, { status: 400 });

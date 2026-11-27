@@ -1,4 +1,6 @@
 import type { MetadataRoute } from 'next';
+import { unstable_cache } from 'next/cache';
+import { connection } from 'next/server';
 import { getWebsiteSettingsServer } from '@/features/website-settings/services/website-settings-server';
 import { listingService } from '@/features/listings/services/listing-service';
 import { publicOfficeService } from '@/features/office/services/public-office-service';
@@ -6,6 +8,7 @@ import { getOfficePublicPath } from '@/features/office/lib/office-url';
 import { getSiteUrl } from '@/lib/seo/metadata';
 import { FALLBACK_WEBSITE_SETTINGS } from '@/lib/website-settings/defaults';
 import { LEGAL_PAGE_PATHS } from '@/lib/seo/indexing';
+import { CACHE_TAGS } from '@/lib/cache/tags';
 
 type ChangeFrequency = NonNullable<MetadataRoute.Sitemap[number]['changeFrequency']>;
 
@@ -39,10 +42,9 @@ function toAbsoluteUrl(siteUrl: string, path: string): string {
   return `${siteUrl}${path.startsWith('/') ? path : `/${path}`}`;
 }
 
-function toLastModified(value?: string | null): Date {
-  if (!value) return new Date();
-  const parsed = new Date(value);
-  return Number.isNaN(parsed.getTime()) ? new Date() : parsed;
+function toLastModified(value?: string | null): string {
+  const parsed = value ? new Date(value) : new Date();
+  return Number.isNaN(parsed.getTime()) ? new Date().toISOString() : parsed.toISOString();
 }
 
 async function getAllListingEntries(siteUrl: string): Promise<MetadataRoute.Sitemap> {
@@ -50,24 +52,20 @@ async function getAllListingEntries(siteUrl: string): Promise<MetadataRoute.Site
   let cursor: string | undefined;
   let hasMore = true;
 
-  try {
-    while (hasMore) {
-      const page = await listingService.search({ limit: 100, cursor });
-      for (const listing of page.items) {
-        if (!listing.slug) continue;
-        entries.push({
-          url: toAbsoluteUrl(siteUrl, `/listings/${listing.slug}`),
-          lastModified: toLastModified(listing.published_at || listing.created_at),
-          changeFrequency: 'weekly',
-          priority: 0.7,
-        });
-      }
-      hasMore = page.has_more;
-      cursor = page.next_cursor ?? undefined;
-      if (!cursor) break;
+  while (hasMore) {
+    const page = await listingService.search({ limit: 100, cursor });
+    for (const listing of page.items) {
+      if (!listing.slug) continue;
+      entries.push({
+        url: toAbsoluteUrl(siteUrl, `/listings/${listing.slug}`),
+        lastModified: toLastModified(listing.published_at || listing.created_at),
+        changeFrequency: 'weekly',
+        priority: 0.7,
+      });
     }
-  } catch {
-    // Backend unavailable — static routes still included.
+    hasMore = page.has_more;
+    cursor = page.next_cursor ?? undefined;
+    if (!cursor) break;
   }
 
   return entries;
@@ -79,31 +77,41 @@ async function getOfficeEntries(siteUrl: string, indexOfficeProfiles: boolean): 
   const entries: MetadataRoute.Sitemap = [];
   let cursor: string | undefined;
   let hasMore = true;
+  const lastModified = new Date().toISOString();
 
-  try {
-    while (hasMore) {
-      const page = await publicOfficeService.search({ limit: 100, cursor });
-      for (const office of page.items) {
-        if (!office.name) continue;
-        entries.push({
-          url: toAbsoluteUrl(siteUrl, getOfficePublicPath(office.name)),
-          lastModified: new Date(),
-          changeFrequency: 'weekly',
-          priority: 0.65,
-        });
-      }
-      hasMore = page.has_more;
-      cursor = page.next_cursor ?? undefined;
-      if (!cursor) break;
+  while (hasMore) {
+    const page = await publicOfficeService.search({ limit: 100, cursor });
+    for (const office of page.items) {
+      if (!office.name) continue;
+      entries.push({
+        url: toAbsoluteUrl(siteUrl, getOfficePublicPath(office.name)),
+        lastModified,
+        changeFrequency: 'weekly',
+        priority: 0.65,
+      });
     }
-  } catch {
-    return [];
+    hasMore = page.has_more;
+    cursor = page.next_cursor ?? undefined;
+    if (!cursor) break;
   }
 
   return entries;
 }
 
+const getDynamicSitemapEntries = unstable_cache(
+  async (siteUrl: string, indexOfficeProfiles: boolean): Promise<MetadataRoute.Sitemap> => {
+    const [listingEntries, officeEntries] = await Promise.all([
+      getAllListingEntries(siteUrl),
+      getOfficeEntries(siteUrl, indexOfficeProfiles),
+    ]);
+    return [...listingEntries, ...officeEntries];
+  },
+  ['sitemap-entries'],
+  { revalidate: 3600, tags: [CACHE_TAGS.sitemap] },
+);
+
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
+  await connection();
   const settings = await getWebsiteSettingsServer();
   const siteUrl = await resolveSiteUrl();
   const now = new Date();
@@ -115,10 +123,9 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     priority: route.priority,
   }));
 
-  const [listingEntries, officeEntries] = await Promise.all([
-    getAllListingEntries(siteUrl),
-    getOfficeEntries(siteUrl, settings.index_office_profiles),
-  ]);
+  const dynamicEntries = await getDynamicSitemapEntries(siteUrl, settings.index_office_profiles).catch(
+    () => [],
+  );
 
-  return [...staticEntries, ...listingEntries, ...officeEntries];
+  return [...staticEntries, ...dynamicEntries];
 }

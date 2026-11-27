@@ -1,5 +1,6 @@
 import { NextRequest } from 'next/server';
-import { proxyToBackend } from '@/lib/api/route-handler';
+import { proxyMarketplaceMutation } from '@/lib/api/marketplace-mutation-route';
+import { revalidateAllListingsMarketplace } from '@/lib/marketplace/revalidate';
 import { backendPaths } from '@/lib/api/endpoints';
 
 export async function PATCH(
@@ -7,8 +8,12 @@ export async function PATCH(
   { params }: { params: Promise<{ reportId: string }> },
 ) {
   const { reportId } = await params;
-  return proxyToBackend(request, {
-    path: backendPaths.listings.reportById(reportId),
-    method: 'PATCH',
-  });
+  return proxyMarketplaceMutation(
+    request,
+    {
+      path: backendPaths.listings.reportById(reportId),
+      method: 'PATCH',
+    },
+    revalidateAllListingsMarketplace,
+  );
 }

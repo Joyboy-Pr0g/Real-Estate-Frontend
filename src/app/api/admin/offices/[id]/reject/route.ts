@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { proxyToBackend } from '@/lib/api/route-handler';
+import { proxyMarketplaceMutation } from '@/lib/api/marketplace-mutation-route';
+import { revalidateOfficesMarketplace } from '@/lib/marketplace/revalidate';
 import { backendPaths } from '@/lib/api/endpoints';
 import { officeRejectBodySchema } from '@/features/admin/schemas/moderation-schemas';
 
@@ -15,13 +16,14 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
       );
     }
 
-    return proxyToBackend(
+    return proxyMarketplaceMutation(
       new NextRequest(request.url, {
         method: 'PATCH',
         headers: request.headers,
         body: JSON.stringify(parsed.data),
       }),
       { path: backendPaths.offices.reject(id), method: 'PATCH' },
+      revalidateOfficesMarketplace,
     );
   } catch {
     return NextResponse.json({ success: false, message: 'Invalid request body' }, { status: 400 });

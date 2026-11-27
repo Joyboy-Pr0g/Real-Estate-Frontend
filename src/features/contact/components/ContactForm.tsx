@@ -8,12 +8,24 @@ import { useLocale } from '@/lib/i18n/locale-provider';
 import { getErrorMessage } from '@/lib/errors/api-error';
 import { toast } from '@/components/ui/toaster';
 import type { AuthUser } from '@/features/auth/types/user';
+import { useStorefrontSession } from '@/features/storefront/providers/StorefrontSessionProvider';
 
-export function ContactForm({ user }: { user: AuthUser | null }) {
+function buildFullName(user: AuthUser): string {
+  return user.f_name && user.l_name ? `${user.f_name} ${user.l_name}` : '';
+}
+
+export function ContactForm() {
   const { t } = useLocale();
-  const full_name = (user?.f_name && user?.l_name) ? user.f_name + ' ' + user.l_name : '';
-  const [fullName, setFullName] = useState(full_name);
-  const [email, setEmail] = useState(user?.email || '');
+  const { user } = useStorefrontSession();
+  const [fullName, setFullName] = useState('');
+  const [email, setEmail] = useState('');
+  const [prefilledUserId, setPrefilledUserId] = useState<string | null>(null);
+
+  if (user && prefilledUserId !== user.id) {
+    setPrefilledUserId(user.id);
+    if (!fullName) setFullName(buildFullName(user));
+    if (!email) setEmail(user.email || '');
+  }
   const [subject, setSubject] = useState('');
   const [message, setMessage] = useState('');
   const [submitting, setSubmitting] = useState(false);

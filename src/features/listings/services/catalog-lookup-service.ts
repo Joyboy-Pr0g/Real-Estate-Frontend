@@ -3,10 +3,11 @@ import { backendPaths } from '@/lib/api/endpoints';
 import { PublicCity, PublicPropertyType, PublicTransactionType } from '@/features/catalog/types/catalog';
 import { PublicNeighborhood } from '@/features/catalog/types/neighborhood';
 import { PublicPropertySubtype } from '@/features/catalog/types/property-subtype';
+import { CACHE_TAGS } from '@/lib/cache/tags';
 
 async function fetchLookup<T>(path: string): Promise<T | null> {
   try {
-    const res = await serverFetch<T>(path, { cacheProfile: 'long' });
+    const res = await serverFetch<T>(path, { cacheProfile: 'long', tags: [CACHE_TAGS.publicCatalog] });
     return res.data ?? null;
   } catch {
     return null;

@@ -20,6 +20,12 @@ export function SaveButton({ listingId, listingSlug, isAuthenticated, initialSav
   const { t } = useLocale();
   const router = useRouter();
   const [saved, setSaved] = useState(initialSaved);
+  const [syncedInitialSaved, setSyncedInitialSaved] = useState(initialSaved);
+
+  if (syncedInitialSaved !== initialSaved) {
+    setSyncedInitialSaved(initialSaved);
+    setSaved(initialSaved);
+  }
   const [pending, setPending] = useState(false);
 
   const toggleSave = async () => {

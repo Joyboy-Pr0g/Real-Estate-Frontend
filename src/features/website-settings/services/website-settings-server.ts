@@ -6,12 +6,13 @@ import {
   FALLBACK_WEBSITE_SETTINGS,
   withWebsiteSettingsDefaults,
 } from '@/lib/website-settings/defaults';
+import { CACHE_TAGS } from '@/lib/cache/tags';
 
 export const getWebsiteSettingsServer = cache(async (): Promise<WebsiteSettings> => {
   try {
     const res = await fetchBackend<WebsiteSettings>(backendPaths.websiteSettings.public, {
       cacheProfile: 'static',
-      tags: ['website-settings'],
+      tags: [CACHE_TAGS.websiteSettings],
     });
     if (!res.data) return FALLBACK_WEBSITE_SETTINGS;
     return withWebsiteSettingsDefaults(res.data);

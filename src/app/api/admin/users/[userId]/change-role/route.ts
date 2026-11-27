@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { proxyToBackend } from '@/lib/api/route-handler';
+import { proxyMarketplaceMutation } from '@/lib/api/marketplace-mutation-route';
+import { revalidateUsersMarketplace } from '@/lib/marketplace/revalidate';
 import { backendPaths } from '@/lib/api/endpoints';
 import { sendRoleBodySchema } from '@/features/auth/schemas/auth-schemas';
 
@@ -19,13 +20,14 @@ export async function PATCH(request: NextRequest, context: RouteContext) {
       );
     }
 
-    return proxyToBackend(
+    return proxyMarketplaceMutation(
       new NextRequest(request.url, {
         method: 'PATCH',
         headers: request.headers,
         body: JSON.stringify(parsed.data),
       }),
       { path: backendPaths.auth.changeUserRole(userId), method: 'PATCH' },
+      revalidateUsersMarketplace,
     );
   } catch {
     return NextResponse.json({ success: false, message: 'Invalid request body' }, { status: 400 });

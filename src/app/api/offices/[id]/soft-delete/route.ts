@@ -1,5 +1,6 @@
 import { NextRequest } from 'next/server';
-import { proxyToBackend } from '@/lib/api/route-handler';
+import { proxyMarketplaceMutation } from '@/lib/api/marketplace-mutation-route';
+import { revalidateOfficesMarketplace } from '@/lib/marketplace/revalidate';
 import { backendPaths } from '@/lib/api/endpoints';
 
 interface RouteContext {
@@ -8,8 +9,12 @@ interface RouteContext {
 
 export async function PATCH(request: NextRequest, context: RouteContext) {
   const { id } = await context.params;
-  return proxyToBackend(request, {
-    path: backendPaths.offices.softDelete(id),
-    method: 'PATCH',
-  });
+  return proxyMarketplaceMutation(
+    request,
+    {
+      path: backendPaths.offices.softDelete(id),
+      method: 'PATCH',
+    },
+    revalidateOfficesMarketplace,
+  );
 }

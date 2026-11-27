@@ -3,13 +3,14 @@
 import { useEffect } from 'react';
 import { bffPaths } from '@/lib/api/endpoints';
 import { clientFetch } from '@/lib/api/client';
+import { useListingViewer } from '@/features/listings/components/detail/ListingViewerProvider';
 
 interface ViewTrackerProps {
   listingId: string;
-  isAuthenticated: boolean;
 }
 
-export function ViewTracker({ listingId, isAuthenticated }: ViewTrackerProps) {
+export function ViewTracker({ listingId }: ViewTrackerProps) {
+  const { isAuthenticated } = useListingViewer();
   useEffect(() => {
     if (!isAuthenticated) return;
     clientFetch(bffPaths.listings.view(listingId), { method: 'POST' }).catch(() => {});

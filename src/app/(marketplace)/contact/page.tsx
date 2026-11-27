@@ -6,7 +6,6 @@ import { getPageMetadataFromSettings } from '@/lib/seo/metadata';
 import { getServerTranslations } from '@/lib/i18n/server';
 import { getWebsiteSettingsServer } from '@/features/website-settings/services/website-settings-server';
 import { withWebsiteSettingsDefaults } from '@/lib/website-settings/defaults';
-import { getSession } from '@/lib/auth/session';
 import { ContactHeader } from '@/features/contact/components/ContactHeader';
 import { ContactSchedule } from '@/features/contact/components/ContactSchedule';
 
@@ -24,7 +23,6 @@ export async function generateMetadata(): Promise<Metadata> {
 
 export default async function ContactPage() {
   const settings = withWebsiteSettingsDefaults(await getWebsiteSettingsServer());
-  const user = (await getSession())!;
 
   return (
     <div className="py-10 lg:py-14">
@@ -35,7 +33,7 @@ export default async function ContactPage() {
           <ContactInfoCards settings={settings} />
 
           <div className="grid gap-8 lg:grid-cols-[1.1fr_0.9fr] lg:items-start">
-            <ContactForm user={user} />
+            <ContactForm />
             <ContactSchedule />
           </div>
         </div>

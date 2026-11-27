@@ -11,12 +11,13 @@ import {
 import { PublicNeighborhood } from '../types/neighborhood';
 import { normalizePublicNeighborhoods } from '../lib/normalize-neighborhood';
 import { PublicPropertySubtype } from '../types/property-subtype';
+import { CACHE_TAGS } from '@/lib/cache/tags';
 
 export const catalogService = {
   async getCities(): Promise<PublicCity[]> {
     const res = await serverFetch<PublicCity[]>(backendPaths.cities.public, {
       cacheProfile: 'static',
-      tags: ['public-catalog'],
+      tags: [CACHE_TAGS.publicCatalog],
     });
     return res.data ?? [];
   },
@@ -24,7 +25,7 @@ export const catalogService = {
   async getPropertyTypes(): Promise<PublicPropertyType[]> {
     const res = await serverFetch<PublicPropertyType[]>(backendPaths.propertyTypes.public, {
       cacheProfile: 'static',
-      tags: ['public-catalog'],
+      tags: [CACHE_TAGS.publicCatalog],
     });
     return res.data ?? [];
   },
@@ -32,7 +33,7 @@ export const catalogService = {
   async getTransactionTypes(): Promise<PublicTransactionType[]> {
     const res = await serverFetch<PublicTransactionType[]>(backendPaths.transactionTypes.public, {
       cacheProfile: 'static',
-      tags: ['public-catalog'],
+      tags: [CACHE_TAGS.publicCatalog],
     });
     return res.data ?? [];
   },
@@ -40,7 +41,7 @@ export const catalogService = {
   async getNeighborhoodsByCity(cityId: string): Promise<PublicNeighborhood[]> {
     const res = await serverFetch<PublicNeighborhood[]>(backendPaths.neighborhoods.public, {
       cacheProfile: 'static',
-      tags: ['public-catalog'],
+      tags: [CACHE_TAGS.publicCatalog],
       searchParams: { city_id: cityId, limit: 100 },
     });
     return normalizePublicNeighborhoods((res.data ?? []) as Array<PublicNeighborhood & Record<string, unknown>>);
@@ -49,7 +50,7 @@ export const catalogService = {
   async getPropertySubtypes(propertyTypeId: string): Promise<PublicPropertySubtype[]> {
     const res = await serverFetch<PublicPropertySubtype[]>(
       backendPaths.propertySubtypes.byPropertyType(propertyTypeId),
-      { cacheProfile: 'static', tags: ['public-catalog'] },
+      { cacheProfile: 'static', tags: [CACHE_TAGS.publicCatalog] },
     );
     return res.data ?? [];
   },
@@ -58,7 +59,7 @@ export const catalogService = {
     try {
       const res = await serverFetch<PublicPropertySubtype>(backendPaths.propertySubtypes.bySlug(slug), {
         cacheProfile: 'static',
-        tags: ['public-catalog'],
+        tags: [CACHE_TAGS.publicCatalog],
       });
       return res.data ?? null;
     } catch (error) {

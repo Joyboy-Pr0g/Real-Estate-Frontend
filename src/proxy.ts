@@ -38,9 +38,23 @@ const refreshCookieOptions = {
   maxAge: REFRESH_TOKEN_MAX_AGE_SEC,
 };
 
+const PRIVATE_CACHE_CONTROL = 'private, no-store';
+
 interface RefreshedTokens {
   accessToken: string;
   refreshToken: string;
+}
+
+type RefreshResult =
+  | { status: 'skipped' }
+  | { status: 'refreshed'; tokens: RefreshedTokens }
+  | { status: 'rejected' };
+
+const SKIPPED_REFRESH: RefreshResult = { status: 'skipped' };
+const REJECTED_REFRESH: RefreshResult = { status: 'rejected' };
+
+function isRejectedRefreshStatus(status: number): boolean {
+  return status >= 400 && status < 500 && status !== 429;
 }
 
 function resolveBackendUrl(): string {
@@ -48,15 +62,15 @@ function resolveBackendUrl(): string {
   return raw.replace(/\/$/, '');
 }
 
-async function refreshTokensIfNeeded(request: NextRequest): Promise<RefreshedTokens | null> {
+async function refreshTokensIfNeeded(request: NextRequest): Promise<RefreshResult> {
   const refreshToken = request.cookies.get(REFRESH_COOKIE_NAME)?.value;
   if (!refreshToken) {
-    return null;
+    return SKIPPED_REFRESH;
   }
 
   const accessToken = request.cookies.get(AUTH_COOKIE_NAME)?.value;
   if (accessToken && !isAccessTokenExpired(accessToken)) {
-    return null;
+    return SKIPPED_REFRESH;
   }
 
   const clientIp = getClientIp(request);
@@ -73,7 +87,7 @@ async function refreshTokensIfNeeded(request: NextRequest): Promise<RefreshedTok
     });
 
     if (!response.ok) {
-      return null;
+      return isRejectedRefreshStatus(response.status) ? REJECTED_REFRESH : SKIPPED_REFRESH;
     }
 
     const json = (await response.json()) as {
@@ -81,25 +95,23 @@ async function refreshTokensIfNeeded(request: NextRequest): Promise<RefreshedTok
     };
 
     if (!json.data?.token || !json.data.refreshToken) {
-      return null;
+      return REJECTED_REFRESH;
     }
 
     return {
-      accessToken: json.data.token,
-      refreshToken: json.data.refreshToken,
+      status: 'refreshed',
+      tokens: {
+        accessToken: json.data.token,
+        refreshToken: json.data.refreshToken,
+      },
     };
   } catch {
-    return null;
+    return SKIPPED_REFRESH;
   }
 }
 
-function applyRefreshedTokens(response: NextResponse, refreshed: RefreshedTokens | null): NextResponse {
-  if (!refreshed) {
-    return response;
-  }
-
-  response.cookies.set(AUTH_COOKIE_NAME, refreshed.accessToken, authCookieOptions);
-  response.cookies.set(REFRESH_COOKIE_NAME, refreshed.refreshToken, refreshCookieOptions);
+function markPrivate(response: NextResponse): NextResponse {
+  response.headers.set('Cache-Control', PRIVATE_CACHE_CONTROL);
   return response;
 }
 
@@ -107,29 +119,47 @@ function clearSessionCookies(response: NextResponse): NextResponse {
   response.cookies.delete(AUTH_COOKIE_NAME);
   response.cookies.delete(REFRESH_COOKIE_NAME);
   response.cookies.delete(ADMIN_PERMISSIONS_COOKIE);
+  return markPrivate(response);
+}
+
+function applyRefreshResult(response: NextResponse, refresh: RefreshResult): NextResponse {
+  if (refresh.status === 'rejected') {
+    return clearSessionCookies(response);
+  }
+
+  if (refresh.status === 'refreshed') {
+    response.cookies.set(AUTH_COOKIE_NAME, refresh.tokens.accessToken, authCookieOptions);
+    response.cookies.set(REFRESH_COOKIE_NAME, refresh.tokens.refreshToken, refreshCookieOptions);
+    return markPrivate(response);
+  }
+
   return response;
 }
 
-function nextResponse(request: NextRequest, refreshed: RefreshedTokens | null): NextResponse {
-  if (refreshed) {
-    request.cookies.set(AUTH_COOKIE_NAME, refreshed.accessToken);
-    request.cookies.set(REFRESH_COOKIE_NAME, refreshed.refreshToken);
+function nextResponse(request: NextRequest, refresh: RefreshResult): NextResponse {
+  if (refresh.status === 'refreshed') {
+    request.cookies.set(AUTH_COOKIE_NAME, refresh.tokens.accessToken);
+    request.cookies.set(REFRESH_COOKIE_NAME, refresh.tokens.refreshToken);
+  }
+
+  if (refresh.status === 'rejected') {
+    request.cookies.delete([AUTH_COOKIE_NAME, REFRESH_COOKIE_NAME, ADMIN_PERMISSIONS_COOKIE]);
   }
 
   const requestHeaders = new Headers(request.headers);
   requestHeaders.delete(REFRESHED_ACCESS_TOKEN_HEADER);
 
-  return applyRefreshedTokens(
+  return applyRefreshResult(
     NextResponse.next({
       request: { headers: requestHeaders },
     }),
-    refreshed,
+    refresh,
   );
 }
 
 function redirectResponse(
   url: URL,
-  refreshed: RefreshedTokens | null,
+  refresh: RefreshResult,
   options?: { clearSession?: boolean },
 ): NextResponse {
   let response = NextResponse.redirect(url);
@@ -138,16 +168,20 @@ function redirectResponse(
     response = clearSessionCookies(response);
   }
 
-  return applyRefreshedTokens(response, refreshed);
+  return applyRefreshResult(response, refresh);
 }
 
 export async function proxy(request: NextRequest) {
-  const refreshed = await refreshTokensIfNeeded(request);
+  const refresh = await refreshTokensIfNeeded(request);
+  const refreshed = refresh.status === 'refreshed' ? refresh.tokens : null;
+  const sessionRejected = refresh.status === 'rejected';
   const { pathname } = request.nextUrl;
-  const accessToken =
-    refreshed?.accessToken ?? request.cookies.get(AUTH_COOKIE_NAME)?.value;
-  const refreshToken =
-    refreshed?.refreshToken ?? request.cookies.get(REFRESH_COOKIE_NAME)?.value;
+  const accessToken = sessionRejected
+    ? undefined
+    : refreshed?.accessToken ?? request.cookies.get(AUTH_COOKIE_NAME)?.value;
+  const refreshToken = sessionRejected
+    ? undefined
+    : refreshed?.refreshToken ?? request.cookies.get(REFRESH_COOKIE_NAME)?.value;
   const role = accessToken ? decodeTokenRole(accessToken) : null;
   const hasRefreshSession = Boolean(refreshToken);
 
@@ -162,55 +196,55 @@ export async function proxy(request: NextRequest) {
   if (isAuthRoute && (accessToken || hasRefreshSession)) {
     if (role) {
       if (isAdminPanelRole(role) && pathname !== '/verify-email') {
-        return redirectResponse(new URL('/admin', request.url), refreshed);
+        return redirectResponse(new URL('/admin', request.url), refresh);
       }
       if ((pathname === '/register' || pathname === '/login') && !isAdminPanelRole(role)) {
-        return redirectResponse(new URL('/', request.url), refreshed);
+        return redirectResponse(new URL('/', request.url), refresh);
       }
     } else if (!hasRefreshSession) {
-      return clearSessionCookies(nextResponse(request, refreshed));
+      return clearSessionCookies(nextResponse(request, refresh));
     }
   }
 
   if (isAuthRoute) {
-    return nextResponse(request, refreshed);
+    return nextResponse(request, refresh);
   }
 
   if (!isAdminRoute && !isDashboardRoute) {
-    return nextResponse(request, refreshed);
+    return nextResponse(request, refresh);
   }
 
   if (!accessToken && !hasRefreshSession) {
     const url = new URL('/login', request.url);
     url.searchParams.set('redirect', pathname);
-    return redirectResponse(url, refreshed);
+    return redirectResponse(url, refresh);
   }
 
   if (!role && !hasRefreshSession) {
     const url = new URL('/login', request.url);
     url.searchParams.set('redirect', pathname);
-    return redirectResponse(url, refreshed, { clearSession: true });
+    return redirectResponse(url, refresh, { clearSession: true });
   }
 
   if (!role && hasRefreshSession) {
-    return nextResponse(request, refreshed);
+    return nextResponse(request, refresh);
   }
 
   if (!role) {
     const url = new URL('/login', request.url);
     url.searchParams.set('redirect', pathname);
-    return redirectResponse(url, refreshed, { clearSession: true });
+    return redirectResponse(url, refresh, { clearSession: true });
   }
 
   if (isAdminRoute && !isAdminPanelRole(role)) {
-    return redirectResponse(new URL('/', request.url), refreshed);
+    return redirectResponse(new URL('/', request.url), refresh);
   }
 
   if (isAdminRoute && isSubAdminRole(role)) {
     if (pathname.startsWith('/admin/permissions')) {
       const url = new URL('/admin', request.url);
       url.searchParams.set('access_denied', '1');
-      return redirectResponse(url, refreshed);
+      return redirectResponse(url, refresh);
     }
 
     const permissions = decodePermissionsCookie(
@@ -219,25 +253,25 @@ export async function proxy(request: NextRequest) {
 
     if (!permissions || permissions.length === 0) {
       if (pathname === '/admin') {
-        return nextResponse(request, refreshed);
+        return nextResponse(request, refresh);
       }
       const url = new URL('/admin', request.url);
       url.searchParams.set('access_denied', '1');
-      return redirectResponse(url, refreshed);
+      return redirectResponse(url, refresh);
     }
 
     if (!canAccessAdminPath(pathname, permissions)) {
       const url = new URL('/admin', request.url);
       url.searchParams.set('access_denied', '1');
-      return redirectResponse(url, refreshed);
+      return redirectResponse(url, refresh);
     }
   }
 
   if (isDashboardRoute && isAdminPanelRole(role)) {
-    return redirectResponse(new URL('/admin', request.url), refreshed);
+    return redirectResponse(new URL('/admin', request.url), refresh);
   }
 
-  return nextResponse(request, refreshed);
+  return nextResponse(request, refresh);
 }
 
 export const config = {

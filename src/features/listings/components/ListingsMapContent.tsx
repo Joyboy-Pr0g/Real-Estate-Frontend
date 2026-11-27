@@ -7,7 +7,6 @@ import { listingSearchParamsToQueryKey } from '@/features/listings/lib/listing-s
 import { resolveListingSearchParams } from '@/features/listings/services/resolve-listing-search';
 import { ListingSearchQuery } from '@/features/listings/schemas/search-schema';
 import { ListingSearchUrlParams } from '@/features/listings/types/listing-search-url';
-import { getSession } from '@/lib/auth/session';
 import { getServerTranslations } from '@/lib/i18n/server';
 import { ApiError } from '@/lib/errors/api-error';
 
@@ -26,7 +25,6 @@ function resolveViewLevel(params: ListingSearchUrlParams): MapViewLevel {
 export async function ListingsMapContent({ searchParams }: ListingsMapContentProps) {
   const params = await searchParams;
   const { t } = await getServerTranslations();
-  const session = await getSession();
   const catalog = await catalogService.getPublicCatalog();
   const viewLevel = resolveViewLevel(params);
 
@@ -70,7 +68,6 @@ export async function ListingsMapContent({ searchParams }: ListingsMapContentPro
       nextCursor={nextCursor}
       hasMore={hasMore}
       initialSearchKey={initialSearchKey}
-      isAuthenticated={Boolean(session)}
     />
   );
 }

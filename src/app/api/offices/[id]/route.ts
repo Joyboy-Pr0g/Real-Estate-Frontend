@@ -1,5 +1,6 @@
 import { NextRequest } from 'next/server';
-import { proxyToBackend } from '@/lib/api/route-handler';
+import { proxyMarketplaceMutation } from '@/lib/api/marketplace-mutation-route';
+import { revalidateOfficesMarketplace } from '@/lib/marketplace/revalidate';
 import { backendPaths } from '@/lib/api/endpoints';
 
 interface RouteContext {
@@ -8,16 +9,24 @@ interface RouteContext {
 
 export async function PUT(request: NextRequest, context: RouteContext) {
   const { id } = await context.params;
-  return proxyToBackend(request, {
-    path: backendPaths.offices.update(id),
-    method: 'PUT',
-  });
+  return proxyMarketplaceMutation(
+    request,
+    {
+      path: backendPaths.offices.update(id),
+      method: 'PUT',
+    },
+    revalidateOfficesMarketplace,
+  );
 }
 
 export async function DELETE(request: NextRequest, context: RouteContext) {
   const { id } = await context.params;
-  return proxyToBackend(request, {
-    path: backendPaths.offices.delete(id),
-    method: 'DELETE',
-  });
+  return proxyMarketplaceMutation(
+    request,
+    {
+      path: backendPaths.offices.delete(id),
+      method: 'DELETE',
+    },
+    revalidateOfficesMarketplace,
+  );
 }

@@ -1,6 +1,7 @@
 import { serverFetch } from '@/lib/api/server';
 import { backendPaths } from '@/lib/api/endpoints';
 import { ApiError } from '@/lib/errors/api-error';
+import { CACHE_TAGS } from '@/lib/cache/tags';
 import { PublicListing } from '@/features/listings/types/listing';
 import {
   PublicOfficeDetail,
@@ -22,6 +23,7 @@ export const publicOfficeService = {
   async search(params: PublicOfficesSearchParams = {}): Promise<PublicOfficesPage> {
     const response = await serverFetch<PublicOfficesPage['items']>(backendPaths.offices.public, {
       cacheProfile: 'short',
+      tags: [CACHE_TAGS.offices, CACHE_TAGS.listingsSearch],
       searchParams: buildOfficeSearchParams({ limit: 24, ...params }),
     });
 
@@ -36,7 +38,7 @@ export const publicOfficeService = {
     try {
       const response = await serverFetch<PublicOfficeDetail>(
         backendPaths.offices.publicByName(name),
-        { cacheProfile: 'none' },
+        { cacheProfile: 'medium', tags: [CACHE_TAGS.offices, CACHE_TAGS.listingsSearch] },
       );
       return response.data ?? null;
     } catch (error) {
@@ -52,7 +54,8 @@ export const publicOfficeService = {
     const response = await serverFetch<PublicListing[]>(
       backendPaths.offices.publicListingsByName(name),
       {
-        cacheProfile: 'none',
+        cacheProfile: 'medium',
+        tags: [CACHE_TAGS.offices, CACHE_TAGS.listingsSearch],
         searchParams: {
           ...(params.cursor ? { cursor: params.cursor } : {}),
           limit: params.limit ?? 8,

@@ -1,4 +1,10 @@
 export const queryKeys = {
+  auth: {
+    storefrontSession: ['auth', 'storefront-session'] as const,
+  },
+  individualLister: {
+    my: ['individual-lister', 'my'] as const,
+  },
   catalog: {
     neighborhoods: (cityId: string) => ['catalog', 'neighborhoods', cityId] as const,
     propertySubtypes: (propertyTypeId: string) =>
@@ -8,5 +14,6 @@ export const queryKeys = {
     all: ['listings'] as const,
     search: (queryKey: string) => ['listings', 'search', queryKey] as const,
     my: (queryKey: string) => ['listings', 'my', queryKey] as const,
+    savedCheck: (listingId: string) => ['listings', 'saved-check', listingId] as const,
   },
 } as const;

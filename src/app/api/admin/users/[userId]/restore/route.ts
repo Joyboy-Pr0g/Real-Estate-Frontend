@@ -1,5 +1,6 @@
 import { NextRequest } from 'next/server';
-import { proxyToBackend } from '@/lib/api/route-handler';
+import { proxyMarketplaceMutation } from '@/lib/api/marketplace-mutation-route';
+import { revalidateUsersMarketplace } from '@/lib/marketplace/revalidate';
 import { backendPaths } from '@/lib/api/endpoints';
 
 interface RouteContext {
@@ -8,8 +9,12 @@ interface RouteContext {
 
 export async function POST(request: NextRequest, context: RouteContext) {
   const { userId } = await context.params;
-  return proxyToBackend(request, {
-    path: backendPaths.auth.restoreUser(userId),
-    method: 'POST',
-  });
+  return proxyMarketplaceMutation(
+    request,
+    {
+      path: backendPaths.auth.restoreUser(userId),
+      method: 'POST',
+    },
+    revalidateUsersMarketplace,
+  );
 }

@@ -247,6 +247,7 @@ export const bffPaths = {
   },
   individualListers: {
     create: '/api/individual-listers',
+    my: '/api/individual-listers/my',
   },
   messaging: {
     conversations: '/api/messaging/conversations',

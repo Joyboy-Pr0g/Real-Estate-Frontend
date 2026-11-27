@@ -7,11 +7,11 @@ import { Building2, Globe, Menu, X } from 'lucide-react';
 import { useState } from 'react';
 import { ButtonLink } from '@/components/ui/button';
 import { Container } from '@/components/ui/container';
-import { AuthUser } from '@/features/auth/types/user';
 import type { WebsiteSettings } from '@/features/website-settings/types/website-settings';
 import { splitWebsiteTitle, resolveWebsiteLogo } from '@/lib/website-settings/defaults';
 import { getRoleHomePath } from '@/lib/auth/constants';
-import { UserMenu } from '@/features/layout/components/UserMenu';
+import { UserMenu, UserMenuPlaceholder } from '@/features/layout/components/UserMenu';
+import { useStorefrontSession } from '@/features/storefront/providers/StorefrontSessionProvider';
 import { useSiteHeaderOverride } from '@/features/layout/context/site-header-override';
 import { useLocale } from '@/lib/i18n/locale-provider';
 import type { TranslationKey } from '@/lib/i18n/ar';
@@ -19,7 +19,6 @@ import { cn } from '@/lib/utils/cn';
 import { shouldNofollowInternalHref } from '@/lib/seo/crawl-hints';
 
 interface SiteHeaderProps {
-  user?: AuthUser | null;
   settings?: WebsiteSettings | null;
 }
 
@@ -42,8 +41,11 @@ const PRIMARY_NAV: NavItem[] = [
   { href: '/contact', labelKey: 'nav.contact', isActive: (p) => p === '/contact' },
 ];
 
-export function SiteHeader({ user = null, settings = null }: SiteHeaderProps) {
+export function SiteHeader({ settings = null }: SiteHeaderProps) {
   const pathname = usePathname();
+  const { user, status } = useStorefrontSession();
+  const showGuestActions = status === 'anonymous';
+  const showUserMenu = status === 'authenticated';
   const { t, locale, setLocale } = useLocale();
   const [mobileOpen, setMobileOpen] = useState(false);
   const { scrollY } = useScroll();
@@ -135,50 +137,71 @@ export function SiteHeader({ user = null, settings = null }: SiteHeaderProps) {
             </nav>
 
             <div className="flex items-center gap-1.5">
-              {!user ? (
-                <ButtonLink
-                  href="/register"
-                  rel={shouldNofollowInternalHref('/register') ? 'nofollow' : undefined}
-                  size="sm"
+              <div className="grid items-center justify-items-end">
+                <div
                   className={cn(
-                    'hidden rounded-full sm:inline-flex',
-                    isHome && 'border-white/25 bg-white/10 text-white hover:bg-white/20',
+                    'col-start-1 row-start-1 flex items-center gap-1.5',
+                    !showGuestActions && 'invisible',
                   )}
-                  variant={isHome ? 'outline' : 'primary'}
+                  aria-hidden={!showGuestActions}
+                  inert={!showGuestActions}
                 >
-                  {t('nav.host')}
-                </ButtonLink>
-              ) : null}
+                  <ButtonLink
+                    href="/register"
+                    rel={shouldNofollowInternalHref('/register') ? 'nofollow' : undefined}
+                    size="sm"
+                    className={cn(
+                      'hidden rounded-full sm:inline-flex',
+                      isHome && 'border-white/25 bg-white/10 text-white hover:bg-white/20',
+                    )}
+                    variant={isHome ? 'outline' : 'primary'}
+                  >
+                    {t('nav.host')}
+                  </ButtonLink>
 
-              {!user ? (
-                <button
-                  type="button"
-                  onClick={() => setLocale(locale === 'ar' ? 'en' : 'ar')}
-                  className={cn(
-                    'flex h-10 w-10 items-center justify-center rounded-full transition-colors',
-                    isHome ? 'text-white/80 hover:bg-white/10' : 'text-gray-600 hover:bg-gray-100',
-                  )}
-                  aria-label={t('nav.toggleLanguage')}
-                >
-                  <Globe className="h-5 w-5" />
-                </button>
-              ) : null}
+                  <button
+                    type="button"
+                    onClick={() => setLocale(locale === 'ar' ? 'en' : 'ar')}
+                    className={cn(
+                      'flex h-10 w-10 items-center justify-center rounded-full transition-colors',
+                      isHome ? 'text-white/80 hover:bg-white/10' : 'text-gray-600 hover:bg-gray-100',
+                    )}
+                    aria-label={t('nav.toggleLanguage')}
+                  >
+                    <Globe className="h-5 w-5" />
+                  </button>
 
-              {user ? (
-                <UserMenu user={user} />
-              ) : (
-                <ButtonLink
-                  href="/login"
-                  rel={shouldNofollowInternalHref('/login') ? 'nofollow' : undefined}
-                  size="sm"
-                  className={cn(
-                    'hidden rounded-full sm:inline-flex',
-                    isHome && 'bg-white text-brand hover:bg-white/90',
-                  )}
+                  <ButtonLink
+                    href="/login"
+                    rel={shouldNofollowInternalHref('/login') ? 'nofollow' : undefined}
+                    size="sm"
+                    className={cn(
+                      'hidden rounded-full sm:inline-flex',
+                      isHome && 'bg-white text-brand hover:bg-white/90',
+                    )}
+                  >
+                    {t('nav.login')}
+                  </ButtonLink>
+                </div>
+
+                <div
+                  className={cn('col-start-1 row-start-1', !showUserMenu && 'invisible')}
+                  aria-hidden={!showUserMenu}
+                  inert={!showUserMenu}
                 >
-                  {t('nav.login')}
-                </ButtonLink>
-              )}
+                  {user ? <UserMenu user={user} /> : <UserMenuPlaceholder />}
+                </div>
+
+                {status === 'loading' ? (
+                  <span
+                    aria-hidden
+                    className={cn(
+                      'col-start-1 row-start-1 h-9 w-full animate-pulse rounded-full',
+                      isHome ? 'bg-white/10' : 'bg-gray-100',
+                    )}
+                  />
+                ) : null}
+              </div>
 
               <button
                 type="button"
@@ -223,7 +246,7 @@ export function SiteHeader({ user = null, settings = null }: SiteHeaderProps) {
                 </Link>
               ))}
 
-              {!user ? (
+              {showGuestActions ? (
                 <div className="flex gap-2 px-1 pt-2 sm:hidden">
                   <ButtonLink
                     href="/login"

@@ -45,6 +45,7 @@ import {
 import { useListingsClientNavigation, useListingsSearchParams } from '@/features/listings/hooks/use-listings-search-params';
 import { useDebounce } from '@/lib/hooks/use-debounce';
 import { useLocale } from '@/lib/i18n/locale-provider';
+import { useStorefrontSession } from '@/features/storefront/providers/StorefrontSessionProvider';
 import { cn } from '@/lib/utils/cn';
 
 type PanelId = 'location' | 'property' | 'transaction' | 'budget';
@@ -53,18 +54,17 @@ type PropertyStep = 'type' | 'subtype';
 
 interface ListingsFilterBarProps {
   catalog: PublicCatalog;
-  isAuthenticated?: boolean;
   className?: string;
   basePath?: string;
 }
 
 export function ListingsFilterBar({
   catalog,
-  isAuthenticated = false,
   className,
   basePath = '/listings',
 }: ListingsFilterBarProps) {
   const router = useRouter();
+  const { isAuthenticated } = useStorefrontSession();
   const searchParams = useListingsSearchParams();
   const navigateListings = useListingsClientNavigation();
   const barRef = useRef<HTMLDivElement>(null);

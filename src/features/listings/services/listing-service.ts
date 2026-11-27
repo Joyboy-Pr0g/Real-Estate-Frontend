@@ -5,6 +5,7 @@ import { backendPaths } from '@/lib/api/endpoints';
 import { ApiError } from '@/lib/errors/api-error';
 import { ListingGoneError } from '@/lib/errors/listing-gone-error';
 import { getAuthToken } from '@/lib/auth/session';
+import { CACHE_TAGS, listingMetricsTag, listingSlugTag, listingTag } from '@/lib/cache/tags';
 import { MyListingReport, MyListingSummary, PublicListing, SavedListingItem, ViewedListingItem } from '../types/listing';
 import { hasListingSeller } from '../lib/listing-detail-guards';
 import { PublicListingDetail } from '../types/listing-detail';
@@ -55,7 +56,7 @@ export const listingService = {
   async search(params: ListingSearchQuery = {}) {
     const response = await serverFetch<PublicListing[]>(backendPaths.listings.search, {
       cacheProfile: 'short',
-      tags: ['listings-search'],
+      tags: [CACHE_TAGS.listingsSearch],
       searchParams: buildSearchParams(params),
     });
 
@@ -74,7 +75,7 @@ export const listingService = {
     try {
       const response = await serverFetch<PublicListingDetail>(backendPaths.listings.getById(id), {
         cacheProfile: 'short',
-        tags: ['listings', `listing-${id}`],
+        tags: [CACHE_TAGS.listings, listingTag(id)],
       });
       return response.data ?? null;
     } catch (error) {
@@ -87,7 +88,7 @@ export const listingService = {
     try {
       const response = await serverFetch<PublicListingDetail>(backendPaths.listings.getBySlug(slug), {
         cacheProfile: 'short',
-        tags: ['listings', `listing-slug-${slug}`],
+        tags: [CACHE_TAGS.listings, listingSlugTag(slug)],
       });
       const listing = response.data ?? null;
       if (!listing) return null;
@@ -96,7 +97,7 @@ export const listingService = {
 
       const retry = await serverFetch<PublicListingDetail>(backendPaths.listings.getBySlug(slug), {
         cacheProfile: 'none',
-        tags: ['listings', `listing-slug-${slug}`],
+        tags: [CACHE_TAGS.listings, listingSlugTag(slug)],
         headers: { 'Cache-Control': 'no-cache' },
       });
       const retried = retry.data ?? null;
@@ -116,6 +117,7 @@ export const listingService = {
   ): Promise<NearByPointsResult | null> {
     const response = await serverFetch<NearByPointsResult>(backendPaths.listings.nearByPoints(id), {
       cacheProfile: 'short',
+      tags: [listingTag(id)],
       searchParams: {
         ...(params.category ? { category: params.category } : {}),
         ...(params.radius ? { radius: params.radius } : {}),
@@ -127,7 +129,7 @@ export const listingService = {
   async getMetrics(id: string): Promise<ListingMetricsResponse | null> {
     const response = await serverFetch<ListingMetricsResponse>(backendPaths.listings.metrics(id), {
       cacheProfile: 'short',
-      tags: ['listings', `listing-metrics-${id}`],
+      tags: [CACHE_TAGS.listings, listingMetricsTag(id)],
     });
     return response.data ?? null;
   },

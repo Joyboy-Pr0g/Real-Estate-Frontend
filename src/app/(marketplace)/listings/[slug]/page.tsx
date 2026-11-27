@@ -6,8 +6,6 @@ import { hasListingSeller } from '@/features/listings/lib/listing-detail-guards'
 import { featureService } from '@/features/catalog/services/feature-service';
 import { ListingDetailView } from '@/features/listings/components/detail/ListingDetailView';
 import { ListingGoneView } from '@/features/listings/components/detail/ListingGoneView';
-import { getSession } from '@/lib/auth/session';
-import { getMyIndividualListerProfile } from '@/features/individual-lister/services/individual-lister-service';
 import {
   buildPageMetadata,
   buildRealEstateListingSchema,
@@ -83,28 +81,15 @@ export default async function ListingDetailPage({ params }: ListingDetailPagePro
   const { listing } = resolved;
   if (!hasListingSeller(listing)) notFound();
 
-  const [similar, user, settings] = await Promise.all([
+  const [similar, settings] = await Promise.all([
     // featureService.getMainFeatures(),
     listing.seller.type === 'office'
       ? listingService.search({ office_id: listing.seller.id, limit: 12 })
       : Promise.resolve(null),
-    getSession(),
     getWebsiteSettingsForMetadata(),
   ]);
 
   const similarListings = similar?.items.filter((item) => item.id !== listing.id) ?? [];
-  const savedIds = user
-    ? await listingService.getSavedListingIds([listing.id, ...similarListings.map((item) => item.id)])
-    : [];
-
-  const individualListerProfile =
-    user && user.role !== 'office' ? await getMyIndividualListerProfile() : null;
-
-  const isOwnListing =
-    listing.seller.type === 'individual'
-    && individualListerProfile?.id === listing.seller.id;
-
-  const canStartMessage = Boolean(user) && user!.role !== 'office' && user!.role !== 'platform_admin' && !isOwnListing;
   const listingSchema = buildRealEstateListingSchema(settings, listing, getSiteUrl(settings));
 
   return (
@@ -113,10 +98,6 @@ export default async function ListingDetailPage({ params }: ListingDetailPagePro
       <ListingDetailView
         listing={listing}
         similarListings={similarListings}
-        isAuthenticated={Boolean(user)}
-        canStartMessage={canStartMessage}
-        isSaved={savedIds.includes(listing.id)}
-        similarSavedIds={savedIds}
       />
     </>
   );

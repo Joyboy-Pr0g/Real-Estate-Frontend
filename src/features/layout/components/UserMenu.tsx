@@ -22,6 +22,7 @@ import { AuthUser } from '@/features/auth/types/user';
 import { getRoleHomePath } from '@/lib/auth/constants';
 import { logout } from '@/features/auth/services/auth-service';
 import { useLocale } from '@/lib/i18n/locale-provider';
+import { useStorefrontSession } from '@/features/storefront/providers/StorefrontSessionProvider';
 
 interface UserMenuProps {
   user: AuthUser;
@@ -34,6 +35,7 @@ function getDashboardHref(role: AuthUser['role']) {
 export function UserMenu({ user }: UserMenuProps) {
   const router = useRouter();
   const { t, locale, setLocale } = useLocale();
+  const { clear } = useStorefrontSession();
   const displayName = `${user.f_name} ${user.l_name}`.trim() || user.email.split('@')[0];
 
   const handleLogout = async () => {
@@ -42,6 +44,7 @@ export function UserMenu({ user }: UserMenuProps) {
     } catch {
       // redirect anyway
     }
+    clear();
     router.push('/login');
     router.refresh();
   };
@@ -90,5 +93,15 @@ export function UserMenu({ user }: UserMenuProps) {
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
+  );
+}
+
+export function UserMenuPlaceholder() {
+  return (
+    <Button variant="outline" size="sm" className="gap-2 rounded-full" tabIndex={-1}>
+      <User className="h-4 w-4" />
+      <span className="hidden w-28 sm:inline" />
+      <ChevronDown className="h-3 w-3 opacity-50" />
+    </Button>
   );
 }
