@@ -51,22 +51,29 @@ export const publicOfficeService = {
     name: string,
     params: { cursor?: string; limit?: number } = {},
   ): Promise<{ items: PublicListing[]; next_cursor: string | null; has_more: boolean }> {
-    const response = await serverFetch<PublicListing[]>(
-      backendPaths.offices.publicListingsByName(name),
-      {
-        cacheProfile: 'medium',
-        tags: [CACHE_TAGS.offices, CACHE_TAGS.listingsSearch],
-        searchParams: {
-          ...(params.cursor ? { cursor: params.cursor } : {}),
-          limit: params.limit ?? 8,
+    try {
+      const response = await serverFetch<PublicListing[]>(
+        backendPaths.offices.publicListingsByName(name),
+        {
+          cacheProfile: 'medium',
+          tags: [CACHE_TAGS.offices, CACHE_TAGS.listingsSearch],
+          searchParams: {
+            ...(params.cursor ? { cursor: params.cursor } : {}),
+            limit: params.limit ?? 8,
+          },
         },
-      },
-    );
+      );
 
-    return {
-      items: response.data ?? [],
-      next_cursor: response.next_cursor ?? null,
-      has_more: response.has_more ?? false,
-    };
+      return {
+        items: response.data ?? [],
+        next_cursor: response.next_cursor ?? null,
+        has_more: response.has_more ?? false,
+      };
+    } catch (error) {
+      if (error instanceof ApiError && error.status === 404) {
+        return { items: [], next_cursor: null, has_more: false };
+      }
+      throw error;
+    }
   },
 };
