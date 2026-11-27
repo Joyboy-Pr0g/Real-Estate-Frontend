@@ -6,6 +6,7 @@ import { AuthUser } from '@/features/auth/types/user';
 import { ApiError } from '@/lib/errors/api-error';
 import { proxyToBackend } from '@/lib/api/route-handler';
 import { updateProfileBodySchema } from '@/features/auth/schemas/auth-schemas';
+import { getRequestClientIp } from '@/lib/security/client-ip';
 
 export async function GET() {
   try {
@@ -17,6 +18,7 @@ export async function GET() {
     const response = await fetchBackend<AuthUser>(backendPaths.auth.me, {
       token,
       cacheProfile: 'none',
+      clientIp: await getRequestClientIp(),
     });
 
     return NextResponse.json(response);

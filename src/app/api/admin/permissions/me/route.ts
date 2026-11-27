@@ -9,8 +9,9 @@ import {
   clearAdminPermissionsCookie,
 } from '@/lib/auth/session';
 import { ApiError } from '@/lib/errors/api-error';
+import { getClientIp } from '@/lib/security/client-ip';
 
-export async function GET(_request: NextRequest) {
+export async function GET(request: NextRequest) {
   try {
     const token = await getAuthToken({ refresh: true });
     if (!token) {
@@ -25,6 +26,7 @@ export async function GET(_request: NextRequest) {
     const response = await fetchBackend<UserPermissionAccess[]>(backendPaths.auth.permissionsMe, {
       token,
       cacheProfile: 'none',
+      clientIp: getClientIp(request),
     });
 
     const permissions = response.data ?? [];

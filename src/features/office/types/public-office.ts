@@ -15,17 +15,13 @@ export interface PublicOfficeSummary {
 
 export interface PublicOfficeMember {
   id: string;
-  user_id: string;
-  role: PublicOfficeUserRole;
-  name: string;
-  phone_number: string;
-  email: string;
-  user_image_url: string | null;
+  full_name: string;
 }
 
 export interface PublicOfficeDetail extends PublicOfficeSummary {
   city_id: string;
   neighborhood_id: string;
+  listings_count: number;
   members: PublicOfficeMember[];
 }
 

@@ -2,28 +2,28 @@ import type { NextConfig } from 'next';
 
 function resolvePublicSocketUrl(): string {
   const explicit =
-    process.env.NEXT_PUBLIC_SOCKET_URL?.trim() ?? process.env.SOCKET_URL?.trim();
+    process.env.NEXT_PUBLIC_SOCKET_URL?.trim() || process.env.SOCKET_URL?.trim();
   if (explicit) return explicit.replace(/\/$/, '');
 
   const backend =
-    process.env.NEXT_PUBLIC_BACKEND_URL?.trim() ??
-    process.env.BACKEND_URL?.trim() ??
+    process.env.NEXT_PUBLIC_BACKEND_URL?.trim() ||
+    process.env.BACKEND_URL?.trim() ||
     'https://api.yemen-land.com/api';
   return backend.replace(/\/api\/?$/, '') || 'https://api.yemen-land.com';
 }
 
 function resolvePublicGoogleMapsKey(): string {
   return (
-    process.env.NEXT_PUBLIC_GOOGLE_MAPS_KEY?.trim() ??
-    process.env.GOOGLE_MAPS_KEY?.trim() ??
+    process.env.NEXT_PUBLIC_GOOGLE_MAPS_KEY?.trim() ||
+    process.env.GOOGLE_MAPS_KEY?.trim() ||
     ''
   );
 }
 
 function resolvePublicTurnstileSiteKey(): string {
   return (
-    process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY?.trim() ??
-    process.env.TURNSTILE_SITE_KEY?.trim() ??
+    process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY?.trim() ||
+    process.env.TURNSTILE_SITE_KEY?.trim() ||
     ''
   );
 }
@@ -31,7 +31,7 @@ function resolvePublicTurnstileSiteKey(): string {
 /** Firebase web config must be inlined for client bundles; `FIREBASE_*` alone is server-only. */
 function resolvePublicFirebaseEnv(): Record<string, string> {
   const pick = (nextKey: string, fallbackKey: string) =>
-    (process.env[nextKey]?.trim() ?? process.env[fallbackKey]?.trim() ?? '');
+    (process.env[nextKey]?.trim() || process.env[fallbackKey]?.trim() || '');
 
   return {
     NEXT_PUBLIC_FIREBASE_API_KEY: pick('NEXT_PUBLIC_FIREBASE_API_KEY', 'FIREBASE_API_KEY'),
@@ -50,19 +50,25 @@ function resolvePublicFirebaseEnv(): Record<string, string> {
   };
 }
 
+function resolvePublicEmailSendCooldownEnv(): Record<string, string> {
+  const value =
+    process.env.NEXT_PUBLIC_AUTH_EMAIL_SEND_COOLDOWN_SEC?.trim() ||
+    process.env.AUTH_EMAIL_SEND_COOLDOWN_SEC?.trim();
+  return value ? { NEXT_PUBLIC_AUTH_EMAIL_SEND_COOLDOWN_SEC: value } : {};
+}
+
 const nextConfig: NextConfig = {
+  output: 'standalone',
   env: {
     NEXT_PUBLIC_SOCKET_URL: resolvePublicSocketUrl(),
     NEXT_PUBLIC_GOOGLE_MAPS_KEY: resolvePublicGoogleMapsKey(),
     NEXT_PUBLIC_TURNSTILE_SITE_KEY: resolvePublicTurnstileSiteKey(),
     ...resolvePublicFirebaseEnv(),
+    ...resolvePublicEmailSendCooldownEnv(),
   },
   images: {
-    formats: ['image/avif', 'image/webp'],
-    remotePatterns: [
-      { protocol: 'http', hostname: '**' },
-      { protocol: 'https', hostname: '**' },
-    ],
+    loader: 'custom',
+    loaderFile: './src/lib/images/cloudinary-loader.ts',
   },
   async rewrites() {
     return [

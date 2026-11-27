@@ -6,6 +6,7 @@ import { AuthLoginResponse } from '@/features/auth/types/user';
 import { setSessionFromAuthResponse } from '@/lib/auth/auth-bff';
 import { ApiError } from '@/lib/errors/api-error';
 import { assertTurnstileFromBody } from '@/lib/security/turnstile';
+import { getClientIp } from '@/lib/security/client-ip';
 
 export async function POST(request: NextRequest) {
   try {
@@ -29,6 +30,7 @@ export async function POST(request: NextRequest) {
       method: 'POST',
       body: parsed.data,
       cacheProfile: 'none',
+      clientIp: getClientIp(request),
     });
 
     const user = await setSessionFromAuthResponse(response.data!);
