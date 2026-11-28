@@ -64,6 +64,7 @@ function resolvePublicEmailSendCooldownEnv(): Record<string, string> {
 
 const nextConfig: NextConfig = {
   output: 'standalone',
+  poweredByHeader: false,
   env: {
     NEXT_PUBLIC_SOCKET_URL: resolvePublicSocketUrl(),
     NEXT_PUBLIC_GOOGLE_MAPS_KEY: resolvePublicGoogleMapsKey(),
