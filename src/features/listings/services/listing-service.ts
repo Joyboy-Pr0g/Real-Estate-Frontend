@@ -55,7 +55,7 @@ function buildSearchParams(params: ListingSearchQuery): Record<string, string | 
 export const listingService = {
   async search(params: ListingSearchQuery = {}) {
     const response = await serverFetch<PublicListing[]>(backendPaths.listings.search, {
-      cacheProfile: 'short',
+      cacheProfile: 'medium',
       tags: [CACHE_TAGS.listingsSearch],
       searchParams: buildSearchParams(params),
     });
@@ -87,7 +87,7 @@ export const listingService = {
   async getBySlug(slug: string): Promise<PublicListingDetail | null> {
     try {
       const response = await serverFetch<PublicListingDetail>(backendPaths.listings.getBySlug(slug), {
-        cacheProfile: 'short',
+        cacheProfile: 'medium',
         tags: [CACHE_TAGS.listings, listingSlugTag(slug)],
       });
       const listing = response.data ?? null;
@@ -96,7 +96,7 @@ export const listingService = {
       if (hasListingSeller(listing)) return listing;
 
       const retry = await serverFetch<PublicListingDetail>(backendPaths.listings.getBySlug(slug), {
-        cacheProfile: 'none',
+        cacheProfile: 'medium',
         tags: [CACHE_TAGS.listings, listingSlugTag(slug)],
         headers: { 'Cache-Control': 'no-cache' },
       });

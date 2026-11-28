@@ -38,7 +38,7 @@ export const publicOfficeService = {
     try {
       const response = await serverFetch<PublicOfficeDetail>(
         backendPaths.offices.publicByName(name),
-        { cacheProfile: 'medium', tags: [CACHE_TAGS.offices, CACHE_TAGS.listingsSearch] },
+        { revalidate: 600, tags: [CACHE_TAGS.offices, CACHE_TAGS.listingsSearch] },
       );
       return response.data ?? null;
     } catch (error) {
@@ -55,7 +55,7 @@ export const publicOfficeService = {
       const response = await serverFetch<PublicListing[]>(
         backendPaths.offices.publicListingsByName(name),
         {
-          cacheProfile: 'medium',
+          revalidate: 600,
           tags: [CACHE_TAGS.offices, CACHE_TAGS.listingsSearch],
           searchParams: {
             ...(params.cursor ? { cursor: params.cursor } : {}),

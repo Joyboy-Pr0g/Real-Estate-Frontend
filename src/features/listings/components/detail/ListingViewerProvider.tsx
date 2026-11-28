@@ -58,12 +58,19 @@ export function ListingViewerProvider({
     enabled: needsListerProfile,
   });
 
-  const isSaved = savedQuery.data?.includes(listingId) ?? false;
+  const savedListingIds = useMemo(
+    () => new Set(savedQuery.data ?? []),
+    [savedQuery.data],
+  );
+
+  const isSaved = savedListingIds.has(listingId);
   const listerProfileId = listerQuery.data?.id;
   const listerResolved = !needsListerProfile || listerQuery.isSuccess;
+  const sellerType = seller?.type;
+  const sellerId = seller?.id;
 
   const value = useMemo<ListingViewerState>(() => {
-    const isOwnListing = seller?.type === 'individual' && listerProfileId === seller.id;
+    const isOwnListing = sellerType === 'individual' && listerProfileId === sellerId;
     const canStartMessage =
       Boolean(user)
       && user?.role !== 'office'
@@ -72,7 +79,7 @@ export function ListingViewerProvider({
       && !isOwnListing;
 
     return { isAuthenticated, canStartMessage, isSaved };
-  }, [isAuthenticated, isSaved, listerProfileId, listerResolved, seller, user]);
+  }, [isAuthenticated, isSaved, listerProfileId, listerResolved, sellerId, sellerType, user]);
 
   return <ListingViewerContext.Provider value={value}>{children}</ListingViewerContext.Provider>;
 }

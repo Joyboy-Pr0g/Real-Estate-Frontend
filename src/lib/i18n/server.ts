@@ -1,7 +1,8 @@
-import { cookies } from 'next/headers';
+import { cache } from 'react';
+import { locale as localeParam } from 'next/root-params';
 import { ar, type TranslationKey } from './ar';
 import { en } from './en';
-import { DEFAULT_LOCALE, LOCALE_COOKIE, type Locale } from './config';
+import { resolveLocale, type Locale } from './config';
 
 function interpolate(template: string, params?: Record<string, string | number>) {
   if (!params) return template;
@@ -11,11 +12,7 @@ function interpolate(template: string, params?: Record<string, string | number>)
   );
 }
 
-export async function getServerLocale(): Promise<Locale> {
-  const cookieStore = await cookies();
-  const saved = cookieStore.get(LOCALE_COOKIE)?.value;
-  return saved === 'en' || saved === 'ar' ? saved : DEFAULT_LOCALE;
-}
+export const getServerLocale = cache(async (): Promise<Locale> => resolveLocale(await localeParam()));
 
 export async function getServerTranslations() {
   const locale = await getServerLocale();

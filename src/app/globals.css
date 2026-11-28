@@ -62,6 +62,59 @@
   --font-sans: var(--font-sans);
 }
 
+@font-face {
+  font-family: 'Tajawal Arabic Fallback';
+  font-weight: 400;
+  src: local('Arial'), local('ArialMT');
+  unicode-range: U+0600-06FF, U+0750-077F, U+0870-08FF, U+FB50-FDFF, U+FE70-FEFF;
+  size-adjust: 125.01%;
+  ascent-override: 51.44%;
+  descent-override: 28.55%;
+  line-gap-override: 16.00%;
+}
+
+@font-face {
+  font-family: 'Tajawal Arabic Fallback';
+  font-weight: 500;
+  src: local('Arial'), local('ArialMT');
+  unicode-range: U+0600-06FF, U+0750-077F, U+0870-08FF, U+FB50-FDFF, U+FE70-FEFF;
+  size-adjust: 133.34%;
+  ascent-override: 48.22%;
+  descent-override: 26.77%;
+  line-gap-override: 15%;
+}
+
+@font-face {
+  font-family: 'Tajawal Arabic Fallback';
+  font-weight: 700;
+  src: local('Arial Bold'), local('Arial-BoldMT');
+  unicode-range: U+0600-06FF, U+0750-077F, U+0870-08FF, U+FB50-FDFF, U+FE70-FEFF;
+  size-adjust: 135.87%;
+  ascent-override: 47.33%;
+  descent-override: 26.27%;
+  line-gap-override: 14.72%;
+}
+
+@font-face {
+  font-family: 'Tajawal Arabic Fallback';
+  font-weight: 800;
+  src: local('Arial Bold'), local('Arial-BoldMT');
+  unicode-range: U+0600-06FF, U+0750-077F, U+0870-08FF, U+FB50-FDFF, U+FE70-FEFF;
+  size-adjust: 135.43%;
+  ascent-override: 47.48%;
+  descent-override: 26.36%;
+  line-gap-override: 14.77%;
+}
+
+@font-face {
+  font-family: 'Tajawal Latin Fallback';
+  src: local('Arial'), local('ArialMT');
+  size-adjust: 97.15%;
+  ascent-override: 66.19%;
+  descent-override: 36.74%;
+  line-gap-override: 20.59%;
+}
+
 html {
   scroll-behavior: smooth;
 }

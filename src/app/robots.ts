@@ -1,9 +1,11 @@
 import type { MetadataRoute } from 'next';
+import { connection } from 'next/server';
 import { getWebsiteSettingsServer } from '@/features/website-settings/services/website-settings-server';
 import { getSiteUrl, shouldAllowIndexing } from '@/lib/seo/metadata';
 import { FALLBACK_WEBSITE_SETTINGS } from '@/lib/website-settings/defaults';
 
 export default async function robots(): Promise<MetadataRoute.Robots> {
+  await connection();
   let settings = FALLBACK_WEBSITE_SETTINGS;
   try {
     settings = await getWebsiteSettingsServer();

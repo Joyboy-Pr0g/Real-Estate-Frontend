@@ -1,7 +1,6 @@
 'use client';
 
-import { createContext, useContext, useMemo, useTransition } from 'react';
-import { useRouter } from 'next/navigation';
+import { createContext, useContext, useMemo } from 'react';
 import { ar, type TranslationKey } from './ar';
 import { en } from './en';
 import { LOCALE_COOKIE, type Locale } from './config';
@@ -22,9 +21,6 @@ export function LocaleProvider({
   locale: Locale;
   children: React.ReactNode;
 }) {
-  const router = useRouter();
-  const [, startTransition] = useTransition();
-
   const value = useMemo<LocaleContextValue>(() => {
     const dictionary = locale === 'ar' ? ar : en;
     return {
@@ -33,10 +29,10 @@ export function LocaleProvider({
       t: (key: TranslationKey) => dictionary[key],
       setLocale: (next: Locale) => {
         document.cookie = `${LOCALE_COOKIE}=${next};path=/;max-age=31536000;samesite=lax`;
-        startTransition(() => router.refresh());
+        window.location.reload();
       },
     };
-  }, [locale, router]);
+  }, [locale]);
 
   return <LocaleContext.Provider value={value}>{children}</LocaleContext.Provider>;
 }

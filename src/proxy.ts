@@ -16,6 +16,7 @@ import {
 import {
   ACCESS_TOKEN_MAX_AGE_SEC,
   REFRESH_TOKEN_MAX_AGE_SEC,
+  decodeJwtPayload,
   isAccessTokenExpired,
 } from '@/lib/auth/token-config';
 import { getClientIp } from '@/lib/security/client-ip';
@@ -39,6 +40,7 @@ const refreshCookieOptions = {
 };
 
 const PRIVATE_CACHE_CONTROL = 'private, no-store';
+const LOCALE_PREFIX_PATTERN = /^\/(ar|en)(?=\/|$)/;
 
 interface RefreshedTokens {
   accessToken: string;
@@ -63,14 +65,15 @@ function resolveBackendUrl(): string {
 }
 
 async function refreshTokensIfNeeded(request: NextRequest): Promise<RefreshResult> {
-  const refreshToken = request.cookies.get(REFRESH_COOKIE_NAME)?.value;
-  if (!refreshToken) {
+  const accessToken = request.cookies.get(AUTH_COOKIE_NAME)?.value;
+  const accessTokenReadable = accessToken ? decodeJwtPayload(accessToken) !== null : false;
+  if (accessToken && accessTokenReadable && !isAccessTokenExpired(accessToken)) {
     return SKIPPED_REFRESH;
   }
 
-  const accessToken = request.cookies.get(AUTH_COOKIE_NAME)?.value;
-  if (accessToken && !isAccessTokenExpired(accessToken)) {
-    return SKIPPED_REFRESH;
+  const refreshToken = request.cookies.get(REFRESH_COOKIE_NAME)?.value;
+  if (!refreshToken) {
+    return accessToken && !accessTokenReadable ? REJECTED_REFRESH : SKIPPED_REFRESH;
   }
 
   const clientIp = getClientIp(request);
@@ -157,6 +160,17 @@ function nextResponse(request: NextRequest, refresh: RefreshResult): NextRespons
   );
 }
 
+function redirectToUnprefixedPath(request: NextRequest): NextResponse | null {
+  const match = LOCALE_PREFIX_PATTERN.exec(request.nextUrl.pathname);
+  if (!match) {
+    return null;
+  }
+
+  const url = request.nextUrl.clone();
+  url.pathname = request.nextUrl.pathname.slice(match[0].length) || '/';
+  return NextResponse.redirect(url, 308);
+}
+
 function redirectResponse(
   url: URL,
   refresh: RefreshResult,
@@ -172,6 +186,11 @@ function redirectResponse(
 }
 
 export async function proxy(request: NextRequest) {
+  const unprefixedRedirect = redirectToUnprefixedPath(request);
+  if (unprefixedRedirect) {
+    return unprefixedRedirect;
+  }
+
   const refresh = await refreshTokensIfNeeded(request);
   const refreshed = refresh.status === 'refreshed' ? refresh.tokens : null;
   const sessionRejected = refresh.status === 'rejected';
@@ -275,5 +294,7 @@ export async function proxy(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ['/((?!_next/static|_next/image|favicon.ico|favicon/|apple-touch-icon.png|site.webmanifest|api/).*)'],
+  matcher: [
+    '/((?!_next/static|_next/image|api/|favicon/|.*\\.(?:ico|png|jpe?g|gif|svg|webp|avif|txt|xml|js|json|webmanifest|map|css|woff2?|ttf|otf|mp4|webm|pdf)$).*)',
+  ],
 };

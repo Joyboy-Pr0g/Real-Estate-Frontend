@@ -10,17 +10,12 @@ import { useLocale } from '@/lib/i18n/locale-provider';
 interface SimilarOfficeListingsProps {
   officeName: string;
   listings: PublicListing[];
-  isAuthenticated?: boolean;
-  savedIds?: string[];
 }
 
 export function SimilarOfficeListings({
   officeName,
   listings,
-  isAuthenticated = false,
-  savedIds = [],
 }: SimilarOfficeListingsProps) {
-  const savedSet = new Set(savedIds);
   const { t, dir } = useLocale();
   const scrollRef = useRef<HTMLDivElement>(null);
   const [canPrev, setCanPrev] = useState(false);

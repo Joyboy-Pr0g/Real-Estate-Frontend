@@ -5,14 +5,13 @@ import type { PublicListingDetail } from '@/features/listings/types/listing-deta
 import { getListingCanonicalPath } from '@/lib/seo/indexing';
 import { withWebsiteSettingsDefaults, resolveWebsiteLogo } from '@/lib/website-settings/defaults';
 import { buildFaviconMetadata, STATIC_FAVICON_PATHS } from '@/lib/seo/favicons';
-import type { Locale } from '@/lib/i18n/config';
 
 export function getSiteUrl(settings: WebsiteSettings): string {
   const fromEnv = env.NEXT_PUBLIC_SITE_URL?.trim() || env.NEXT_PUBLIC_APP_URL?.trim();
   if (fromEnv) return fromEnv.replace(/\/$/, '');
   const fromSettings = settings.site_url?.trim();
   if (fromSettings) return fromSettings.replace(/\/$/, '');
-  return 'https://yemen-land.com';
+  return 'https://www.yemen-land.com';
 }
 
 export function shouldAllowIndexing(settings: WebsiteSettings): boolean {
@@ -39,22 +38,13 @@ export function buildCanonicalUrl(siteUrl: string, path?: string): string {
   return segment ? `${base}${segment}` : base;
 }
 
-function resolveHreflangKey(locale?: Locale): 'ar-YE' | 'en' {
-  return locale === 'en' ? 'en' : 'ar-YE';
-}
-
-function buildHreflangAlternates(
-  siteUrl: string,
-  path?: string,
-  locale?: Locale,
-): NonNullable<Metadata['alternates']> {
+function buildHreflangAlternates(siteUrl: string, path?: string): NonNullable<Metadata['alternates']> {
   const url = buildCanonicalUrl(siteUrl, path);
-  const selfHreflang = resolveHreflangKey(locale);
 
   return {
     canonical: url,
     languages: {
-      [selfHreflang]: url,
+      'ar-YE': url,
       'x-default': url,
     },
   };
@@ -248,7 +238,6 @@ export function buildPageMetadata(
     type?: 'website' | 'article';
     robots?: Metadata['robots'];
   },
-  locale?: Locale,
 ): Metadata {
   const s = withWebsiteSettingsDefaults(settings);
   const siteUrl = getSiteUrl(s);
@@ -261,7 +250,7 @@ export function buildPageMetadata(
     title: page.title,
     description,
     robots: resolveRobots(s, page.robots),
-    alternates: buildHreflangAlternates(siteUrl, path, locale),
+    alternates: buildHreflangAlternates(siteUrl, path),
     openGraph: {
       type: page.type ?? 'website',
       url,
@@ -310,15 +299,12 @@ export async function getRootViewport() {
 
 export async function getPageMetadataFromSettings(
   page: Parameters<typeof buildPageMetadata>[1],
-  locale?: Locale,
 ): Promise<Metadata> {
   const { getWebsiteSettingsServer } = await import(
     '@/features/website-settings/services/website-settings-server'
   );
-  const { getServerLocale } = await import('@/lib/i18n/server');
   const settings = await getWebsiteSettingsServer();
-  const resolvedLocale = locale ?? (await getServerLocale());
-  return buildPageMetadata(settings, page, resolvedLocale);
+  return buildPageMetadata(settings, page);
 }
 
 export async function getWebsiteSettingsForMetadata(): Promise<WebsiteSettings> {

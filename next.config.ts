@@ -1,4 +1,9 @@
 import type { NextConfig } from 'next';
+import { LOCALE_COOKIE } from './src/lib/i18n/config';
+
+const LOCALE_REWRITE_SOURCE =
+  '/:path((?!api(?:/|$)|_next/|favicon/|ar(?:/|$)|en(?:/|$)|.*\\.(?:ico|png|jpe?g|gif|svg|webp|avif|txt|xml|js|json|webmanifest|map|css|woff2?|ttf|otf|mp4|webm|pdf)$).*)';
+const ENGLISH_LOCALE_COOKIE = { type: 'cookie' as const, key: LOCALE_COOKIE, value: 'en' };
 
 function resolvePublicSocketUrl(): string {
   const explicit =
@@ -71,11 +76,18 @@ const nextConfig: NextConfig = {
     loaderFile: './src/lib/images/cloudinary-loader.ts',
   },
   async rewrites() {
-    return [
-      { source: '/favicon.ico', destination: '/favicon/favicon.ico' },
-      { source: '/apple-touch-icon.png', destination: '/favicon/apple-touch-icon.png' },
-      { source: '/site.webmanifest', destination: '/favicon/site.webmanifest' },
-    ];
+    return {
+      beforeFiles: [
+        { source: LOCALE_REWRITE_SOURCE, has: [ENGLISH_LOCALE_COOKIE], destination: '/en/:path' },
+        { source: LOCALE_REWRITE_SOURCE, missing: [ENGLISH_LOCALE_COOKIE], destination: '/ar/:path' },
+      ],
+      afterFiles: [
+        { source: '/favicon.ico', destination: '/favicon/favicon.ico' },
+        { source: '/apple-touch-icon.png', destination: '/favicon/apple-touch-icon.png' },
+        { source: '/site.webmanifest', destination: '/favicon/site.webmanifest' },
+      ],
+      fallback: [],
+    };
   },
 };
 
